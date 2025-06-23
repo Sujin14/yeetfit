@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'onboarding_screen.dart';
-import 'package:yeetfit/features/user/presentation/user_dashboard.dart'; // Replace with actual path
-import 'package:yeetfit/features/admin/presentation/admin_dashboard.dart'; // Replace with actual path
+import 'package:yeetfit/features/auth/presentation/onboarding/onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

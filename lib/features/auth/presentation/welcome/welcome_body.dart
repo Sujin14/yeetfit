@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:yeetfit/features/auth/presentation/login/login_screen.dart';
 import 'welcome_button.dart';
-import '../phone_auth_screen.dart';
-import '../../admin/presentation/admin_login_screen.dart'; // you will create this later
 
 class WelcomeBody extends StatelessWidget {
   const WelcomeBody({super.key});
@@ -31,7 +30,7 @@ class WelcomeBody extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const PhoneAuthScreen()),
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
               );
             },
           ),
