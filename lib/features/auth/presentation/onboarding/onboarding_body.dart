@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:yeetfit/features/auth/presentation/welcome/welcome_screen.dart';
 import 'onboarding_controller.dart';
 import 'onboarding_page.dart';
-import '../phone_auth_screen.dart'; // to be implemented
 
 class OnboardingBody extends StatelessWidget {
   const OnboardingBody({super.key});
@@ -44,7 +44,7 @@ class OnboardingBody extends StatelessWidget {
             onPressed: () {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (_) => const PhoneAuthScreen()),
+                MaterialPageRoute(builder: (_) => const WelcomeScreen()),
               );
             },
             child: const Text("Skip"),
@@ -81,7 +81,7 @@ class OnboardingBody extends StatelessWidget {
               } else {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (_) => const PhoneAuthScreen()),
+                  MaterialPageRoute(builder: (_) => const WelcomeScreen()),
                 );
               }
             },
