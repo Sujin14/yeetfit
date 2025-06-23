@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:yeetfit/features/auth/presentation/controller/google_auth_controller.dart';
+import 'package:yeetfit/features/auth/presentation/controller/user_controllers/google_auth_controller.dart';
 
 class GoogleButton extends ConsumerWidget {
   const GoogleButton({super.key});

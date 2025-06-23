@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:yeetfit/features/auth/presentation/services/google_auth_service.dart';
+import 'package:yeetfit/features/auth/presentation/services/user_auth_services/google_auth_service.dart';
 
 final googleAuthControllerProvider =
     StateNotifierProvider<GoogleAuthController, bool>(

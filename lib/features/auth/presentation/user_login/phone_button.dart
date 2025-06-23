@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:yeetfit/features/auth/presentation/controller/phone_auth_controller.dart';
+import 'package:yeetfit/features/auth/presentation/controller/user_controllers/phone_auth_controller.dart';
 
 class PhoneButton extends ConsumerWidget {
   const PhoneButton({super.key});

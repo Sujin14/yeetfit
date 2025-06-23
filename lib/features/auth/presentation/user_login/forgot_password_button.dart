@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:yeetfit/features/auth/presentation/controller/email_auth_controller.dart';
+import 'package:yeetfit/features/auth/presentation/controller/user_controllers/email_auth_controller.dart';
 
 class ForgotPasswordButton extends ConsumerWidget {
   const ForgotPasswordButton({super.key});

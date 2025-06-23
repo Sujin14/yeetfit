@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:yeetfit/features/auth/presentation/controller/email_auth_controller.dart';
+import 'package:yeetfit/features/auth/presentation/controller/user_controllers/email_auth_controller.dart';
 import 'forgot_password_button.dart';
 
 class LoginForm extends ConsumerStatefulWidget {

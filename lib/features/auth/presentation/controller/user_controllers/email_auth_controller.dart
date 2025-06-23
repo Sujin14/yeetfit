@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:yeetfit/features/auth/presentation/services/email_auth_service.dart';
+import 'package:yeetfit/features/auth/presentation/services/user_auth_services/email_auth_service.dart';
 
 final emailAuthControllerProvider =
     StateNotifierProvider<EmailAuthController, bool>(
@@ -21,6 +21,18 @@ class EmailAuthController extends StateNotifier<bool> {
     state = true;
     final result = await _service.signInWithEmail(email, password);
     state = false;
+    return result != null;
+  }
+
+  Future<bool> signUp(
+    String email,
+    String password,
+    BuildContext context,
+  ) async {
+    state = true;
+    final result = await _service.signUpWithEmail(email, password);
+    state = false;
+
     return result != null;
   }
 

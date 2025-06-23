@@ -15,6 +15,18 @@ class EmailAuthService {
     }
   }
 
+  Future<UserCredential?> signUpWithEmail(String email, String password) async {
+    try {
+      return await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+    } on FirebaseAuthException catch (e) {
+      print("Signup error: ${e.message}");
+      return null;
+    }
+  }
+
   Future<void> sendPasswordResetEmail(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);

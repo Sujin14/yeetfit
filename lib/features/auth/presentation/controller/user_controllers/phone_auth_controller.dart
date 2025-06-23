@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:yeetfit/features/auth/presentation/services/phone_auth_service.dart';
+import 'package:yeetfit/features/auth/presentation/services/user_auth_services/phone_auth_service.dart';
 
 final phoneAuthControllerProvider =
     StateNotifierProvider<PhoneAuthController, bool>(

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:yeetfit/features/auth/presentation/login/login_screen.dart';
+import 'package:yeetfit/features/auth/presentation/user_login/login_screen.dart';
 import 'welcome_button.dart';
 
 class WelcomeBody extends StatelessWidget {
