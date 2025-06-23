@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "866289640315",
+    "project_id": "yeetfit-43038",
+    "storage_bucket": "yeetfit-43038.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:866289640315:android:965f3fa187e1221baa93de",
+        "android_client_info": {
+          "package_name": "com.sujin.yeetfit"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "866289640315-b89hjpt5gjtbiu906l1he83hef3gvktc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sujin.yeetfit",
+            "certificate_hash": "92913095fd454dc9f1c44a6e6d74399f67c0c913"
+          }
+        },
+        {
+          "client_id": "866289640315-55okeoa9kjp2un22hhs7vht2ifvqduoi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBeclXcro3A5F0djHPMbXc-0MRd1FgK8Og"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "866289640315-55okeoa9kjp2un22hhs7vht2ifvqduoi.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

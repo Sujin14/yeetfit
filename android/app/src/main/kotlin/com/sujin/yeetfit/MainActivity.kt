@@ -1,0 +1,5 @@
+package com.sujin.yeetfit
+
+import io.flutter.embedding.android.FlutterActivity
+
+class MainActivity : FlutterActivity()
