@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../../business/onboarding_controller.dart';
+import '../../../application/controllers/onboarding_controller.dart';
 import '../../widgets/onboarding_body.dart';
 
 final onboardingControllerProvider =

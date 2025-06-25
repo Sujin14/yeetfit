@@ -45,6 +45,8 @@ dependencies:
   cupertino_icons: ^1.0.8
   rename: ^3.1.0
   google_fonts: ^6.2.1
+  lottie: ^3.3.1
+  flutter_screenutil: ^5.9.3
 
 dev_dependencies:
   flutter_test:
@@ -72,6 +74,7 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
+    - assets/animations/
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

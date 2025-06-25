@@ -8,8 +8,9 @@ abstract class AuthRepository {
 
   // Google Auth
   Future<UserCredential?> signInWithGoogle();
+}
 
-  // Phone Auth
+  /* Phone Auth
   Future<void> verifyPhoneNumber({
     required String phoneNumber,
     required Function(String verificationId) onCodeSent,
@@ -25,4 +26,5 @@ abstract class AuthRepository {
     Function(String verificationId) onCodeSent,
     Function(String error) onError,
   );
-}
+  */
+

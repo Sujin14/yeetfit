@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -20,8 +21,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
       if (user != null) {
         // TODO: Fetch role from Firestore to confirm role
-        bool isAdmin = user.email?.endsWith('@admin.com') ?? false;
-
+        final isAdmin = user.email?.endsWith('@admin.com') ?? false;
         context.go(isAdmin ? '/admin-dashboard' : '/user-dashboard');
       } else {
         context.go('/onboarding');
@@ -32,7 +32,9 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SizedBox.expand(
+      body: SizedBox(
+        width: 1.sw,
+        height: 1.sh,
         child: Image.asset(
           'assets/images/splash_screen.jpg',
           fit: BoxFit.cover,

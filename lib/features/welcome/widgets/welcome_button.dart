@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../shared/theme/user_theme.dart';
+
 class WelcomeButton extends StatelessWidget {
   final String label;
   final VoidCallback onPressed;
@@ -9,7 +11,7 @@ class WelcomeButton extends StatelessWidget {
     super.key,
     required this.label,
     required this.onPressed,
-    this.color = Colors.orangeAccent,
+    this.color = UserTheme.primaryButton,
   });
 
   @override

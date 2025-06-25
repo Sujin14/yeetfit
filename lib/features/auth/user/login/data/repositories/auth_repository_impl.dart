@@ -2,17 +2,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/email_auth_service.dart';
 import '../datasources/google_auth_service.dart';
-import '../datasources/phone_auth_service.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final EmailAuthService emailService;
   final GoogleAuthService googleService;
-  final PhoneAuthService phoneService;
+  //final PhoneAuthService phoneService;
 
   AuthRepositoryImpl({
     required this.emailService,
     required this.googleService,
-    required this.phoneService,
+    // required this.phoneService,
   });
 
   @override
@@ -34,7 +33,9 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<UserCredential?> signInWithGoogle() {
     return googleService.signInWithGoogle();
   }
+}
 
+/*
   @override
   Future<void> verifyPhoneNumber({
     required String phoneNumber,
@@ -77,4 +78,4 @@ class AuthRepositoryImpl implements AuthRepository {
       smsCode: smsCode,
     );
   }
-}
+  */

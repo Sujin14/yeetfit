@@ -3,7 +3,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../data/datasources/email_auth_service.dart';
 import '../../data/datasources/google_auth_service.dart';
-import '../../data/datasources/phone_auth_service.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/usecases/login_with_google.dart';
 
@@ -12,7 +11,6 @@ final googleAuthControllerProvider =
       final repo = AuthRepositoryImpl(
         emailService: EmailAuthService(),
         googleService: GoogleAuthService(),
-        phoneService: PhoneAuthService(),
       );
       return GoogleAuthController(loginWithGoogle: LoginWithGoogle(repo));
     });

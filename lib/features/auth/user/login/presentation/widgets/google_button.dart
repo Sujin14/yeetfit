@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-
 import '../../application/controllers/google-auth_controller.dart';
 
 class GoogleButton extends ConsumerWidget {

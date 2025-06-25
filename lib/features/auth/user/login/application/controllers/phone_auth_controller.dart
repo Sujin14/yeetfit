@@ -1,3 +1,4 @@
+/*
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -25,51 +26,49 @@ class PhoneAuthController extends StateNotifier<bool> {
   final LoginWithPhone loginWithPhone;
   final VerifyOTP verifyOTP;
 
+  String? _verificationId;
+
   PhoneAuthController({required this.loginWithPhone, required this.verifyOTP})
     : super(false);
 
   Future<void> login(String phone, BuildContext context) async {
+    state = true;
     await loginWithPhone(
       phone,
-      (verificationId) => _showOTPDialog(context, verificationId),
-      (error) => ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error))),
+      (verificationId) {
+        _verificationId = verificationId;
+        // Let UI know OTP is sent (handled outside now)
+      },
+      (error) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error)));
+      },
     );
+    state = false;
   }
 
-  void _showOTPDialog(BuildContext context, String verificationId) {
-    String otp = '';
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Enter OTP"),
-        content: TextField(
-          keyboardType: TextInputType.number,
-          onChanged: (value) => otp = value,
-          decoration: const InputDecoration(hintText: "6-digit OTP"),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              final success = await verifyOTP(verificationId, otp);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    success ? "Phone login successful" : "Invalid OTP",
-                  ),
-                ),
-              );
-            },
-            child: const Text("Verify"),
-          ),
-        ],
-      ),
-    );
+  Future<void> verifyOtp(String otp, BuildContext context) async {
+    if (_verificationId == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("OTP not sent yet")));
+      return;
+    }
+
+    state = true;
+    final success = await verifyOTP(_verificationId!, otp);
+    state = false;
+
+    if (success) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Phone login successful")));
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Invalid OTP")));
+    }
   }
 }
+*/

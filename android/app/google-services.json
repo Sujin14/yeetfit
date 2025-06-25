@@ -37,6 +37,13 @@
             {
               "client_id": "866289640315-55okeoa9kjp2un22hhs7vht2ifvqduoi.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "866289640315-1ejs4n2j3m5ve9nooceort93cbn1ht47.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.yeetfit"
+              }
             }
           ]
         }

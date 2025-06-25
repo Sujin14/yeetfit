@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lottie/lottie.dart';
+import '../../../shared/theme/app_text_styles.dart';
+import '../../../shared/theme/user_theme.dart';
 import 'welcome_button.dart';
 
 class WelcomeBody extends StatelessWidget {
@@ -8,32 +12,53 @@ class WelcomeBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(24.w),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Spacer(),
-          Image.asset('assets/images/welcome.png', height: 220),
-          const SizedBox(height: 32),
-          const Text(
-            "Welcome to YeetFit",
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+
+          Lottie.asset(
+            'assets/animations/initial_animation.json',
+            height: 300.h,
+            repeat: true,
           ),
-          const SizedBox(height: 12),
-          const Text(
+
+          SizedBox(height: 32.h),
+
+          Text(
+            "Welcome to YeetFit",
+            style: AppTextStyles.heading.copyWith(
+              color: UserTheme.darkText,
+              fontSize: 30.sp,
+            ),
+          ),
+
+          SizedBox(height: 12.h),
+
+          Text(
             "Track your health. Follow your goals.",
             textAlign: TextAlign.center,
+            style: AppTextStyles.body.copyWith(
+              color: UserTheme.darkText,
+              fontSize: 20.sp,
+            ),
           ),
+
           const Spacer(),
+
           WelcomeButton(
             label: "Login",
+            color: Colors.green,
             onPressed: () => context.push('/login'),
           ),
-          const SizedBox(height: 12),
+
+          SizedBox(height: 12.h),
+
           WelcomeButton(
             label: "Login as Admin",
+            color: Colors.green,
             onPressed: () => context.push('/admin-login'),
-            color: Colors.grey.shade800,
           ),
         ],
       ),
