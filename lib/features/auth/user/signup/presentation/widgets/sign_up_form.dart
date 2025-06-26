@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../login/application/controllers/email_auth_controller.dart';
@@ -21,9 +22,13 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
       final success = await ref
           .read(emailAuthControllerProvider.notifier)
           .signUp(_email.trim(), _password.trim(), context);
-
-      final msg = success ? 'Signup successful' : 'Signup failed';
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      if (success) {
+        context.go('/user-setup');
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Signup failed')));
+      }
     }
   }
 

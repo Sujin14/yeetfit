@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../onboarding/providers/onboarding_screen.dart';
@@ -29,60 +30,61 @@ class OnboardingBody extends ConsumerWidget {
       ),
     ];
 
-    return Stack(
-      children: [
-        PageView.builder(
-          controller: controller.pageController,
-          itemCount: pages.length,
-          onPageChanged: controller.onPageChanged,
-          itemBuilder: (_, index) => pages[index],
-        ),
-        Positioned(
-          top: 40,
-          right: 20,
-          child: TextButton(
-            onPressed: () {
-              context.go('/welcome');
-            },
-            child: const Text("Skip"),
+    return SafeArea(
+      child: Stack(
+        children: [
+          PageView.builder(
+            controller: controller.pageController,
+            itemCount: pages.length,
+            onPageChanged: controller.onPageChanged,
+            itemBuilder: (_, index) => RepaintBoundary(child: pages[index]),
           ),
-        ),
-        Positioned(
-          bottom: 60,
-          left: 0,
-          right: 0,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(3, (index) {
-              final isActive = index == controller.currentPage;
-              return AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                height: 8,
-                width: isActive ? 20 : 8,
-                decoration: BoxDecoration(
-                  color: Colors.orangeAccent,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              );
-            }),
+          if (controller.currentPage < 2)
+            Positioned(
+              top: 20.h,
+              right: 20.h,
+              child: TextButton(
+                onPressed: () => context.go('/welcome'),
+                child: const Text("Skip"),
+              ),
+            ),
+          Positioned(
+            bottom: 60,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(3, (index) {
+                final isActive = index == controller.currentPage;
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  height: 8,
+                  width: isActive ? 20 : 8,
+                  decoration: BoxDecoration(
+                    color: Colors.orangeAccent,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                );
+              }),
+            ),
           ),
-        ),
-        Positioned(
-          bottom: 20,
-          right: 20,
-          child: ElevatedButton(
-            onPressed: () {
-              if (controller.currentPage < 2) {
-                controller.nextPage();
-              } else {
-                context.go('/welcome');
-              }
-            },
-            child: Text(controller.currentPage < 2 ? 'Next' : 'Get Started'),
+          Positioned(
+            bottom: 20,
+            right: 20,
+            child: ElevatedButton(
+              onPressed: () {
+                if (controller.currentPage < 2) {
+                  controller.nextPage();
+                } else {
+                  context.go('/welcome');
+                }
+              },
+              child: Text(controller.currentPage < 2 ? 'Next' : 'Get Started'),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

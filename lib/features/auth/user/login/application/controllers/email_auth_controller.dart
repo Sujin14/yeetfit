@@ -13,6 +13,7 @@ final emailAuthControllerProvider =
       final repo = AuthRepositoryImpl(
         emailService: EmailAuthService(),
         googleService: GoogleAuthService(),
+        //phoneService: PhoneAuthService(),
       );
 
       return EmailAuthController(

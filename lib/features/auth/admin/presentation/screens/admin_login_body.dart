@@ -6,19 +6,13 @@ class AdminLoginBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
+    return Scaffold(
+      appBar: AppBar(title: Text("Admin Login")),
+      body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text(
-              "Admin Login",
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 20),
-            AdminLoginForm(),
-          ],
+          children: const [SizedBox(height: 20), AdminLoginForm()],
         ),
       ),
     );

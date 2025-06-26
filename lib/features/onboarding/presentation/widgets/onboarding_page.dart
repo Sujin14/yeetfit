@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class OnboardingPage extends StatelessWidget {
   final String imagePath, title, description;
@@ -15,56 +16,33 @@ class OnboardingPage extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        Image.asset(imagePath, fit: BoxFit.fill),
-        Container(color: Colors.black.withAlpha((0.4 * 255).toInt())),
+        Image.asset(
+          imagePath,
+          fit: BoxFit.cover,
+          cacheWidth: 800,
+          cacheHeight: 1200,
+        ),
         Padding(
-          padding: const EdgeInsets.all(32.0),
+          padding: EdgeInsets.all(32.0.w),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.end,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ShaderMask(
-                shaderCallback: (bounds) =>
-                    const LinearGradient(
-                      colors: [
-                        Color.fromARGB(255, 244, 76, 25),
-                        Color.fromARGB(255, 250, 186, 68),
-                        Color.fromARGB(255, 228, 210, 177),
-                      ],
-                    ).createShader(
-                      Rect.fromLTWH(0, 0, bounds.width, bounds.height),
-                    ),
-                child: Text(
-                  title,
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+              Text(
+                title,
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-
-              const SizedBox(height: 16),
-
-              ShaderMask(
-                shaderCallback: (bounds) =>
-                    const LinearGradient(
-                      colors: [
-                        Color.fromARGB(255, 4, 191, 23),
-                        Color.fromARGB(255, 211, 223, 41),
-                        Color.fromARGB(255, 208, 52, 21),
-                      ],
-                    ).createShader(
-                      Rect.fromLTWH(0, 0, bounds.width, bounds.height),
-                    ),
-                child: Text(
-                  description,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyLarge?.copyWith(color: Colors.white70),
-                ),
+              SizedBox(height: 16.h),
+              Text(
+                description,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyLarge?.copyWith(color: Colors.white70),
               ),
-
-              const SizedBox(height: 100),
+              SizedBox(height: 100.h),
             ],
           ),
         ),

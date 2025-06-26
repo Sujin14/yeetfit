@@ -3,14 +3,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class AdminAuthService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<bool> validateAdminCredentials(
-    String username,
-    String password,
-  ) async {
+  Future<bool> validateAdminCredentials(String email, String password) async {
     try {
       final snapshot = await _firestore
           .collection('admins')
-          .where('username', isEqualTo: username)
+          .where('email', isEqualTo: email)
           .limit(1)
           .get();
 

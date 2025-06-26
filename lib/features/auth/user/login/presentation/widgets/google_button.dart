@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../application/controllers/google-auth_controller.dart';
+import '../../application/controllers/google_auth_controller.dart';
 
 class GoogleButton extends ConsumerWidget {
   const GoogleButton({super.key});
@@ -11,9 +12,8 @@ class GoogleButton extends ConsumerWidget {
 
     return SizedBox(
       width: double.infinity,
-      child: OutlinedButton.icon(
-        icon: Image.asset('assets/icons/google.png', height: 24),
-        label: const Text("Sign in with Google"),
+      child: IconButton(
+        icon: Image.asset('assets/icons/google.png', height: 100.h),
         onPressed: isLoading
             ? null
             : () => ref

@@ -11,6 +11,7 @@ final googleAuthControllerProvider =
       final repo = AuthRepositoryImpl(
         emailService: EmailAuthService(),
         googleService: GoogleAuthService(),
+        // phoneService: PhoneAuthService(),
       );
       return GoogleAuthController(loginWithGoogle: LoginWithGoogle(repo));
     });

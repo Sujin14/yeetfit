@@ -12,7 +12,7 @@ class AdminLoginForm extends ConsumerStatefulWidget {
 
 class _AdminLoginFormState extends ConsumerState<AdminLoginForm> {
   final _formKey = GlobalKey<FormState>();
-  String _username = '';
+  String _email = '';
   String _password = '';
 
   void _submit(BuildContext context) {
@@ -21,7 +21,7 @@ class _AdminLoginFormState extends ConsumerState<AdminLoginForm> {
       ref
           .read(adminAuthControllerProvider.notifier)
           .loginAsAdmin(
-            username: _username.trim(),
+            email: _email.trim(),
             password: _password.trim(),
             context: context,
           );
@@ -37,10 +37,10 @@ class _AdminLoginFormState extends ConsumerState<AdminLoginForm> {
       child: Column(
         children: [
           TextFormField(
-            decoration: const InputDecoration(labelText: 'Username'),
+            decoration: const InputDecoration(labelText: 'email'),
             validator: (val) =>
-                val != null && val.isNotEmpty ? null : 'Enter your username',
-            onSaved: (val) => _username = val ?? '',
+                val != null && val.isNotEmpty ? null : 'Enter your email',
+            onSaved: (val) => _email = val ?? '',
           ),
           const SizedBox(height: 16),
           TextFormField(

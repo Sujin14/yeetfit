@@ -6,7 +6,7 @@ class AdminAuthRepositoryImpl implements AdminAuthRepository {
   AdminAuthRepositoryImpl(this.service);
 
   @override
-  Future<bool> login(String username, String password) {
-    return service.validateAdminCredentials(username, password);
+  Future<bool> login(String email, String password) {
+    return service.validateAdminCredentials(email, password);
   }
 }

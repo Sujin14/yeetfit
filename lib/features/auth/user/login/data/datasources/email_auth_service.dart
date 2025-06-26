@@ -20,7 +20,11 @@ class EmailAuthService {
         email: email,
         password: password,
       );
-    } catch (_) {
+    } on FirebaseAuthException catch (e) {
+      print('Signup failed: ${e.code} - ${e.message}');
+      return null;
+    } catch (e) {
+      print('Unexpected error during signup: $e');
       return null;
     }
   }

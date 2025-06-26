@@ -19,12 +19,12 @@ class AdminAuthController extends StateNotifier<bool> {
   AdminAuthController({required this.loginUseCase}) : super(false);
 
   Future<void> loginAsAdmin({
-    required String username,
+    required String email,
     required String password,
     required BuildContext context,
   }) async {
     state = true;
-    final isValid = await loginUseCase(username, password);
+    final isValid = await loginUseCase(email, password);
     state = false;
 
     if (isValid) {

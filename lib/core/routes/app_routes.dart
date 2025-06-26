@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:yeetfit/features/auth/user/user_details/presentation/user_setup_screen.dart';
 import 'package:yeetfit/features/onboarding/presentation/onboarding/providers/onboarding_screen.dart';
 import 'package:yeetfit/features/splash_screen.dart';
 import '../../features/auth/admin/presentation/screens/admin_login_screen.dart';
@@ -34,5 +35,13 @@ final GoRouter appRouter = GoRouter(
       path: '/admin-dashboard',
       builder: (context, state) => const AdminDashboard(),
     ),
+    GoRoute(
+      path: '/user-setup',
+      builder: (context, state) => const UserSetupScreen(),
+    ),
+    // GoRoute(
+    //   path: '/phone-login',
+    //   builder: (context, state) => const PhoneLoginScreen(),
+    // ),
   ],
 );

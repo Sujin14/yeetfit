@@ -28,9 +28,11 @@ class _LoginFormState extends ConsumerState<LoginForm> {
       if (success) {
         context.go('/user-dashboard');
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text("Login failed")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("User not found, please create an account"),
+          ),
+        );
       }
     }
   }
@@ -52,8 +54,10 @@ class _LoginFormState extends ConsumerState<LoginForm> {
             ),
             validator: (value) {
               if (value == null || value.isEmpty) return 'Email is required';
-              final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}\$');
-              if (!emailRegex.hasMatch(value)) return 'Enter a valid email';
+              final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+              if (!emailRegex.hasMatch(value)) {
+                return 'Enter a valid email format';
+              }
               return null;
             },
           ),

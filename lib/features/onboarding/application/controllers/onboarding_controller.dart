@@ -12,13 +12,25 @@ class OnboardingController extends ChangeNotifier {
   void nextPage() {
     if (currentPage < 2) {
       pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 400),
         curve: Curves.easeInOut,
       );
     }
   }
 
-  void disposeController() {
+  Future<void> preloadImages(BuildContext context) async {
+    for (final asset in [
+      'assets/images/onboarding1.png',
+      'assets/images/onboarding2.png',
+      'assets/images/onboarding3.png',
+    ]) {
+      await precacheImage(AssetImage(asset), context);
+    }
+  }
+
+  @override
+  void dispose() {
     pageController.dispose();
+    super.dispose();
   }
 }
