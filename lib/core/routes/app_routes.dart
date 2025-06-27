@@ -42,9 +42,5 @@ final GoRouter appRouter = GoRouter(
         return UserInfoStepPage(step: step);
       },
     ),
-    // GoRoute(
-    //   path: '/phone-login',
-    //   builder: (context, state) => const PhoneLoginScreen(),
-    // ),
   ],
 );

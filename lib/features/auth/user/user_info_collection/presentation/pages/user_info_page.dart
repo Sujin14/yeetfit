@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../application/user_info_notifier.dart';
-import '../../application/user_info_step_controller.dart';
+
+import '../../application/user_info_controller.dart';
 import '../widgets/activity_level_input.dart';
 import '../widgets/age_input.dart';
 import '../widgets/goal_input.dart';
@@ -10,96 +10,74 @@ import '../widgets/height_input.dart';
 import '../widgets/name_gender_input.dart';
 import '../widgets/weight_input.dart';
 
-class UserInfoStepPage extends ConsumerStatefulWidget {
+class UserInfoStepPage extends ConsumerWidget {
   final int step;
 
-  const UserInfoStepPage({super.key, required this.step});
+  UserInfoStepPage({super.key, required this.step});
+
+  final List<GlobalKey<FormState>> formKeys = [
+    GlobalKey<FormState>(),
+    GlobalKey<FormState>(),
+    GlobalKey<FormState>(),
+    GlobalKey<FormState>(),
+    GlobalKey<FormState>(),
+    GlobalKey<FormState>(),
+  ];
 
   @override
-  ConsumerState<UserInfoStepPage> createState() => _UserInfoStepPageState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notifier = ref.read(userInfoControllerProvider.notifier);
 
-class _UserInfoStepPageState extends ConsumerState<UserInfoStepPage> {
-  final _formKey = GlobalKey<FormState>();
-
-  @override
-  Widget build(BuildContext context) {
-    final currentStep = ref.watch(userInfoControllerProvider);
-    final progress = (widget.step + 1) / 6;
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (currentStep != widget.step) {
-        ref.read(userInfoStepProvider.notifier).updateStep(widget.step);
+    Widget getStepWidget(int step) {
+      switch (step) {
+        case 0:
+          return NameGenderInput(formKey: formKeys[0]);
+        case 1:
+          return AgeInput(formKey: formKeys[1]);
+        case 2:
+          return GoalInput(formKey: formKeys[2]);
+        case 3:
+          return WeightInput(formKey: formKeys[3]);
+        case 4:
+          return HeightInput(formKey: formKeys[4]);
+        case 5:
+          return ActivityLevelDropdown(formKey: formKeys[5]);
+        default:
+          return const SizedBox.shrink();
       }
-    });
-
-    Widget currentStepWidget;
-    switch (widget.step) {
-      case 0:
-        currentStepWidget = NameGenderInput(formKey: _formKey);
-        break;
-      case 1:
-        currentStepWidget = AgeInput(formKey: _formKey);
-        break;
-      case 2:
-        currentStepWidget = GoalInput(formKey: _formKey);
-        break;
-      case 3:
-        currentStepWidget = WeightInput(formKey: _formKey);
-        break;
-      case 4:
-        currentStepWidget = HeightInput(formKey: _formKey);
-        break;
-      case 5:
-        currentStepWidget = ActivityLevelDropdown(formKey: _formKey);
-        break;
-      default:
-        currentStepWidget = const SizedBox();
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text("User Info"), centerTitle: true),
-      body: Column(
-        children: [
-          LinearProgressIndicator(value: progress),
-          const SizedBox(height: 24),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Form(key: _formKey, child: currentStepWidget),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: Row(
+      appBar: AppBar(title: const Text("User Info")),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Expanded(child: getStepWidget(step)),
+            Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                if (widget.step > 0)
+                if (step > 0)
                   ElevatedButton(
-                    onPressed: () {
-                      context.go('/user-info-step/${widget.step - 1}');
-                    },
-                    child: const Text("Previous"),
+                    onPressed: () => context.go('/user-info-step/${step - 1}'),
+                    child: const Text("Back"),
                   ),
                 ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      if (widget.step < 5) {
-                        context.go('/user-info-step/${widget.step + 1}');
+                  onPressed: () async {
+                    if (formKeys[step].currentState!.validate()) {
+                      if (step < 5) {
+                        context.go('/user-info-step/${step + 1}');
                       } else {
-                        ref
-                            .read(userInfoControllerProvider.notifier)
-                            .saveUserData(context);
+                        await notifier.saveUserData(context);
                       }
                     }
                   },
-                  child: Text(widget.step < 5 ? "Next" : "Finish"),
+                  child: Text(step < 5 ? "Next" : "Save"),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 24),
-        ],
+          ],
+        ),
       ),
     );
   }

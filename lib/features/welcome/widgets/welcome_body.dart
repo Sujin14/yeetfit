@@ -19,7 +19,7 @@ class WelcomeBody extends StatelessWidget {
           const Spacer(),
 
           Lottie.asset(
-            'assets/animations/initial_animation.json',
+            'assets/animations/running.json',
             height: 300.h,
             repeat: true,
           ),

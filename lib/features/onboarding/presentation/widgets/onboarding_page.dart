@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:yeetfit/shared/theme/user_theme.dart';
+
+import '../../../../shared/theme/gradient_text.dart';
 
 class OnboardingPage extends StatelessWidget {
   final String imagePath, title, description;
@@ -13,40 +17,74 @@ class OnboardingPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        Image.asset(
-          imagePath,
-          fit: BoxFit.cover,
-          cacheWidth: 800,
-          cacheHeight: 1200,
-        ),
-        Padding(
-          padding: EdgeInsets.all(32.0.w),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+    return Scaffold(
+      backgroundColor: UserTheme.lightBackground,
+      body: SafeArea(
+        child: Column(
+          children: [
+            SizedBox(height: 50.h),
+            Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: 'Yeet',
+                    style: GoogleFonts.fredoka(
+                      color: Colors.green,
+                      fontSize: 70..sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  TextSpan(
+                    text: 'Fit',
+                    style: GoogleFonts.fredoka(
+                      color: Colors.black,
+                      fontSize: 70.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(
+              height: 300.h,
+              width: double.infinity,
+              child: Image.asset(imagePath, fit: BoxFit.contain),
+            ),
+            SizedBox(height: 100),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 32.w, vertical: 24.h),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    GradientText(
+                      text: title,
+                      style: Theme.of(context).textTheme.headlineMedium!
+                          .copyWith(fontWeight: FontWeight.bold),
+                      gradient: const LinearGradient(
+                        colors: [Colors.green, Colors.yellow, Colors.red],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
+                    SizedBox(height: 16.h),
+                    GradientText(
+                      text: description,
+                      style: Theme.of(context).textTheme.bodyLarge!,
+                      gradient: const LinearGradient(
+                        colors: [Colors.deepPurple, Colors.blue, Colors.yellow],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
+                    const Spacer(),
+                  ],
                 ),
               ),
-              SizedBox(height: 16.h),
-              Text(
-                description,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyLarge?.copyWith(color: Colors.white70),
-              ),
-              SizedBox(height: 100.h),
-            ],
-          ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
