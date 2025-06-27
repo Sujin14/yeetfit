@@ -23,7 +23,7 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
           .read(emailAuthControllerProvider.notifier)
           .signUp(_email.trim(), _password.trim(), context);
       if (success) {
-        context.go('/user-setup');
+        context.go('/user-info-step/:step');
       } else {
         ScaffoldMessenger.of(
           context,
