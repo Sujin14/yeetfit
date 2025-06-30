@@ -23,7 +23,6 @@ class UserInfoNotifier extends StateNotifier<UserInfoModel> {
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      // Log error or handle as needed
       print('Error updating Firestore: $e');
     }
   }

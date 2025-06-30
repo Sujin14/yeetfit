@@ -20,7 +20,6 @@ class _SplashScreenState extends State<SplashScreen> {
       final user = FirebaseAuth.instance.currentUser;
 
       if (user != null) {
-        // TODO: Fetch role from Firestore to confirm role
         final isAdmin = user.email?.endsWith('@admin.com') ?? false;
         context.go(isAdmin ? '/admin-dashboard' : '/user-dashboard');
       } else {

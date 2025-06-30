@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../../../../../core/services/firestore_user_service.dart';
+import '../../data/services/firestore_user_service.dart';
 import '../../../user_info_collection/application/user_info_controller.dart';
 import '../../data/datasources/email_auth_service.dart';
 import '../../data/datasources/google_auth_service.dart';

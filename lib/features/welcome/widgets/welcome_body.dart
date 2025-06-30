@@ -49,7 +49,6 @@ class WelcomeBody extends StatelessWidget {
 
           WelcomeButton(
             label: "Login",
-            color: Colors.green,
             onPressed: () => context.push('/login'),
           ),
 
@@ -57,7 +56,6 @@ class WelcomeBody extends StatelessWidget {
 
           WelcomeButton(
             label: "Login as Admin",
-            color: Colors.green,
             onPressed: () => context.push('/admin-login'),
           ),
         ],

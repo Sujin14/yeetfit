@@ -26,8 +26,9 @@ class AgeInput extends ConsumerWidget {
             validator: (val) {
               if (val == null || val.trim().isEmpty) return "Age required";
               final age = int.tryParse(val);
-              if (age == null || age < 1 || age > 150)
+              if (age == null || age < 1 || age > 150) {
                 return "Enter a valid age";
+              }
               return null;
             },
             onChanged: (val) {

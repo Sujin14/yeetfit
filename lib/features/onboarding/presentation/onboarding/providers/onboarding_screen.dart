@@ -8,11 +8,11 @@ final onboardingControllerProvider =
       return OnboardingController();
     });
 
-class OnboardingScreen extends ConsumerWidget {
+class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return const Scaffold(body: OnboardingBody());
   }
 }

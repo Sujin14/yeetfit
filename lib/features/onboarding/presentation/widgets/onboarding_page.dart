@@ -22,7 +22,7 @@ class OnboardingPage extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            SizedBox(height: 50.h),
+            const Spacer(),
             Text.rich(
               TextSpan(
                 children: [
@@ -30,7 +30,7 @@ class OnboardingPage extends StatelessWidget {
                     text: 'Yeet',
                     style: GoogleFonts.fredoka(
                       color: Colors.green,
-                      fontSize: 70..sp,
+                      fontSize: 70.sp,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -50,38 +50,38 @@ class OnboardingPage extends StatelessWidget {
               width: double.infinity,
               child: Image.asset(imagePath, fit: BoxFit.contain),
             ),
-            SizedBox(height: 100),
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 32.w, vertical: 24.h),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    GradientText(
-                      text: title,
-                      style: Theme.of(context).textTheme.headlineMedium!
-                          .copyWith(fontWeight: FontWeight.bold),
-                      gradient: const LinearGradient(
-                        colors: [Colors.green, Colors.yellow, Colors.red],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+            const Spacer(),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 32.w, vertical: 24.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  GradientText(
+                    text: title,
+                    style: Theme.of(context).textTheme.headlineMedium!.copyWith(
+                      fontWeight: FontWeight.bold,
                     ),
-                    SizedBox(height: 16.h),
-                    GradientText(
-                      text: description,
-                      style: Theme.of(context).textTheme.bodyLarge!,
-                      gradient: const LinearGradient(
-                        colors: [Colors.deepPurple, Colors.blue, Colors.yellow],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+                    gradient: const LinearGradient(
+                      colors: [Colors.green, Colors.yellow, Colors.red],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                    const Spacer(),
-                  ],
-                ),
+                  ),
+                  SizedBox(height: 16.h),
+                  GradientText(
+                    text: description,
+                    style: Theme.of(context).textTheme.bodyLarge!,
+                    gradient: const LinearGradient(
+                      colors: [Colors.deepPurple, Colors.blue, Colors.yellow],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                ],
               ),
             ),
+            const Spacer(),
           ],
         ),
       ),

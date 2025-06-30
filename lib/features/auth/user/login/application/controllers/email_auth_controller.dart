@@ -2,12 +2,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-
 import '../../../signup/domain/sign_up_with_email.dart';
 import '../../data/datasources/email_auth_service.dart';
 import '../../data/datasources/google_auth_service.dart';
 import '../../data/repositories/auth_repository_impl.dart';
-import '../../data/services/user_services.dart';
+import '../../data/services/firestore_user_service.dart';
 import '../../domain/usecases/login_with_email.dart';
 import '../../domain/usecases/reset_password.dart';
 
