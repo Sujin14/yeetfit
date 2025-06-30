@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:yeetfit/shared/theme/user_theme.dart';
-
-import '../../../../shared/theme/gradient_text.dart';
+import '../../../../shared/theme/theme.dart';
+import '../../../../shared/widgets/gradient_text.dart';
 
 class OnboardingPage extends StatelessWidget {
   final String imagePath, title, description;
@@ -18,7 +17,7 @@ class OnboardingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: UserTheme.lightBackground,
+      backgroundColor: AppTheme.colors['lightBackground'],
       body: SafeArea(
         child: Column(
           children: [
@@ -59,7 +58,7 @@ class OnboardingPage extends StatelessWidget {
                 children: [
                   GradientText(
                     text: title,
-                    style: Theme.of(context).textTheme.headlineMedium!.copyWith(
+                    style: AppTheme.textStyles['heading']!.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                     gradient: const LinearGradient(
@@ -71,7 +70,7 @@ class OnboardingPage extends StatelessWidget {
                   SizedBox(height: 16.h),
                   GradientText(
                     text: description,
-                    style: Theme.of(context).textTheme.bodyLarge!,
+                    style: AppTheme.textStyles['body']!,
                     gradient: const LinearGradient(
                       colors: [Colors.deepPurple, Colors.blue, Colors.yellow],
                       begin: Alignment.topLeft,

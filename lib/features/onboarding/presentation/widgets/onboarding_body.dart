@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../onboarding/providers/onboarding_screen.dart';
+import '../providers/onboarding_controller.dart';
 import 'onboarding_page.dart';
 
 class OnboardingBody extends ConsumerWidget {
