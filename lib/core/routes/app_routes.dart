@@ -1,4 +1,7 @@
 import 'package:go_router/go_router.dart';
+import 'package:yeetfit/features/explore/presentation/screens/explore_screen.dart';
+import 'package:yeetfit/features/progress/presentation/screens/progress_screen.dart';
+import 'package:yeetfit/features/settings/presentation/screens/settings_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
 import '../../features/splash/presentation/screens/splash_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
@@ -24,6 +27,18 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/user-dashboard',
       builder: (context, state) => const UserDashboard(),
+    ),
+    GoRoute(
+      path: '/explore',
+      builder: (context, state) => const ExploreScreen(),
+    ),
+    GoRoute(
+      path: '/progress',
+      builder: (context, state) => const ProgressScreen(),
+    ),
+    GoRoute(
+      path: '/settings',
+      builder: (context, state) => const SettingsScreen(),
     ),
     GoRoute(
       path: '/user-info-step/:step',

@@ -3,10 +3,25 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../shared/widgets/bottom_nav_bar.dart';
 import '../../../../shared/widgets/gradient_text.dart';
 
-class UserDashboard extends StatelessWidget {
+class UserDashboard extends StatefulWidget {
   const UserDashboard({super.key});
+
+  @override
+  State<UserDashboard> createState() => _UserDashboardState();
+}
+
+class _UserDashboardState extends State<UserDashboard> {
+  bool _navBarVisible = true;
+  int _currentIndex = 0;
+
+  void _onIndexChanged(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,12 +38,17 @@ class UserDashboard extends StatelessWidget {
             icon: const Icon(Icons.logout),
             onPressed: () async {
               await FirebaseAuth.instance.signOut();
-              context.go('/welcome');
+              context.go('/');
             },
           ),
         ],
       ),
       body: const DashboardBody(),
+      bottomNavigationBar: BottomNavBar(
+        currentIndex: _currentIndex,
+        isVisible: _navBarVisible,
+        onIndexChanged: _onIndexChanged,
+      ),
     );
   }
 }
@@ -59,7 +79,6 @@ class DashboardBody extends StatelessWidget {
               style: AppTheme.textStyles['subtitle']!.copyWith(fontSize: 16.sp),
             ),
             SizedBox(height: 24.h),
-            // Placeholder for dashboard content
             Expanded(
               child: Center(
                 child: Text(

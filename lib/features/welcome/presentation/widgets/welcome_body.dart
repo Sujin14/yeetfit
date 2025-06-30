@@ -49,13 +49,13 @@ class WelcomeBody extends StatelessWidget {
                 SizedBox(height: 10.h),
                 WelcomeButton(
                   label: 'Log In',
-                  onPressed: () => context.go('/login'),
+                  onPressed: () => context.push('/login'),
                   color: Colors.white,
                 ),
                 SizedBox(height: 16.h),
                 WelcomeButton(
                   label: 'Sign Up',
-                  onPressed: () => context.go('/signup'),
+                  onPressed: () => context.push('/signup'),
                   color: Colors.white,
                 ),
               ],
