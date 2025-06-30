@@ -15,18 +15,23 @@ class WelcomeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppTheme.colors['primaryButton'],
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-      onPressed: onPressed,
-      child: Text(
-        label,
-        style: AppTheme.textStyles['body']!.copyWith(
-          color: color,
-          fontSize: 16,
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppTheme.colors['primaryButton'],
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        onPressed: onPressed,
+        child: Text(
+          label,
+          style: AppTheme.textStyles['body']!.copyWith(
+            color: color,
+            fontSize: 16,
+          ),
         ),
       ),
     );
