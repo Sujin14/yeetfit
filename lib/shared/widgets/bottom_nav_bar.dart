@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import '../ui/bottom_nav_bar_ui.dart';
 import 'add_modal.dart';
+import '../theme/theme.dart';
 
 class BottomNavBar extends StatefulWidget {
   final int currentIndex;
@@ -21,29 +21,7 @@ class BottomNavBar extends StatefulWidget {
 }
 
 class _BottomNavBarState extends State<BottomNavBar> {
-  late int _currentIndex;
-
-  @override
-  void initState() {
-    super.initState();
-    _currentIndex = widget.currentIndex;
-  }
-
-  @override
-  void didUpdateWidget(BottomNavBar oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.currentIndex != oldWidget.currentIndex) {
-      setState(() {
-        _currentIndex = widget.currentIndex;
-      });
-    }
-  }
-
   void _onItemTapped(BuildContext context, int index) {
-    setState(() {
-      _currentIndex = index;
-    });
-
     widget.onIndexChanged?.call(index);
 
     if (index == 2) {
@@ -51,22 +29,13 @@ class _BottomNavBarState extends State<BottomNavBar> {
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
+        barrierColor: Colors.transparent,
         builder: (context) => const AddModal(),
       ).then((_) {
         if (mounted) {
-          setState(() {
-            _currentIndex = widget.currentIndex;
-          });
+          widget.onIndexChanged?.call(widget.currentIndex);
         }
       });
-    } else {
-      final routes = [
-        '/user-dashboard', // Home (index 0)
-        '/explore', // Explore (index 1)
-        '/progress', // Progress (index 3)
-        '/settings', // Settings (index 4)
-      ];
-      context.go(routes[index > 2 ? index - 1 : index]);
     }
   }
 
@@ -75,6 +44,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
     if (!widget.isVisible) return const SizedBox.shrink();
 
     return BottomNavBarUI(
+      currentIndex: widget.currentIndex,
       children: [
         _buildNavItem(context, Icons.home, 0),
         _buildNavItem(context, Icons.explore, 1),
@@ -91,7 +61,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
     int index, {
     bool isProminent = false,
   }) {
-    final isSelected = _currentIndex == index;
+    final isSelected = widget.currentIndex == index;
     return GestureDetector(
       onTap: () => _onItemTapped(context, index),
       child: Container(
@@ -99,7 +69,9 @@ class _BottomNavBarState extends State<BottomNavBar> {
         child: Icon(
           icon,
           size: isProminent ? 32.sp : 28.sp,
-          color: isSelected ? Colors.teal : Colors.grey[600],
+          color: isSelected
+              ? AppTheme.colors['navBarActive']!
+              : AppTheme.colors['navBarInactiveOpacity']!,
         ),
       ),
     );

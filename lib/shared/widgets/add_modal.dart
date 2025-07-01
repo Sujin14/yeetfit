@@ -11,23 +11,23 @@ class AddModal extends StatelessWidget {
   Widget build(BuildContext context) {
     return GlassmorphicContainer(
       width: double.infinity,
-      height: 400.h,
-      borderRadius: 20.r,
-      blur: 20,
+      height: 500.h,
+      borderRadius: 30.r,
+      blur: 15,
       alignment: Alignment.center,
-      border: 1,
+      border: 5,
       linearGradient: LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          AppTheme.colors['lightBackground']!.withOpacity(0.2),
-          AppTheme.colors['lightBackground']!.withOpacity(0.1),
+          AppTheme.colors['navigationAccent']!,
+          AppTheme.colors['navigationAccent']!,
         ],
       ),
       borderGradient: LinearGradient(
         colors: [
-          AppTheme.colors['borderText']!.withOpacity(0.3),
-          AppTheme.colors['borderText']!.withOpacity(0.1),
+          AppTheme.colors['borderGradientStart']!,
+          AppTheme.colors['borderGradientEnd']!,
         ],
       ),
       child: Padding(
@@ -43,15 +43,23 @@ class AddModal extends StatelessWidget {
                   text: 'Add New',
                   style: AppTheme.textStyles['heading']!.copyWith(
                     fontSize: 24.sp,
+                    color: AppTheme.colors['primaryText'],
                   ),
-                  gradient: const LinearGradient(
-                    colors: [Colors.green, Colors.yellow, Colors.red],
+                  gradient: LinearGradient(
+                    colors: [
+                      AppTheme.colors['gradientTextStart']!,
+                      AppTheme.colors['gradientTextMiddle']!,
+                      AppTheme.colors['gradientTextEnd']!,
+                    ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.close, color: AppTheme.colors['darkText']),
+                  icon: Icon(
+                    Icons.close,
+                    color: AppTheme.colors['primaryText'],
+                  ),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
@@ -59,7 +67,10 @@ class AddModal extends StatelessWidget {
             SizedBox(height: 16.h),
             Text(
               'Add feature coming soon!',
-              style: AppTheme.textStyles['subtitle']!.copyWith(fontSize: 16.sp),
+              style: AppTheme.textStyles['subtitle']!.copyWith(
+                fontSize: 16.sp,
+                color: AppTheme.colors['secondaryText'],
+              ),
             ),
             SizedBox(height: 24.h),
             Center(
@@ -78,7 +89,7 @@ class AddModal extends StatelessWidget {
                 child: Text(
                   'Close',
                   style: AppTheme.textStyles['body']!.copyWith(
-                    color: Colors.white,
+                    color: AppTheme.colors['primaryText'],
                     fontSize: 16.sp,
                   ),
                 ),
