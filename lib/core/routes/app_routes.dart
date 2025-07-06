@@ -1,21 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:yeetfit/features/explore/presentation/screens/explore_screen.dart';
-import 'package:yeetfit/features/progress/presentation/screens/progress_screen.dart';
-import 'package:yeetfit/features/settings/presentation/screens/settings_screen.dart';
-import 'package:yeetfit/features/onboarding/presentation/screens/onboarding_screen.dart';
-import 'package:yeetfit/features/splash/presentation/screens/splash_screen.dart';
-import 'package:yeetfit/features/auth/presentation/screens/login_screen.dart';
-import 'package:yeetfit/features/auth/presentation/screens/sign_up_screen.dart';
-import 'package:yeetfit/features/user_info/presentation/screens/user_info_step_page.dart';
-import 'package:yeetfit/shared/widgets/bottom_nav_bar.dart';
+import '../../features/auth/presentation/screens/login_screen.dart';
+import '../../features/auth/presentation/screens/sign_up_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
+import '../../features/explore/presentation/screens/explore_screen.dart';
+import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
+import '../../features/plans/data/models/plan_model.dart';
+import '../../features/plans/presentation/screens/favorites_page.dart';
+import '../../features/plans/presentation/screens/plan_detail_page.dart';
+import '../../features/progress/presentation/screens/progress_screen.dart';
+import '../../features/settings/presentation/screens/settings_screen.dart';
+import '../../features/splash/presentation/screens/splash_screen.dart';
+import '../../features/user_info/presentation/screens/user_info_step_page.dart';
 import '../../features/welcome/presentation/screens/welcome_screen.dart';
+import '../../shared/widgets/bottom_nav_bar.dart';
 import '../../shared/widgets/custom_appbar.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/',
+  redirect: (BuildContext context, GoRouterState state) async {
+    final user = FirebaseAuth.instance.currentUser;
+    final currentPath = state.uri
+        .toString(); // Use state.uri.toString() instead of state.location
+    if (user == null &&
+        currentPath != '/' &&
+        currentPath != '/login' &&
+        currentPath != '/signup') {
+      return '/login';
+    }
+    return null;
+  },
   routes: [
     GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
     GoRoute(
@@ -33,6 +48,13 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) {
         final step = int.tryParse(state.pathParameters['step'] ?? '0') ?? 0;
         return UserInfoStepPage(step: step);
+      },
+    ),
+    GoRoute(
+      path: '/plans/:id',
+      builder: (context, state) {
+        final plan = state.extra as PlanModel;
+        return PlanDetailPage(plan: plan);
       },
     ),
     StatefulShellRoute.indexedStack(
@@ -67,12 +89,16 @@ final GoRouter appRouter = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
-              path: '/settings',
-              builder: (context, state) => const SettingsScreen(),
+              path: '/favorites',
+              builder: (context, state) => const FavoritesPage(),
             ),
           ],
         ),
       ],
+    ),
+    GoRoute(
+      path: '/settings',
+      builder: (context, state) => const SettingsScreen(),
     ),
   ],
 );
@@ -104,6 +130,8 @@ class _ShellScaffoldState extends State<ShellScaffold> {
       appBar: CustomAppBar(
         title: _getTitle(_currentIndex),
         showLogout: _currentIndex == 0,
+        showSettings: true,
+        onSettings: () => context.push('/settings'),
         onLogout: () async {
           await FirebaseAuth.instance.signOut();
           context.go('/');
@@ -130,7 +158,7 @@ class _ShellScaffoldState extends State<ShellScaffold> {
       case 3:
         return 'Progress';
       case 4:
-        return 'Settings';
+        return 'Favorites';
       default:
         return '';
     }

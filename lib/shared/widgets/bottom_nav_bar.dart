@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../theme/theme.dart';
 import '../ui/bottom_nav_bar_ui.dart';
 import 'add_modal.dart';
-import '../theme/theme.dart';
 
 class BottomNavBar extends StatefulWidget {
   final int currentIndex;
@@ -50,7 +50,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
         _buildNavItem(context, Icons.explore, 1),
         _buildNavItem(context, Icons.add_circle, 2, isProminent: true),
         _buildNavItem(context, Icons.bar_chart, 3),
-        _buildNavItem(context, Icons.settings, 4),
+        _buildNavItem(context, Icons.favorite, 4),
       ],
     );
   }
