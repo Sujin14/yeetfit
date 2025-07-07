@@ -4,8 +4,6 @@ import '../theme/theme.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
-  final bool showLogout;
-  final VoidCallback? onLogout;
   final bool showSettings;
   final VoidCallback? onSettings;
   final bool showFavorite;
@@ -15,8 +13,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   const CustomAppBar({
     super.key,
     required this.title,
-    this.showLogout = false,
-    this.onLogout,
     this.showSettings = false,
     this.onSettings,
     this.showFavorite = false,
@@ -55,11 +51,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           IconButton(
             icon: Icon(Icons.person, color: AppTheme.colors['primaryText']),
             onPressed: onSettings,
-          ),
-        if (showLogout)
-          IconButton(
-            icon: Icon(Icons.logout, color: AppTheme.colors['primaryText']),
-            onPressed: onLogout,
           ),
       ],
     );

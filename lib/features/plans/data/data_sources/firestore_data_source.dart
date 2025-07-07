@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import '../models/plan_model.dart';
 
 class FirestoreDataSource {
@@ -11,16 +12,24 @@ class FirestoreDataSource {
       throw Exception('User not logged in');
     }
     try {
+      final collection = type == 'diets' ? 'diets' : 'workouts';
+      debugPrint(
+        'Fetching plan: type=$type, userId=$userId, collection=$collection',
+      );
       final snapshot = await _firestore
-          .collection(type == 'diet' ? 'diets' : 'workouts')
+          .collection(collection)
           .where('userId', isEqualTo: userId)
           .limit(1)
           .get();
       if (snapshot.docs.isEmpty) {
+        debugPrint('No plan found for type=$type, userId=$userId');
         return null;
       }
-      return PlanModel.fromFirestore(snapshot.docs.first);
+      final plan = PlanModel.fromFirestore(snapshot.docs.first);
+      debugPrint('Plan fetched: id=${plan.id}, type=${plan.type}');
+      return plan;
     } catch (e) {
+      debugPrint('Error fetching plan: $e');
       throw Exception('Failed to fetch $type plan: $e');
     }
   }
@@ -58,10 +67,10 @@ class FirestoreDataSource {
     bool isFavorite,
   ) async {
     try {
-      await _firestore
-          .collection(type == 'diet' ? 'diets' : 'workouts')
-          .doc(planId)
-          .update({'isFavorite': isFavorite});
+      final collection = type == 'diet' ? 'diets' : 'workouts';
+      await _firestore.collection(collection).doc(planId).update({
+        'isFavorite': isFavorite,
+      });
     } catch (e) {
       throw Exception('Failed to update favorite status: $e');
     }

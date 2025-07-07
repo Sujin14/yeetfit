@@ -1,8 +1,8 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../plans/data/models/plan_model.dart';
-import '../../data/repositories/plan_repository.dart';
-import '../../data/repositories/plan_repository_impl.dart';
+import '../../../plans/data/repositories/plan_repository.dart';
+import '../../../plans/data/repositories/plan_repository_impl.dart';
 import '../../domain/use_cases/get_plans_use_case.dart';
 
 final planRepositoryProvider = Provider<PlanRepository>((ref) {

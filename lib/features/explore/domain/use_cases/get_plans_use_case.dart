@@ -1,5 +1,5 @@
 import '../../../plans/data/models/plan_model.dart';
-import '../../data/repositories/plan_repository.dart';
+import '../../../plans/data/repositories/plan_repository.dart';
 
 class GetPlansUseCase {
   final PlanRepository repository;

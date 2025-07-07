@@ -6,7 +6,6 @@ import '../../features/auth/presentation/screens/sign_up_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/explore/presentation/screens/explore_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
-import '../../features/plans/data/models/plan_model.dart';
 import '../../features/plans/presentation/screens/favorites_page.dart';
 import '../../features/plans/presentation/screens/plan_detail_page.dart';
 import '../../features/progress/presentation/screens/progress_screen.dart';
@@ -21,8 +20,7 @@ final GoRouter appRouter = GoRouter(
   initialLocation: '/',
   redirect: (BuildContext context, GoRouterState state) async {
     final user = FirebaseAuth.instance.currentUser;
-    final currentPath = state.uri
-        .toString(); // Use state.uri.toString() instead of state.location
+    final currentPath = state.uri.toString();
     if (user == null &&
         currentPath != '/' &&
         currentPath != '/login' &&
@@ -52,10 +50,8 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/plans/:id',
-      builder: (context, state) {
-        final plan = state.extra as PlanModel;
-        return PlanDetailPage(plan: plan);
-      },
+      builder: (context, state) =>
+          PlanDetailPage(extra: state.extra as Map<String, dynamic>),
     ),
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
@@ -129,13 +125,8 @@ class _ShellScaffoldState extends State<ShellScaffold> {
     return Scaffold(
       appBar: CustomAppBar(
         title: _getTitle(_currentIndex),
-        showLogout: _currentIndex == 0,
         showSettings: true,
         onSettings: () => context.push('/settings'),
-        onLogout: () async {
-          await FirebaseAuth.instance.signOut();
-          context.go('/');
-        },
       ),
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),

@@ -15,19 +15,17 @@ class DashboardBody extends ConsumerWidget {
     final progress = ref.watch(dailyProgressProvider);
     final bmi = ref.watch(bmiProvider);
 
-    return Container(
-      child: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            WelcomeText(name: userData['name']),
-            SizedBox(height: 16.h),
-            BMICard(bmi: bmi),
-            SizedBox(height: 16.h),
-            ProgressCardsList(progress: progress),
-          ],
-        ),
+    return SingleChildScrollView(
+      padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          WelcomeText(name: userData['name']),
+          SizedBox(height: 16.h),
+          BMICard(bmi: bmi),
+          SizedBox(height: 16.h),
+          ProgressCardsList(progress: progress),
+        ],
       ),
     );
   }

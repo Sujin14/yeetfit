@@ -1,3 +1,4 @@
+// File: lib/features/plans/data/models/plan_model.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PlanModel {
@@ -21,10 +22,13 @@ class PlanModel {
 
   factory PlanModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
+    final collectionType = doc.reference.parent.path.contains('diets')
+        ? 'diet'
+        : 'workouts';
     return PlanModel(
       id: doc.id,
       userId: data['userId'] ?? '',
-      type: data['type'] ?? '',
+      type: data['type'] ?? collectionType,
       title: data['title'] ?? '',
       details: Map<String, dynamic>.from(data['details'] ?? {}),
       isFavorite: data['isFavorite'] ?? false,
