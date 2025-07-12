@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import '../../features/track_options/presentation/screens/track_option_modal.dart';
 import '../theme/theme.dart';
 import '../ui/bottom_nav_bar_ui.dart';
-import 'add_modal.dart';
+
 
 class BottomNavBar extends StatefulWidget {
   final int currentIndex;
@@ -22,20 +24,15 @@ class BottomNavBar extends StatefulWidget {
 
 class _BottomNavBarState extends State<BottomNavBar> {
   void _onItemTapped(BuildContext context, int index) {
-    widget.onIndexChanged?.call(index);
-
     if (index == 2) {
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
-        barrierColor: Colors.transparent,
-        builder: (context) => const AddModal(),
-      ).then((_) {
-        if (mounted) {
-          widget.onIndexChanged?.call(widget.currentIndex);
-        }
-      });
+        builder: (context) => const TrackOptionsModal(),
+      );
+    } else {
+      widget.onIndexChanged?.call(index);
     }
   }
 

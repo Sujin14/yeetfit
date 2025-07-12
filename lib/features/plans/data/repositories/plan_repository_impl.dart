@@ -6,7 +6,7 @@ class PlanRepositoryImpl implements PlanRepository {
   final FirestoreDataSource dataSource;
 
   PlanRepositoryImpl({FirestoreDataSource? dataSource})
-    : dataSource = dataSource ?? FirestoreDataSource();
+      : dataSource = dataSource ?? FirestoreDataSource();
 
   @override
   Future<PlanModel?> getPlan(String type) async {
@@ -19,11 +19,7 @@ class PlanRepositoryImpl implements PlanRepository {
   }
 
   @override
-  Future<void> toggleFavorite(
-    String planId,
-    String type,
-    bool isFavorite,
-  ) async {
+  Future<void> toggleFavorite(String planId, String type, bool isFavorite) async {
     await dataSource.toggleFavorite(planId, type, isFavorite);
   }
 }

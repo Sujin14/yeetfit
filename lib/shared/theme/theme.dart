@@ -19,6 +19,11 @@ class AppTheme {
     'gradientTextStart': Color(0xFF8EC5FC),
     'gradientTextMiddle': Color.fromRGBO(142, 197, 252, 0.7),
     'gradientTextEnd': Color(0xFFE0C3FC),
+    'deepOrange': Color(0xFFFF5722),
+    'teal': Color(0xFF26A69A),
+    'indigo': Color(0xFF3F51B5),
+    'onSurface': Color(0xFF212121), // Added for light theme
+    'onSurfaceDark': Color.fromRGBO(245, 245, 245, 0.9), // Added for dark theme
   };
 
   static final textStyles = {
@@ -40,7 +45,7 @@ class AppTheme {
         error: colors['error']!,
         onPrimary: colors['primaryText']!,
         onSecondary: colors['primaryText']!,
-        onSurface: colors['primaryText']!,
+        onSurface: colors['onSurface']!,
         onError: Colors.white,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -69,6 +74,13 @@ class AppTheme {
         elevation: 0,
         iconTheme: IconThemeData(color: colors['primaryText']),
       ),
+      cardTheme: CardThemeData(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: colors['borderGradientStart']!),
+        ),
+      ),
     );
   }
 
@@ -77,43 +89,50 @@ class AppTheme {
       useMaterial3: true,
       scaffoldBackgroundColor: colors['darkBackground'],
       colorScheme: ColorScheme.dark(
-        primary: colors['primaryAccent']!,
-        secondary: colors['secondaryAccent']!,
+        primary: colors['teal']!,
+        secondary: colors['deepOrange']!,
+        tertiary: colors['indigo']!,
         surface: colors['darkBackground']!,
         error: colors['error']!,
-        onPrimary: Color.fromRGBO(255, 255, 255, 0.9),
-        onSecondary: Color.fromRGBO(255, 255, 255, 0.9),
-        onSurface: Color.fromRGBO(255, 255, 255, 0.9),
+        onPrimary: colors['onSurfaceDark']!,
+        onSecondary: colors['onSurfaceDark']!,
+        onSurface: colors['onSurfaceDark']!,
         onError: Colors.white,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: colors['primaryButton'],
-          foregroundColor: Color.fromRGBO(255, 255, 255, 0.9),
+          foregroundColor: colors['onSurfaceDark'],
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
         ),
       ),
-      textTheme: GoogleFonts.robotoTextTheme(ThemeData.dark().textTheme)
-          .copyWith(
-            headlineLarge: textStyles['heading']!.copyWith(
-              color: Color.fromRGBO(255, 255, 255, 0.9),
-            ),
-            titleMedium: textStyles['title']!.copyWith(
-              color: Color.fromRGBO(255, 255, 255, 0.9),
-            ),
-            bodyMedium: textStyles['body']!.copyWith(
-              color: Color.fromRGBO(255, 255, 255, 0.9),
-            ),
-            bodySmall: textStyles['caption']!.copyWith(
-              color: Color.fromRGBO(255, 255, 255, 0.6),
-            ),
-          ),
+      textTheme: GoogleFonts.robotoTextTheme(ThemeData.dark().textTheme).copyWith(
+        headlineLarge: textStyles['heading']!.copyWith(
+          color: colors['onSurfaceDark'],
+        ),
+        titleMedium: textStyles['title']!.copyWith(
+          color: colors['onSurfaceDark'],
+        ),
+        bodyMedium: textStyles['body']!.copyWith(
+          color: colors['onSurfaceDark'],
+        ),
+        bodySmall: textStyles['caption']!.copyWith(
+          color: Color.fromRGBO(255, 255, 255, 0.6),
+        ),
+      ),
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: IconThemeData(color: Color.fromRGBO(255, 255, 255, 0.9)),
+        iconTheme: IconThemeData(color: colors['onSurfaceDark']),
+      ),
+      cardTheme: CardThemeData(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: colors['borderGradientStart']!),
+        ),
       ),
     );
   }

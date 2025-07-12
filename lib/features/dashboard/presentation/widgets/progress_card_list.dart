@@ -45,7 +45,7 @@ class _ProgressCardsListState extends State<ProgressCardsList> {
     setState(() {
       _currentPage = index;
     });
-    _startAutoSwipe(); // Restart timer on manual swipe
+    _startAutoSwipe();
   }
 
   @override

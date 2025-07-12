@@ -5,9 +5,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/custom_appbar.dart';
-import '../../../explore/presentation/providers/explore_providers.dart.dart';
+import '../../../explore/presentation/providers/explore_providers.dart';
 import '../../data/models/plan_model.dart';
-import '../providers/plan_providers.dart';
 import '../widgets/plan_details_display.dart';
 
 class PlanDetailPage extends ConsumerWidget {
@@ -43,14 +42,12 @@ class PlanDetailPage extends ConsumerWidget {
                     plan.isFavorite
                         ? 'Removed from favorites'
                         : 'Added to favorites',
-                    style:
-                        AppTheme.textStyles['body']?.copyWith(
-                          color: AppTheme.colors['primaryText'] ?? Colors.black,
-                        ) ??
+                    style: AppTheme.textStyles['body']?.copyWith(
+                      color: AppTheme.colors['primaryText'] ?? Colors.black,
+                    ) ??
                         const TextStyle(color: Colors.black),
                   ),
-                  backgroundColor:
-                      AppTheme.colors['primaryButton'] ?? Colors.blue,
+                  backgroundColor: AppTheme.colors['primaryButton'] ?? Colors.blue,
                 ),
               );
             } catch (e) {
@@ -60,10 +57,9 @@ class PlanDetailPage extends ConsumerWidget {
                     e.toString().contains('PERMISSION_DENIED')
                         ? 'Permission denied: Only admins can update plans'
                         : 'Error: $e',
-                    style:
-                        AppTheme.textStyles['body']?.copyWith(
-                          color: AppTheme.colors['primaryText'] ?? Colors.black,
-                        ) ??
+                    style: AppTheme.textStyles['body']?.copyWith(
+                      color: AppTheme.colors['primaryText'] ?? Colors.black,
+                    ) ??
                         const TextStyle(color: Colors.black),
                   ),
                   backgroundColor: AppTheme.colors['error'] ?? Colors.red,
@@ -75,7 +71,25 @@ class PlanDetailPage extends ConsumerWidget {
         body: SafeArea(
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-            child: PlanDetailsDisplay(plan: plan, category: category),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (plan.assignedBy != null) ...[
+                  Text(
+                    'Assigned by: ${plan.assignedBy}',
+                    style: AppTheme.textStyles['body']?.copyWith(
+                      color: AppTheme.colors['secondaryText'] ?? Colors.grey,
+                      fontSize: 14.sp,
+                    ) ??
+                        TextStyle(fontSize: 14.sp, color: Colors.grey),
+                  ),
+                  SizedBox(height: 8.h),
+                ],
+                Expanded(
+                  child: PlanDetailsDisplay(plan: plan, category: category),
+                ),
+              ],
+            ),
           ),
         ),
       ),

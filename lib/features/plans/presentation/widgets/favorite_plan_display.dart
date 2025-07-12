@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yeetfit/features/plans/presentation/widgets/plan_list_item.dart';
 import '../../../../shared/theme/theme.dart';
-import '../providers/plan_providers.dart';
+import '../../../explore/presentation/providers/explore_providers.dart';
 import '../widgets/loading_card_widget.dart';
 import '../widgets/error_card_widget.dart';
 
@@ -26,15 +26,25 @@ class FavoritePlansDisplay extends ConsumerWidget {
                 ),
               ),
             )
-          : ListView.builder(
+          : ListView.separated(
               itemCount: plans.length,
               itemBuilder: (context, index) {
                 final plan = plans[index];
+                final category = plan.type == 'diet' ? 'diet' : 'workouts';
                 return PlanListItem(
                   plan: plan,
-                  onTap: () => context.push('/plans/${plan.id}', extra: plan),
+                  onTap: () {
+                    debugPrint(
+                      'Favorite Plan tapped: id=${plan.id}, type=${plan.type}, category=$category',
+                    );
+                    context.push(
+                      '/plans/${plan.id}',
+                      extra: {'plan': plan, 'category': category},
+                    );
+                  },
                 );
               },
+              separatorBuilder: (context, index) => SizedBox(height: 12.h),
             ),
       loading: () => const LoadingCardWidget(),
       error: (error, _) => ErrorCardWidget(error: error.toString()),

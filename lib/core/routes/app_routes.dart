@@ -1,20 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../features/auth/presentation/screens/login_screen.dart';
-import '../../features/auth/presentation/screens/sign_up_screen.dart';
-import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
-import '../../features/explore/presentation/screens/explore_screen.dart';
-import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
-import '../../features/plans/presentation/screens/favorites_page.dart';
-import '../../features/plans/presentation/screens/plan_detail_page.dart';
-import '../../features/progress/presentation/screens/progress_screen.dart';
-import '../../features/settings/presentation/screens/settings_screen.dart';
-import '../../features/splash/presentation/screens/splash_screen.dart';
-import '../../features/user_info/presentation/screens/user_info_step_page.dart';
-import '../../features/welcome/presentation/screens/welcome_screen.dart';
-import '../../shared/widgets/bottom_nav_bar.dart';
-import '../../shared/widgets/custom_appbar.dart';
+import 'package:yeetfit/features/auth/presentation/screens/login_screen.dart';
+import 'package:yeetfit/features/auth/presentation/screens/sign_up_screen.dart';
+import 'package:yeetfit/features/dashboard/presentation/screens/dashboard_screen.dart';
+import 'package:yeetfit/features/explore/presentation/screens/explore_screen.dart';
+import 'package:yeetfit/features/meal_tracking/presentation/screens/calorie_tracking_screen.dart';
+import 'package:yeetfit/features/onboarding/presentation/screens/onboarding_screen.dart';
+import 'package:yeetfit/features/plans/presentation/screens/favorites_page.dart';
+import 'package:yeetfit/features/plans/presentation/screens/plan_detail_page.dart';
+import 'package:yeetfit/features/progress/presentation/screens/progress_screen.dart';
+import 'package:yeetfit/features/settings/presentation/screens/settings_screen.dart';
+import 'package:yeetfit/features/splash/presentation/screens/splash_screen.dart';
+import 'package:yeetfit/features/user_info/presentation/screens/user_info_step_page.dart';
+import 'package:yeetfit/features/welcome/presentation/screens/welcome_screen.dart';
+import 'package:yeetfit/features/sleep_tracking/presentation/screens/sleep_tracking_screen.dart';
+import 'package:yeetfit/features/steps/presentation/screens/step_counter_screen.dart';
+import 'package:yeetfit/features/water/presentation/screens/water_tracking_screen.dart';
+import 'package:yeetfit/features/weight/presentation/screens/weight_tracking_screen.dart';
+import 'package:yeetfit/shared/widgets/custom_appbar.dart';
+import 'package:yeetfit/shared/widgets/bottom_nav_bar.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/',
@@ -22,9 +27,7 @@ final GoRouter appRouter = GoRouter(
     final user = FirebaseAuth.instance.currentUser;
     final currentPath = state.uri.toString();
     if (user == null &&
-        currentPath != '/' &&
-        currentPath != '/login' &&
-        currentPath != '/signup') {
+        !['/', '/login', '/signup', '/onboarding', '/welcome'].contains(currentPath)) {
       return '/login';
     }
     return null;
@@ -52,6 +55,26 @@ final GoRouter appRouter = GoRouter(
       path: '/plans/:id',
       builder: (context, state) =>
           PlanDetailPage(extra: state.extra as Map<String, dynamic>),
+    ),
+    GoRoute(
+      path: '/modal/food',
+      builder: (context, state) => const CalorieTrackingScreen(),
+    ),
+    GoRoute(
+      path: '/modal/steps',
+      builder: (context, state) => const StepCounterScreen(),
+    ),
+    GoRoute(
+      path: '/modal/sleep',
+      builder: (context, state) => const SleepTrackingScreen(),
+    ),
+    GoRoute(
+      path: '/modal/water',
+      builder: (context, state) => const WaterTrackingScreen(),
+    ),
+    GoRoute(
+      path: '/modal/weight',
+      builder: (context, state) => const WeightTrackingScreen(),
     ),
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
@@ -112,10 +135,10 @@ class _ShellScaffoldState extends State<ShellScaffold> {
   int _currentIndex = 0;
 
   void _onIndexChanged(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
     if (index != 2) {
-      setState(() {
-        _currentIndex = index;
-      });
       widget.navigationShell.goBranch(index > 2 ? index - 1 : index);
     }
   }

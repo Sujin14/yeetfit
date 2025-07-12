@@ -17,8 +17,11 @@ class FirestoreDataSource {
         'Fetching plan: type=$type, userId=$userId, collection=$collection',
       );
       final snapshot = await _firestore
+          .collection('users')
+          .doc(userId)
           .collection(collection)
-          .where('userId', isEqualTo: userId)
+          .where('type', isEqualTo: type == 'diets' ? 'diet' : 'workout')
+          .orderBy('createdAt', descending: true)
           .limit(1)
           .get();
       if (snapshot.docs.isEmpty) {
@@ -41,22 +44,27 @@ class FirestoreDataSource {
     }
     try {
       final dietSnapshot = await _firestore
+          .collection('users')
+          .doc(userId)
           .collection('diets')
-          .where('userId', isEqualTo: userId)
           .where('isFavorite', isEqualTo: true)
-          .limit(1)
+          .orderBy('createdAt', descending: true)
           .get();
       final workoutSnapshot = await _firestore
+          .collection('users')
+          .doc(userId)
           .collection('workouts')
-          .where('userId', isEqualTo: userId)
           .where('isFavorite', isEqualTo: true)
-          .limit(1)
+          .orderBy('createdAt', descending: true)
           .get();
-      return [
+      final plans = [
         ...dietSnapshot.docs.map((doc) => PlanModel.fromFirestore(doc)),
         ...workoutSnapshot.docs.map((doc) => PlanModel.fromFirestore(doc)),
       ];
+      debugPrint('Fetched ${plans.length} favorite plans for userId=$userId');
+      return plans;
     } catch (e) {
+      debugPrint('Error fetching favorite plans: $e');
       throw Exception('Failed to fetch favorite plans: $e');
     }
   }
@@ -67,11 +75,22 @@ class FirestoreDataSource {
     bool isFavorite,
   ) async {
     try {
+      final userId = FirebaseAuth.instance.currentUser?.uid;
+      if (userId == null) {
+        throw Exception('User not logged in');
+      }
       final collection = type == 'diet' ? 'diets' : 'workouts';
-      await _firestore.collection(collection).doc(planId).update({
-        'isFavorite': isFavorite,
-      });
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection(collection)
+          .doc(planId)
+          .update({'isFavorite': isFavorite});
+      debugPrint(
+        'Toggled favorite status for planId=$planId, type=$type, isFavorite=$isFavorite',
+      );
     } catch (e) {
+      debugPrint('Error toggling favorite: $e');
       throw Exception('Failed to update favorite status: $e');
     }
   }

@@ -1,18 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../shared/theme/theme.dart';
+
+import '../widgets/progress_calendar.dart';
+import '../widgets/progress_header.dart';
+
 
 class ProgressScreen extends StatelessWidget {
   const ProgressScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        'Progress Tracking Coming Soon!',
-        style: AppTheme.textStyles['body']!.copyWith(
-          fontSize: 18.sp,
-          color: AppTheme.colors['primaryText'],
+    return Scaffold(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const ProgressHeader(),
+              SizedBox(height: 16),
+              const ProgressCalendar(),
+            ],
+          ),
         ),
       ),
     );

@@ -98,7 +98,7 @@ class DietDetailsWidget extends StatelessWidget {
                   ],
                 ),
               );
-            }).toList(),
+            }),
             SizedBox(height: 16.h),
           ],
         );
