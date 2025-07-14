@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:yeetfit/features/plans/presentation/widgets/plan_list_item.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../explore/presentation/providers/explore_providers.dart';
+import '../widgets/plan_list_item.dart';
 import '../widgets/loading_card_widget.dart';
 import '../widgets/error_card_widget.dart';
 
@@ -39,7 +39,15 @@ class FavoritePlansDisplay extends ConsumerWidget {
                     );
                     context.push(
                       '/plans/${plan.id}',
-                      extra: {'plan': plan, 'category': category},
+                      extra: {
+                        'plan': plan,
+                        'category': category,
+                        'onUnfavorite': () {
+                          if (!plan.isFavorite) {
+                            context.pop();
+                          }
+                        },
+                      },
                     );
                   },
                 );
