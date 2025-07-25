@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../data/datasources/firestore_user_service.dart';
 import '../../data/repositories/user_repository_impl.dart';
-import '../../domain/models/user_info_model.dart';
+import '../../data/models/user_info_model.dart';
 import '../../domain/usecases/save_user_info.dart';
 
 final userInfoControllerProvider =
@@ -53,6 +53,10 @@ class UserInfoController extends StateNotifier<UserInfoModel> {
 
   void updateActivityLevel(String activityLevel, BuildContext context) {
     state = state.copyWith(activityLevel: activityLevel);
+  }
+
+  void updateProfileImageUrl(String? profileImageUrl, BuildContext context) {
+    state = state.copyWith(profileImageUrl: profileImageUrl);
   }
 
   Future<void> saveUserData(BuildContext context) async {

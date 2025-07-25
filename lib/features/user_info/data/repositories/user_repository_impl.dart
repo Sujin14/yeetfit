@@ -1,6 +1,6 @@
 import '../datasources/firestore_user_service.dart';
-import '../../domain/models/user_info_model.dart';
-import 'user_repository.dart';
+import '../models/user_info_model.dart';
+import '../../domain/repositories/user_repository.dart';
 
 class UserRepositoryImpl implements UserRepository {
   final FirestoreUserService userService;

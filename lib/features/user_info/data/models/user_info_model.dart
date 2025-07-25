@@ -8,6 +8,7 @@ class UserInfoModel {
   final double goalWeight;
   final double height;
   final String activityLevel;
+  final String? profileImageUrl; // New field for profile image URL
 
   UserInfoModel({
     this.uid = '',
@@ -19,31 +20,8 @@ class UserInfoModel {
     this.goalWeight = 0,
     this.height = 0,
     this.activityLevel = '',
+    this.profileImageUrl,
   });
-
-  UserInfoModel copyWith({
-    String? uid,
-    String? name,
-    String? gender,
-    int? age,
-    String? goal,
-    double? currentWeight,
-    double? goalWeight,
-    double? height,
-    String? activityLevel,
-  }) {
-    return UserInfoModel(
-      uid: uid ?? this.uid,
-      name: name ?? this.name,
-      gender: gender ?? this.gender,
-      age: age ?? this.age,
-      goal: goal ?? this.goal,
-      currentWeight: currentWeight ?? this.currentWeight,
-      goalWeight: goalWeight ?? this.goalWeight,
-      height: height ?? this.height,
-      activityLevel: activityLevel ?? this.activityLevel,
-    );
-  }
 
   Map<String, dynamic> toMap() {
     return {
@@ -56,6 +34,7 @@ class UserInfoModel {
       'goalWeight': goalWeight,
       'height': height,
       'activityLevel': activityLevel,
+      'profileImageUrl': profileImageUrl,
     };
   }
 
@@ -70,6 +49,33 @@ class UserInfoModel {
       goalWeight: (map['goalWeight'] ?? 0).toDouble(),
       height: (map['height'] ?? 0).toDouble(),
       activityLevel: map['activityLevel'] ?? '',
+      profileImageUrl: map['profileImageUrl'],
+    );
+  }
+
+  UserInfoModel copyWith({
+    String? uid,
+    String? name,
+    String? gender,
+    int? age,
+    String? goal,
+    double? currentWeight,
+    double? goalWeight,
+    double? height,
+    String? activityLevel,
+    String? profileImageUrl,
+  }) {
+    return UserInfoModel(
+      uid: uid ?? this.uid,
+      name: name ?? this.name,
+      gender: gender ?? this.gender,
+      age: age ?? this.age,
+      goal: goal ?? this.goal,
+      currentWeight: currentWeight ?? this.currentWeight,
+      goalWeight: goalWeight ?? this.goalWeight,
+      height: height ?? this.height,
+      activityLevel: activityLevel ?? this.activityLevel,
+      profileImageUrl: profileImageUrl ?? this.profileImageUrl,
     );
   }
 }
