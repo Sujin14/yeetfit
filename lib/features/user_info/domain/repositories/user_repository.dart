@@ -1,4 +1,4 @@
-import '../../domain/models/user_info_model.dart';
+import '../../data/models/user_info_model.dart';
 
 abstract class UserRepository {
   Future<bool> checkUserExists(String uid);

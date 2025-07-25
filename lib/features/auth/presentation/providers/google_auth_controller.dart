@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../../user_info/data/repositories/user_repository.dart';
+import '../../../user_info/domain/repositories/user_repository.dart';
 import '../../data/datasources/email_auth_service.dart';
 import '../../data/datasources/google_auth_service.dart';
 import '../../data/repositories/auth_repository_impl.dart';

@@ -1,11 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../domain/models/user_info_model.dart';
+
+import '../models/user_info_model.dart';
 
 class FirestoreUserService {
   final FirebaseFirestore _firestore;
 
   FirestoreUserService({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+      : _firestore = firestore ?? FirebaseFirestore.instance;
 
   CollectionReference get _users => _firestore.collection('users');
 
