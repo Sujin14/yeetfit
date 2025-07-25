@@ -1,32 +1,34 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../providers/dashboard_provider.dart';
-import '../widgets/progress_card_list.dart';
-import '../widgets/welcome_text.dart';
-import '../widgets/bmi_card.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../shared/theme/theme.dart';
+import '../../../chat/presentation/providers/payment_provider.dart';
+import '../widgets/dashboard_body.dart';
 
-class DashboardBody extends ConsumerWidget {
-  const DashboardBody({super.key});
+class DashboardScreen extends ConsumerWidget {
+  const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userData = ref.watch(userDataProvider);
-    final progress = ref.watch(dailyProgressProvider);
-    final bmi = ref.watch(bmiProvider);
-
-    return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          WelcomeText(name: userData['name']),
-          SizedBox(height: 16.h),
-          BMICard(bmi: bmi),
-          SizedBox(height: 16.h),
-          ProgressCardsList(progress: progress),
-        ],
+    return Scaffold(
+      backgroundColor: AppTheme.colors['lightBackground'],
+      body: const DashboardBody(),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AppTheme.colors['primaryAccent'] ?? Colors.blue, // Fallback color
+        foregroundColor: AppTheme.colors['onSurfaceDark'] ?? Colors.white, // Fallback color
+        onPressed: () {
+          print('FAB tapped'); // Debug log
+          final hasPaid = ref.read(paymentStatusProvider).value ?? false;
+          print('Payment status: $hasPaid'); // Debug log
+          if (hasPaid) {
+            context.go('/chat', extra: 'KzWEi9szv2dg9wvEKN6ZEGmZt7L2');
+          } else {
+            context.go('/payment');
+          }
+        },
+        child: Icon(Icons.chat),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }

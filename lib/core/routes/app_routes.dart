@@ -21,6 +21,9 @@ import 'package:yeetfit/features/weight/presentation/screens/weight_tracking_scr
 import 'package:yeetfit/shared/widgets/custom_appbar.dart';
 import 'package:yeetfit/shared/widgets/bottom_nav_bar.dart';
 
+import '../../features/chat/presentation/screens/chat_screen.dart';
+import '../../features/chat/presentation/screens/payment_screen.dart';
+
 final GoRouter appRouter = GoRouter(
   initialLocation: '/',
   redirect: (BuildContext context, GoRouterState state) async {
@@ -85,7 +88,7 @@ final GoRouter appRouter = GoRouter(
           routes: [
             GoRoute(
               path: '/user-dashboard',
-              builder: (context, state) => const DashboardBody(),
+              builder: (context, state) => const DashboardScreen(),
             ),
           ],
         ),
@@ -119,8 +122,18 @@ final GoRouter appRouter = GoRouter(
       path: '/settings',
       builder: (context, state) => const SettingsScreen(),
     ),
-  ],
-);
+    GoRoute(
+      path: '/payment',
+      builder: (context, state) => const PaymentScreen(),
+    ),
+    GoRoute(
+      path: '/chat',
+      builder: (context, state) => ChatScreen(
+        adminId: state.extra as String,
+      ),
+    ),
+    ],
+  );
 
 class ShellScaffold extends StatefulWidget {
   final StatefulNavigationShell navigationShell;

@@ -3,12 +3,15 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'core/routes/app_routes.dart';
+import 'features/chat/data/datasource/notification_service.dart';
 import 'firebase_options.dart';
 import 'shared/theme/theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  final container = ProviderContainer();
+  await container.read(notificationServiceProvider).init();
   runApp(const ProviderScope(child: YeetFitApp()));
 }
 
