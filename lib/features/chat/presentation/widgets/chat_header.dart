@@ -21,11 +21,11 @@ class ChatHeader extends ConsumerWidget {
       bottom: false,
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-        color: AppTheme.colors['darkBackground'],
+        color: AppTheme.colors['lightBackground'],
         child: Row(
           children: [
             IconButton(
-              icon: Icon(Icons.arrow_back, color: AppTheme.colors['primaryAccent']),
+              icon: Icon(Icons.arrow_back, color: AppTheme.colors['primaryAccent'],size: 30,),
               onPressed: () => context.go('/user-dashboard'),
             ),
             CircleAvatar(
@@ -40,7 +40,7 @@ class ChatHeader extends ConsumerWidget {
             Text(
               chatState.participantName,
               style: AppTheme.textStyles['heading']!.copyWith(
-                color: AppTheme.colors['onSurfaceDark'],
+                color: AppTheme.colors['onSurface'],
               ),
             ),
             const Spacer(),

@@ -4,7 +4,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../shared/theme/theme.dart';
 import '../controllers/chat_controller.dart';
 
-
 class MessageInput extends StatelessWidget {
   final ChatController controller;
 
@@ -12,9 +11,8 @@ class MessageInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-      color: AppTheme.colors['darkBackground'] ?? Colors.black,
       child: Row(
         children: [
           Expanded(
@@ -22,14 +20,15 @@ class MessageInput extends StatelessWidget {
               controller: controller.messageController,
               onChanged: controller.updateMessage,
               style: AppTheme.textStyles['bodyMedium']?.copyWith(
-                color: AppTheme.colors['onSurfaceDark'] ?? Colors.white,
+                color: AppTheme.colors['onSurface'] ?? Colors.white,
               ),
               decoration: InputDecoration(
                 hintText: 'Type a message...',
                 hintStyle: AppTheme.textStyles['bodyMedium']?.copyWith(
-                  color: AppTheme.colors['secondaryText'] ?? Colors.grey,
+                  color: AppTheme.colors['secondaryText'] ?? Colors.black,
                 ),
-                fillColor: (AppTheme.colors['primaryAccent'] ?? Colors.blue).withOpacity(0.2),
+                fillColor: (AppTheme.colors['primaryAccent'] ?? Colors.blue)
+                    .withOpacity(0.2),
                 filled: true,
                 contentPadding: EdgeInsets.symmetric(
                   horizontal: 16.w,
@@ -37,15 +36,23 @@ class MessageInput extends StatelessWidget {
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24.r),
-                  borderSide: BorderSide(color: AppTheme.colors['borderGradientStart'] ?? Colors.blue),
+                  borderSide: BorderSide(
+                    color:
+                        AppTheme.colors['borderGradientStart'] ?? Colors.blue,
+                  ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24.r),
-                  borderSide: BorderSide(color: AppTheme.colors['borderGradientStart'] ?? Colors.blue),
+                  borderSide: BorderSide(
+                    color:
+                        AppTheme.colors['borderGradientStart'] ?? Colors.blue,
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24.r),
-                  borderSide: BorderSide(color: AppTheme.colors['borderGradientEnd'] ?? Colors.blue),
+                  borderSide: BorderSide(
+                    color: AppTheme.colors['borderGradientEnd'] ?? Colors.blue,
+                  ),
                 ),
               ),
             ),
@@ -54,7 +61,7 @@ class MessageInput extends StatelessWidget {
           IconButton(
             icon: Icon(
               Icons.send_rounded,
-              color: AppTheme.colors['primaryAccent'] ?? Colors.blue,
+              color: AppTheme.colors['navBarActive'] ?? Colors.blue,
               size: 45.sp,
             ),
             onPressed: () => controller.sendMessages(context),

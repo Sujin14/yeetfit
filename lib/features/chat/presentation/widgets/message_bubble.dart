@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../shared/widgets/glassmorphic_container.dart';
 import '../../data/model/message_model.dart';
 import '../controllers/chat_controller.dart';
 
@@ -34,27 +35,19 @@ class MessageBubble extends StatelessWidget {
               },
               child: ConstrainedBox(
                 constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
-                child: Container(
+                child: GlassmorphicContainer(
                   padding: EdgeInsets.all(8.w),
-                  decoration: BoxDecoration(
-                    color: isMe
-                        ? (AppTheme.colors['primaryAccent'] ?? Colors.blue).withOpacity(0.2)
-                        : (AppTheme.colors['secondaryAccent'] ?? Colors.grey).withOpacity(0.2),
-                    borderRadius: BorderRadius.only(
-                      topLeft: isMe ? Radius.circular(12.r) : Radius.zero,
-                      topRight: isMe ? Radius.zero : Radius.circular(12.r),
-                      bottomLeft: Radius.circular(12.r),
-                      bottomRight: Radius.circular(12.r),
-                    ),
-                    border: Border.all(color: AppTheme.colors['borderGradientStart'] ?? Colors.blue),
-                  ),
+                  color: isMe
+                      ? (AppTheme.colors['primaryButton'] ?? Colors.blue)
+                      : (AppTheme.colors['secondaryAccent'] ?? Colors.grey),
+                  borderRadius: 12.r,
                   child: Text(
                     message.content,
                     softWrap: true,
                     overflow: TextOverflow.ellipsis,
                     maxLines: 10,
                     style: AppTheme.textStyles['bodyMedium']?.copyWith(
-                      color: AppTheme.colors['onSurfaceDark'] ?? Colors.white,
+                      color: AppTheme.colors['primaryText'] ?? Colors.white,
                     ) ?? TextStyle(color: Colors.white),
                   ),
                 ),
