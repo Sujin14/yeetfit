@@ -5,7 +5,6 @@ import '../../features/track_options/presentation/screens/track_option_modal.dar
 import '../theme/theme.dart';
 import '../ui/bottom_nav_bar_ui.dart';
 
-
 class BottomNavBar extends StatefulWidget {
   final int currentIndex;
   final bool isVisible;
@@ -29,6 +28,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
+        barrierColor: Colors.transparent,
         builder: (context) => const TrackOptionsModal(),
       );
     } else {
