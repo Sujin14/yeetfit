@@ -1,7 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-
 import '../../data/datasource/firestore_chat_service.dart';
 import '../../data/datasource/notification_service.dart';
 import '../../data/repositories/chat_repository_impl.dart';
@@ -18,62 +15,36 @@ import '../../domain/use_cases/update_message_status.dart';
 import '../../domain/use_cases/update_typing_status.dart';
 import '../controllers/chat_controller.dart';
 
+final chatControllerProvider =
+    StateNotifierProvider.autoDispose.family<ChatController, ChatState, String>((
+      ref,
+      adminId,
+    ) {
+      final getChatMessages = ref.read(getChatMessagesProvider);
+      final getMessageStatus = ref.read(getMessageStatusProvider);
+      final getUserProfile = ref.read(getUserProfileProvider);
+      final sendMessage = ref.read(sendMessageProvider);
+      final createOrGetChat = ref.read(createOrGetChatProvider);
+      final updateTypingStatus = ref.read(updateTypingStatusProvider);
+      final getTypingStatus = ref.read(getTypingStatusProvider);
+      final updateMessageStatus = ref.read(updateMessageStatusProvider);
+      final deleteChat = ref.read(deleteChatProvider);
+      final deleteMessage = ref.read(deleteMessageProvider);
 
-// Payment Providers
-final adminIdProvider = FutureProvider<String>((ref) async {
-  final doc = await FirebaseFirestore.instance.collection('config').doc('app').get();
-  return doc.data()?['adminId'] ?? 'KzWEi9szv2dg9wvEKN6ZEGmZt7L2';
-});
-
-final paymentStatusProvider = StreamProvider<bool>((ref) async* {
-  final userId = FirebaseAuth.instance.currentUser?.uid;
-  if (userId == null) {
-    yield false;
-    return;
-  }
-  final userDoc = FirebaseFirestore.instance.collection('users').doc(userId);
-  yield* userDoc.snapshots().map((snapshot) => snapshot.data()?['hasPaid'] ?? false);
-});
-
-final paymentServiceProvider = Provider<PaymentService>((ref) {
-  return PaymentService();
-});
-
-class PaymentService {
-  Future<void> updatePaymentStatus(String userId) async {
-    await FirebaseFirestore.instance.collection('users').doc(userId).update({
-      'hasPaid': true,
+      return ChatController(
+        getChatMessages: getChatMessages,
+        getMessageStatus: getMessageStatus,
+        getUserProfile: getUserProfile,
+        sendMessage: sendMessage,
+        createOrGetChat: createOrGetChat,
+        updateTypingStatus: updateTypingStatus,
+        getTypingStatus: getTypingStatus,
+        updateMessageStatus: updateMessageStatus,
+        deleteChat: deleteChat,
+        deleteMessage: deleteMessage,
+        adminId: adminId,
+      );
     });
-  }
-}
-
-// Chat Providers
-final chatControllerProvider = StateNotifierProvider.family<ChatController, ChatState, String>((ref, adminId) {
-  final getChatMessages = ref.read(getChatMessagesProvider);
-  final getMessageStatus = ref.read(getMessageStatusProvider);
-  final getUserProfile = ref.read(getUserProfileProvider);
-  final sendMessage = ref.read(sendMessageProvider);
-  final createOrGetChat = ref.read(createOrGetChatProvider);
-  final updateTypingStatus = ref.read(updateTypingStatusProvider);
-  final getTypingStatus = ref.read(getTypingStatusProvider);
-  final updateMessageStatus = ref.read(updateMessageStatusProvider);
-  final deleteChat = ref.read(deleteChatProvider);
-  final deleteMessage = ref.read(deleteMessageProvider);
-
-  return ChatController(
-    getChatMessages: getChatMessages,
-    getMessageStatus: getMessageStatus,
-    getUserProfile: getUserProfile,
-    sendMessage: sendMessage,
-    createOrGetChat: createOrGetChat,
-    updateTypingStatus: updateTypingStatus,
-    getTypingStatus: getTypingStatus,
-    updateMessageStatus: updateMessageStatus,
-    deleteChat: deleteChat,
-    deleteMessage: deleteMessage,
-    adminId: adminId,
-  );
-});
 
 final getChatMessagesProvider = Provider<GetChatMessages>((ref) {
   final repository = ref.read(chatRepositoryProvider);

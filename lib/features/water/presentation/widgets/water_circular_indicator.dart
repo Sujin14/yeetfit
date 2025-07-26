@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import '../../../../shared/widgets/glassmorphic_container.dart';
 
 class WaterCircularIndicator extends StatelessWidget {
-  const WaterCircularIndicator({super.key});
+  final double progress;
+
+  const WaterCircularIndicator({super.key, required this.progress});
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +27,7 @@ class WaterCircularIndicator extends StatelessWidget {
                 width: 160,
                 height: 160,
                 child: CircularProgressIndicator(
-                  value: 0.75,
+                  value: progress,
                   strokeWidth: 20,
                   backgroundColor: Colors.white.withOpacity(0.15),
                   valueColor: const AlwaysStoppedAnimation(Color(0xFF3F51B5)),

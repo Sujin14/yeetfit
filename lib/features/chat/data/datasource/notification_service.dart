@@ -8,7 +8,11 @@ final notificationServiceProvider = Provider<NotificationService>((ref) {
 
 class NotificationService extends ProviderObserver {
   Future<NotificationService> init() async {
-    String? userId = FirebaseAuth.instance.currentUser?.uid;
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) {
+      return this; // Exit early if user is not authenticated
+    }
+
     FirebaseFirestore.instance
         .collection('chats')
         .where('participants', arrayContains: userId)
@@ -21,14 +25,46 @@ class NotificationService extends ProviderObserver {
             .collection('messages')
             .where('participants', arrayContains: userId)
             .where('status', isEqualTo: 'sent')
+            .where('senderId', isNotEqualTo: userId) // Only update messages not sent by the user
             .get()
             .then((messages) {
-          for (var msg in messages.docs) {
-            msg.reference.update({'status': 'delivered'});
-          }
-        });
+              for (var msg in messages.docs) {
+                msg.reference.update({'status': 'delivered'}).catchError((e) {
+                  FirebaseFirestore.instance
+                      .collection('debug')
+                      .doc('logs')
+                      .collection('errors')
+                      .add({
+                    'error': 'Failed to update message status: $e',
+                    'timestamp': FieldValue.serverTimestamp(),
+                    'context': 'NotificationService.updateMessageStatus(${chat.id}, ${msg.id})',
+                  });
+                });
+              }
+            }).catchError((e) {
+              FirebaseFirestore.instance
+                  .collection('debug')
+                  .doc('logs')
+                  .collection('errors')
+                  .add({
+                'error': 'Failed to query messages: $e',
+                'timestamp': FieldValue.serverTimestamp(),
+                'context': 'NotificationService.getMessages(${chat.id})',
+              });
+            });
       }
+    }, onError: (e) {
+      FirebaseFirestore.instance
+          .collection('debug')
+          .doc('logs')
+          .collection('errors')
+          .add({
+        'error': 'Failed to listen to chats: $e',
+        'timestamp': FieldValue.serverTimestamp(),
+        'context': 'NotificationService.init',
+      });
     });
+
     return this;
   }
 }

@@ -3,10 +3,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-
 import '../../../../shared/theme/theme.dart';
 import '../controllers/chat_controller.dart';
-import '../providers/payment_provider.dart';
+import '../providers/chat_provider.dart';
 
 
 class ChatHeader extends ConsumerWidget {
@@ -27,7 +26,7 @@ class ChatHeader extends ConsumerWidget {
           children: [
             IconButton(
               icon: Icon(Icons.arrow_back, color: AppTheme.colors['primaryAccent']),
-              onPressed: () => context.go('/'),
+              onPressed: () => context.go('/user-dashboard'),
             ),
             CircleAvatar(
               radius: 25.r,
@@ -66,7 +65,7 @@ class ChatHeader extends ConsumerWidget {
                           onPressed: () async {
                             try {
                               await controller.deleteChats(context);
-                              context.go('/');
+                              context.go('/user-dashboard');
                             } catch (e) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(

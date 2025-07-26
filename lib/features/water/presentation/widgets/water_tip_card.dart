@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../../../../shared/widgets/glassmorphic_container.dart';
 
 class WaterTipCard extends StatelessWidget {

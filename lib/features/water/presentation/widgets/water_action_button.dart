@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 
 class WaterActionButtons extends StatelessWidget {
-  const WaterActionButtons({super.key});
+  final VoidCallback onAdd;
+  final VoidCallback onRemove;
+
+  const WaterActionButtons({
+    super.key,
+    required this.onAdd,
+    required this.onRemove,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -9,7 +16,7 @@ class WaterActionButtons extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         IconButton(
-          onPressed: () {},
+          onPressed: onRemove,
           icon: const Icon(
             Icons.remove_circle,
             size: 32,
@@ -19,7 +26,7 @@ class WaterActionButtons extends StatelessWidget {
         ),
         const SizedBox(width: 16),
         IconButton(
-          onPressed: () {},
+          onPressed: onAdd,
           icon: const Icon(
             Icons.add_circle,
             size: 32,

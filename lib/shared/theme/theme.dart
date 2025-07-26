@@ -22,15 +22,18 @@ class AppTheme {
     'deepOrange': Color(0xFFFF5722),
     'teal': Color(0xFF26A69A),
     'indigo': Color(0xFF3F51B5),
-    'onSurface': Color(0xFF212121), // Added for light theme
-    'onSurfaceDark': Color.fromRGBO(245, 245, 245, 0.9), // Added for dark theme
+    'onSurface': Color(0xFF212121),
+    'onSurfaceDark': Color.fromRGBO(245, 245, 245, 0.9),
   };
 
   static final textStyles = {
     'heading': GoogleFonts.roboto(fontSize: 28, fontWeight: FontWeight.bold),
     'title': GoogleFonts.roboto(fontSize: 20, fontWeight: FontWeight.w600),
+    'titleMedium': GoogleFonts.roboto(fontSize: 18, fontWeight: FontWeight.w500),
     'subtitle': GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.w500),
     'body': GoogleFonts.roboto(fontSize: 14, fontWeight: FontWeight.normal),
+    'bodyMedium': GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.normal),
+    'bodySmall': GoogleFonts.roboto(fontSize: 12, fontWeight: FontWeight.normal),
     'caption': GoogleFonts.roboto(fontSize: 12, fontWeight: FontWeight.w300),
   };
 
@@ -58,16 +61,10 @@ class AppTheme {
         ),
       ),
       textTheme: GoogleFonts.robotoTextTheme().copyWith(
-        headlineLarge: textStyles['heading']!.copyWith(
-          color: colors['primaryText'],
-        ),
-        titleMedium: textStyles['title']!.copyWith(
-          color: colors['primaryText'],
-        ),
-        bodyMedium: textStyles['body']!.copyWith(color: colors['primaryText']),
-        bodySmall: textStyles['caption']!.copyWith(
-          color: colors['secondaryText'],
-        ),
+        headlineLarge: textStyles['heading']!.copyWith(color: colors['primaryText']),
+        titleMedium: textStyles['titleMedium']!.copyWith(color: colors['primaryText']),
+        bodyMedium: textStyles['bodyMedium']!.copyWith(color: colors['primaryText']),
+        bodySmall: textStyles['bodySmall']!.copyWith(color: colors['secondaryText']),
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
@@ -109,18 +106,10 @@ class AppTheme {
         ),
       ),
       textTheme: GoogleFonts.robotoTextTheme(ThemeData.dark().textTheme).copyWith(
-        headlineLarge: textStyles['heading']!.copyWith(
-          color: colors['onSurfaceDark'],
-        ),
-        titleMedium: textStyles['title']!.copyWith(
-          color: colors['onSurfaceDark'],
-        ),
-        bodyMedium: textStyles['body']!.copyWith(
-          color: colors['onSurfaceDark'],
-        ),
-        bodySmall: textStyles['caption']!.copyWith(
-          color: Color.fromRGBO(255, 255, 255, 0.6),
-        ),
+        headlineLarge: textStyles['heading']!.copyWith(color: colors['onSurfaceDark']),
+        titleMedium: textStyles['titleMedium']!.copyWith(color: colors['onSurfaceDark']),
+        bodyMedium: textStyles['bodyMedium']!.copyWith(color: colors['onSurfaceDark']),
+        bodySmall: textStyles['bodySmall']!.copyWith(color: Color.fromRGBO(255, 255, 255, 0.6)),
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,

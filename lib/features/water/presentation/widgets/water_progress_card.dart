@@ -1,13 +1,24 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import '../providers/water_provider.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
 
-class WaterProgressCard extends StatelessWidget {
-  const WaterProgressCard({super.key});
+class WaterProgressCard extends ConsumerWidget {
+  final int glassesConsumed;
+  final int goalGlasses;
+
+  const WaterProgressCard({
+    super.key,
+    required this.glassesConsumed,
+    required this.goalGlasses,
+  });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+
     return GlassmorphicContainer(
       color: const Color(0xFF26A69A),
       child: Column(
@@ -16,7 +27,7 @@ class WaterProgressCard extends StatelessWidget {
           Row(
             children: [
               Text(
-                '6 / 8 Glasses',
+                '$glassesConsumed / $goalGlasses Glasses',
                 style: GoogleFonts.roboto(
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
@@ -25,7 +36,9 @@ class WaterProgressCard extends StatelessWidget {
               ),
               const Spacer(),
               IconButton(
-                onPressed: () {},
+                onPressed: userId != null
+                    ? () => _showEditGoalDialog(context, ref, userId)
+                    : null,
                 icon: const Icon(Icons.edit, size: 20, color: Colors.white),
                 tooltip: 'Edit Goal',
               ),
@@ -36,7 +49,7 @@ class WaterProgressCard extends StatelessWidget {
             alignment: Alignment.centerRight,
             children: [
               LinearProgressIndicator(
-                value: 0.75,
+                value: goalGlasses > 0 ? glassesConsumed / goalGlasses : 0.0,
                 minHeight: 18,
                 borderRadius: BorderRadius.circular(10),
                 color: const Color(0xFF3F51B5),
@@ -45,11 +58,49 @@ class WaterProgressCard extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(right: 12),
                 child: Text(
-                  '75%',
+                  '${goalGlasses > 0 ? ((glassesConsumed / goalGlasses) * 100).toInt() : 0}%',
                   style: GoogleFonts.roboto(fontSize: 14, color: Colors.white),
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEditGoalDialog(BuildContext context, WidgetRef ref, String userId) {
+    final controller = TextEditingController(text: goalGlasses.toString());
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Water Goal'),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'Glasses per Day',
+            hintText: 'Enter number of glasses',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              final newGoal = int.tryParse(controller.text);
+              if (newGoal != null && newGoal > 0) {
+                ref.read(waterGoalProvider(userId).notifier).setGoal(newGoal);
+                Navigator.pop(context);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please enter a valid number')),
+                );
+              }
+            },
+            child: const Text('Save'),
           ),
         ],
       ),

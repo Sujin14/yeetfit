@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../shared/theme/theme.dart';
-import '../../../chat/presentation/providers/payment_provider.dart';
+import '../../../payment/presentation/providers/payment_provider.dart';
 import '../widgets/dashboard_body.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -23,7 +23,7 @@ class DashboardScreen extends ConsumerWidget {
           if (hasPaid) {
             context.go('/chat', extra: 'KzWEi9szv2dg9wvEKN6ZEGmZt7L2');
           } else {
-            context.go('/payment');
+            context.go('/chat', extra: 'KzWEi9szv2dg9wvEKN6ZEGmZt7L2');
           }
         },
         child: Icon(Icons.chat),

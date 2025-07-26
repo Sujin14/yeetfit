@@ -3,11 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
-
 import '../../../../shared/theme/theme.dart';
 import '../../data/model/message_model.dart';
 import '../controllers/chat_controller.dart';
-
 
 class MessageBubble extends StatelessWidget {
   final MessageModel message;
@@ -40,23 +38,24 @@ class MessageBubble extends StatelessWidget {
                   padding: EdgeInsets.all(8.w),
                   decoration: BoxDecoration(
                     color: isMe
-                        ? AppTheme.colors['primaryAccent']!.withOpacity(0.2)
-                        : AppTheme.colors['secondaryAccent']!.withOpacity(0.2),
+                        ? (AppTheme.colors['primaryAccent'] ?? Colors.blue).withOpacity(0.2)
+                        : (AppTheme.colors['secondaryAccent'] ?? Colors.grey).withOpacity(0.2),
                     borderRadius: BorderRadius.only(
                       topLeft: isMe ? Radius.circular(12.r) : Radius.zero,
                       topRight: isMe ? Radius.zero : Radius.circular(12.r),
                       bottomLeft: Radius.circular(12.r),
                       bottomRight: Radius.circular(12.r),
                     ),
-                    border: Border.all(color: AppTheme.colors['borderGradientStart']!),
+                    border: Border.all(color: AppTheme.colors['borderGradientStart'] ?? Colors.blue),
                   ),
                   child: Text(
                     message.content,
                     softWrap: true,
-                    overflow: TextOverflow.visible,
-                    style: AppTheme.textStyles['bodyMedium']!.copyWith(
-                      color: AppTheme.colors['onSurfaceDark'],
-                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 10,
+                    style: AppTheme.textStyles['bodyMedium']?.copyWith(
+                      color: AppTheme.colors['onSurfaceDark'] ?? Colors.white,
+                    ) ?? TextStyle(color: Colors.white),
                   ),
                 ),
               ),
@@ -68,9 +67,9 @@ class MessageBubble extends StatelessWidget {
               children: [
                 Text(
                   DateFormat('hh:mm a').format(message.timestamp),
-                  style: AppTheme.textStyles['bodySmall']!.copyWith(
-                    color: AppTheme.colors['secondaryText'],
-                  ),
+                  style: AppTheme.textStyles['bodySmall']?.copyWith(
+                    color: AppTheme.colors['secondaryText'] ?? Colors.grey,
+                  ) ?? TextStyle(color: Colors.grey),
                 ),
                 if (isMe) ...[
                   SizedBox(width: 4.w),
@@ -87,11 +86,11 @@ class MessageBubble extends StatelessWidget {
   Widget _buildMessageStatusIcon(String status) {
     switch (status) {
       case 'sent':
-        return Icon(Icons.check, size: 16.sp, color: AppTheme.colors['secondaryText']);
+        return Icon(Icons.check, size: 16.sp, color: AppTheme.colors['secondaryText'] ?? Colors.grey);
       case 'delivered':
-        return Icon(Icons.done_all, size: 16.sp, color: AppTheme.colors['secondaryText']);
+        return Icon(Icons.done_all, size: 16.sp, color: AppTheme.colors['secondaryText'] ?? Colors.grey);
       case 'read':
-        return Icon(Icons.done_all, size: 16.sp, color: AppTheme.colors['primaryAccent']);
+        return Icon(Icons.done_all, size: 16.sp, color: AppTheme.colors['primaryAccent'] ?? Colors.blue);
       default:
         return const SizedBox.shrink();
     }
@@ -104,7 +103,7 @@ class MessageBubble extends StatelessWidget {
         return AlertDialog(
           title: Text(
             'Message Options',
-            style: AppTheme.textStyles['titleMedium'],
+            style: AppTheme.textStyles['titleMedium'] ?? TextStyle(fontSize: 18),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -112,7 +111,7 @@ class MessageBubble extends StatelessWidget {
               ListTile(
                 title: Text(
                   'Copy',
-                  style: AppTheme.textStyles['bodyMedium'],
+                  style: AppTheme.textStyles['bodyMedium'] ?? TextStyle(fontSize: 16),
                 ),
                 onTap: () {
                   Clipboard.setData(ClipboardData(text: message.content));
@@ -121,11 +120,11 @@ class MessageBubble extends StatelessWidget {
                     SnackBar(
                       content: Text(
                         'Message copied to clipboard',
-                        style: AppTheme.textStyles['bodyMedium']!.copyWith(
-                          color: AppTheme.colors['onSurfaceDark'],
-                        ),
+                        style: AppTheme.textStyles['bodyMedium']?.copyWith(
+                          color: AppTheme.colors['onSurfaceDark'] ?? Colors.white,
+                        ) ?? TextStyle(color: Colors.white),
                       ),
-                      backgroundColor: AppTheme.colors['primaryAccent'],
+                      backgroundColor: AppTheme.colors['primaryAccent'] ?? Colors.blue,
                       behavior: SnackBarBehavior.floating,
                     ),
                   );
@@ -134,9 +133,9 @@ class MessageBubble extends StatelessWidget {
               ListTile(
                 title: Text(
                   'Delete',
-                  style: AppTheme.textStyles['bodyMedium']!.copyWith(
-                    color: AppTheme.colors['error'],
-                  ),
+                  style: AppTheme.textStyles['bodyMedium']?.copyWith(
+                    color: AppTheme.colors['error'] ?? Colors.red,
+                  ) ?? TextStyle(color: Colors.red),
                 ),
                 onTap: () {
                   controller.deleteMessages(context, message.id);

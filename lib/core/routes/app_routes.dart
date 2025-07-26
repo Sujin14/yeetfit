@@ -20,9 +20,8 @@ import 'package:yeetfit/features/water/presentation/screens/water_tracking_scree
 import 'package:yeetfit/features/weight/presentation/screens/weight_tracking_screen.dart';
 import 'package:yeetfit/shared/widgets/custom_appbar.dart';
 import 'package:yeetfit/shared/widgets/bottom_nav_bar.dart';
-
 import '../../features/chat/presentation/screens/chat_screen.dart';
-import '../../features/chat/presentation/screens/payment_screen.dart';
+import '../../features/payment/presentation/screens/payment_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/',
