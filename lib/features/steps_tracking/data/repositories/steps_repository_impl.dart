@@ -1,6 +1,6 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../data/datasources/steps_datasource.dart';
-import '../../data/model/steps_model.dart';
+import '../datasources/steps_datasource.dart';
+import '../model/steps_model.dart';
 import '../../domain/repositories/steps_repository.dart';
 
 class StepsRepositoryImpl implements StepsRepository {

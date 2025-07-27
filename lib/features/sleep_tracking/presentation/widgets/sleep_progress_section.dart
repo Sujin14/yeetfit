@@ -18,7 +18,6 @@ class SleepProgressSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width >= 600;
     final userId = FirebaseAuth.instance.currentUser?.uid;
 
     return GlassmorphicContainer(
@@ -31,7 +30,7 @@ class SleepProgressSection extends StatelessWidget {
                 '${duration.toStringAsFixed(1)}h of ${goalHours.toStringAsFixed(1)}h',
                 style: GoogleFonts.roboto(
                   fontWeight: FontWeight.bold,
-                  fontSize: isDesktop ? 12 : 20,
+                  fontSize: 20,
                   color: Colors.white,
                 ),
               ),
@@ -54,7 +53,7 @@ class SleepProgressSection extends StatelessWidget {
             builder: (context, color, child) => LinearProgressIndicator(
               borderRadius: BorderRadius.circular(25),
               value: goalHours > 0 ? duration / goalHours : 0.0,
-              minHeight: isDesktop ? 16 : 10,
+              minHeight: 10,
               color: color,
               backgroundColor: Colors.white.withOpacity(0.2),
             ),

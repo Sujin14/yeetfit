@@ -1,6 +1,6 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../data/datasources/weight_datasource.dart';
-import '../../data/model/weight_model.dart';
+import '../datasources/weight_datasource.dart';
+import '../model/weight_model.dart';
 import '../../domain/repositories/weight_repository.dart';
 
 class WeightRepositoryImpl implements WeightRepository {

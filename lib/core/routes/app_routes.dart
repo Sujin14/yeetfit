@@ -15,9 +15,9 @@ import 'package:yeetfit/features/splash/presentation/screens/splash_screen.dart'
 import 'package:yeetfit/features/user_info/presentation/screens/user_info_step_page.dart';
 import 'package:yeetfit/features/welcome/presentation/screens/welcome_screen.dart';
 import 'package:yeetfit/features/sleep_tracking/presentation/screens/sleep_tracking_screen.dart';
-import 'package:yeetfit/features/steps/presentation/screens/step_counter_screen.dart';
-import 'package:yeetfit/features/water/presentation/screens/water_tracking_screen.dart';
-import 'package:yeetfit/features/weight/presentation/screens/weight_tracking_screen.dart';
+import 'package:yeetfit/features/steps_tracking/presentation/screens/step_counter_screen.dart';
+import 'package:yeetfit/features/water_tracking/presentation/screens/water_tracking_screen.dart';
+import 'package:yeetfit/features/weight_tracking/presentation/screens/weight_tracking_screen.dart';
 import 'package:yeetfit/shared/widgets/custom_appbar.dart';
 import 'package:yeetfit/shared/widgets/bottom_nav_bar.dart';
 import '../../features/chat/presentation/screens/chat_screen.dart';
