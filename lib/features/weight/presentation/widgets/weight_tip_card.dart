@@ -9,10 +9,9 @@ class WeightTipCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = ScreenUtil().screenWidth >= 600.w;
     return GlassmorphicContainer(
       color: AppTheme.colors['deepOrange']!,
-      padding: EdgeInsets.all(isDesktop ? 20.w : 14.w),
+      padding: EdgeInsets.all(14.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -20,7 +19,7 @@ class WeightTipCard extends StatelessWidget {
             'Weight Loss Tip',
             style: GoogleFonts.roboto(
               fontWeight: FontWeight.bold,
-              fontSize: isDesktop ? 16.sp : 14.sp,
+              fontSize: 14.sp,
               color: AppTheme.colors['onSurface'],
             ),
           ),
@@ -28,7 +27,7 @@ class WeightTipCard extends StatelessWidget {
           Text(
             'Consistency is key! Track your weight weekly and focus on sustainable habits like balanced nutrition and regular exercise.',
             style: GoogleFonts.roboto(
-              fontSize: isDesktop ? 13.sp : 11.sp,
+              fontSize: 11.sp,
               color: AppTheme.colors['onSurface']!.withOpacity(0.7),
             ),
           ),

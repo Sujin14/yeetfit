@@ -26,79 +26,12 @@ class WeightTrackingScreen extends ConsumerWidget {
       );
     }
 
-    final isDesktop = ScreenUtil().screenWidth >= 600.w;
-    print('WeightTrackingScreen: Building UI for userId=$userId, isDesktop=$isDesktop');
 
     return Scaffold(
       appBar: const WeightAppBar(),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(isDesktop ? 24.w : 16.w),
-        child: isDesktop
-            ? Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      children: [
-                        const WeightGoalSection(),
-                        SizedBox(height: 16.h),
-                        Consumer(
-                          builder: (context, ref, _) {
-                            print('WeightTrackingScreen: Watching weightGoalProvider for userId=$userId');
-                            final goalAsync = ref.watch(weightGoalProvider(userId));
-                            return goalAsync.when(
-                              data: (goal) {
-                                print('WeightTrackingScreen: Goal data for userId=$userId: goalWeight=${goal.goalWeight}');
-                                return WeightCard(
-                                  title: 'Goal Weight',
-                                  weight: goal.goalWeight,
-                                );
-                              },
-                              loading: () {
-                                print('WeightTrackingScreen: Loading goal for userId=$userId');
-                                return const CircularProgressIndicator();
-                              },
-                              error: (error, _) {
-                                print('WeightTrackingScreen: Error in weightGoalProvider for userId=$userId: $error');
-                                return Text('Error: $error');
-                              },
-                            );
-                          },
-                        ),
-                        SizedBox(height: 16.h),
-                        Consumer(
-                          builder: (context, ref, _) {
-                            print('WeightTrackingScreen: Watching currentWeightProvider for userId=$userId');
-                            final weightAsync = ref.watch(currentWeightProvider(userId));
-                            return weightAsync.when(
-                              data: (weight) {
-                                print('WeightTrackingScreen: Current weight for userId=$userId: $weight');
-                                return WeightCard(
-                                  title: 'Current Weight',
-                                  weight: weight,
-                                );
-                              },
-                              loading: () {
-                                print('WeightTrackingScreen: Loading weight for userId=$userId');
-                                return const CircularProgressIndicator();
-                              },
-                              error: (error, _) {
-                                print('WeightTrackingScreen: Error in currentWeightProvider for userId=$userId: $error');
-                                return Text('Error: $error');
-                              },
-                            );
-                          },
-                        ),
-                        SizedBox(height: 16.h),
-                        const WeightTipCard(),
-                      ],
-                    ),
-                  ),
-                  SizedBox(width: isDesktop ? 24.w : 16.w),
-                  Expanded(child: WeightChartSection(userId: userId)),
-                ],
-              )
-            : Column(
+        padding: EdgeInsets.all(16.w),
+        child: Column(
                 children: [
                   const WeightGoalSection(),
                   SizedBox(height: 16.h),

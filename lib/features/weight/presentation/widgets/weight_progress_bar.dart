@@ -16,7 +16,6 @@ class WeightProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = ScreenUtil().screenWidth >= 600.w;
     return GlassmorphicContainer(
       color: AppTheme.colors['indigo']!,
       padding: EdgeInsets.all(16.w),
@@ -26,7 +25,7 @@ class WeightProgressBar extends StatelessWidget {
           Text(
             'Progress to Goal',
             style: GoogleFonts.roboto(
-              fontSize: isDesktop ? 18.sp : 16.sp,
+              fontSize: 16.sp,
               fontWeight: FontWeight.bold,
               color: AppTheme.colors['onSurface'],
             ),
@@ -40,7 +39,7 @@ class WeightProgressBar extends StatelessWidget {
                 duration: const Duration(milliseconds: 300),
                 builder: (context, color, child) => LinearProgressIndicator(
                   value: progress,
-                  minHeight: isDesktop ? 12.h : 8.h,
+                  minHeight: 8.h,
                   borderRadius: BorderRadius.circular(10.r),
                   color: color,
                   backgroundColor: AppTheme.colors['onSurface']!.withOpacity(0.2),
@@ -51,7 +50,7 @@ class WeightProgressBar extends StatelessWidget {
                 child: Text(
                   '${(progress * 100).toStringAsFixed(0)}%',
                   style: GoogleFonts.roboto(
-                    fontSize: isDesktop ? 14.sp : 12.sp,
+                    fontSize: 12.sp,
                     color: AppTheme.colors['onSurface'],
                   ),
                 ),

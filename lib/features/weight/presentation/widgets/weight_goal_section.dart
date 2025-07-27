@@ -17,7 +17,6 @@ class WeightGoalSection extends ConsumerWidget {
     print(
       'WeightGoalSection: userId=$userId, authUid=${FirebaseAuth.instance.currentUser?.uid}',
     );
-    final isDesktop = ScreenUtil().screenWidth >= 600.w;
     final goalAsync = ref.watch(weightGoalProvider(userId ?? ''));
 
     return GlassmorphicContainer(
@@ -32,7 +31,7 @@ class WeightGoalSection extends ConsumerWidget {
               Text(
                 'Weight Goal',
                 style: GoogleFonts.roboto(
-                  fontSize: isDesktop ? 20.sp : 18.sp,
+                  fontSize: 18.sp,
                   fontWeight: FontWeight.bold,
                   color: AppTheme.colors['onSurface'],
                 ),
@@ -75,7 +74,7 @@ class WeightGoalSection extends ConsumerWidget {
               return Text(
                 'Target: ${goal.goalWeight.toStringAsFixed(1)} kg by ${targetDate.day}/${targetDate.month}/${targetDate.year}',
                 style: GoogleFonts.roboto(
-                  fontSize: isDesktop ? 16.sp : 14.sp,
+                  fontSize: 14.sp,
                   color: AppTheme.colors['onSurface']!.withOpacity(0.7),
                 ),
               );
@@ -91,7 +90,7 @@ class WeightGoalSection extends ConsumerWidget {
               return Text(
                 'Error loading goal: $error',
                 style: GoogleFonts.roboto(
-                  fontSize: isDesktop ? 16.sp : 14.sp,
+                  fontSize: 14.sp,
                   color: AppTheme.colors['onSurface']!.withOpacity(0.7),
                 ),
               );

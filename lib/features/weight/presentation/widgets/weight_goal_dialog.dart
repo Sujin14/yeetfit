@@ -6,7 +6,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../data/model/weight_model.dart';
 import '../providers/weight_provider.dart';
 import '../../../../shared/theme/theme.dart';
-import '../../../../shared/widgets/glassmorphic_container.dart';
 
 class WeightGoalDialog extends ConsumerStatefulWidget {
   final String userId;
@@ -46,74 +45,75 @@ class _WeightGoalDialogState extends ConsumerState<WeightGoalDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = ScreenUtil().screenWidth >= 600.w;
     print('WeightGoalDialog: Building for userId=${widget.userId}');
-    return GlassmorphicContainer(
-      color: AppTheme.colors['teal']!,
-      padding: EdgeInsets.all(16.w),
-      child: AlertDialog(
-        backgroundColor: Colors.transparent,
+    return AlertDialog(
+        backgroundColor: AppTheme.colors['white']!,
         contentPadding: EdgeInsets.zero,
         title: Text(
           'Set Weight Goal',
           style: GoogleFonts.roboto(
             fontWeight: FontWeight.bold,
-            fontSize: isDesktop ? 20.sp : 18.sp,
+            fontSize: 18.sp,
             color: AppTheme.colors['onSurface'],
           ),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(
-              controller: goalController,
-              decoration: InputDecoration(
-                labelText: 'Goal Weight (kg)',
-                labelStyle: GoogleFonts.roboto(
-                  color: AppTheme.colors['onSurface']!.withOpacity(0.7),
-                  fontSize: 14.sp,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.r),
-                  borderSide: BorderSide(
-                    color: AppTheme.colors['borderGradientStart']!,
+            SizedBox(width: 250.w,
+              child: TextField(
+                controller: goalController,
+                decoration: InputDecoration(
+                  labelText: 'Goal Weight (kg)',
+                  labelStyle: GoogleFonts.roboto(
+                    color: AppTheme.colors['onSurface']!.withOpacity(0.7),
+                    fontSize: 14.sp,
                   ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.r),
+                    borderSide: BorderSide(
+                      color: AppTheme.colors['borderGradientStart']!,
+                    ),
+                  ),
+                  filled: true,
+                  fillColor: Colors.transparent,
                 ),
-                filled: true,
-                fillColor: Colors.transparent,
-              ),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              style: GoogleFonts.roboto(
-                color: AppTheme.colors['onSurface'],
-                fontSize: 16.sp,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                style: GoogleFonts.roboto(
+                  color: AppTheme.colors['onSurface'],
+                  fontSize: 16.sp,
+                ),
               ),
             ),
             SizedBox(height: 16.h),
-            TextField(
-              controller: initialController,
-              decoration: InputDecoration(
-                labelText: 'Initial Weight (kg)',
-                labelStyle: GoogleFonts.roboto(
-                  color: AppTheme.colors['onSurface']!.withOpacity(0.7),
-                  fontSize: 14.sp,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.r),
-                  borderSide: BorderSide(
-                    color: AppTheme.colors['borderGradientStart']!,
+            SizedBox(
+              width: 250.w,
+              child: TextField(
+                controller: initialController,
+                decoration: InputDecoration(
+                  labelText: 'Initial Weight (kg)',
+                  labelStyle: GoogleFonts.roboto(
+                    color: AppTheme.colors['onSurface']!.withOpacity(0.7),
+                    fontSize: 14.sp,
                   ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.r),
+                    borderSide: BorderSide(
+                      color: AppTheme.colors['borderGradientStart']!,
+                    ),
+                  ),
+                  filled: true,
+                  fillColor: Colors.transparent,
                 ),
-                filled: true,
-                fillColor: Colors.transparent,
-              ),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              style: GoogleFonts.roboto(
-                color: AppTheme.colors['onSurface'],
-                fontSize: 16.sp,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                style: GoogleFonts.roboto(
+                  color: AppTheme.colors['onSurface'],
+                  fontSize: 16.sp,
+                ),
               ),
             ),
             SizedBox(height: 16.h),
@@ -122,7 +122,7 @@ class _WeightGoalDialogState extends ConsumerState<WeightGoalDialog> {
                 'Target Date',
                 style: GoogleFonts.roboto(
                   color: AppTheme.colors['onSurface'],
-                  fontSize: isDesktop ? 16.sp : 14.sp,
+                  fontSize: 14.sp,
                 ),
               ),
               trailing: Text(
@@ -131,7 +131,7 @@ class _WeightGoalDialogState extends ConsumerState<WeightGoalDialog> {
                     : 'Select Date',
                 style: GoogleFonts.roboto(
                   color: AppTheme.colors['onSurface'],
-                  fontSize: isDesktop ? 16.sp : 14.sp,
+                  fontSize: 14.sp,
                 ),
               ),
               onTap: () async {
@@ -170,7 +170,7 @@ class _WeightGoalDialogState extends ConsumerState<WeightGoalDialog> {
               'Cancel',
               style: GoogleFonts.roboto(
                 color: AppTheme.colors['onSurface'],
-                fontSize: isDesktop ? 16.sp : 14.sp,
+                fontSize: 14.sp,
               ),
             ),
           ),
@@ -208,12 +208,11 @@ class _WeightGoalDialogState extends ConsumerState<WeightGoalDialog> {
               'Save',
               style: GoogleFonts.roboto(
                 color: AppTheme.colors['onSurface'],
-                fontSize: isDesktop ? 16.sp : 14.sp,
+                fontSize: 14.sp,
               ),
             ),
           ),
         ],
-      ),
     );
   }
 

@@ -16,7 +16,6 @@ class WeightCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = ScreenUtil().screenWidth >= 600.w;
     return GlassmorphicContainer(
       color: AppTheme.colors['deepOrange']!,
       padding: EdgeInsets.all(12.w),
@@ -24,7 +23,7 @@ class WeightCard extends StatelessWidget {
         title: Text(
           title,
           style: GoogleFonts.roboto(
-            fontSize: isDesktop ? 18.sp : 16.sp,
+            fontSize: 16.sp,
             fontWeight: FontWeight.bold,
             color: AppTheme.colors['onSurface'],
           ),
@@ -32,7 +31,7 @@ class WeightCard extends StatelessWidget {
         trailing: Text(
           '${weight.toStringAsFixed(1)} kg',
           style: GoogleFonts.roboto(
-            fontSize: isDesktop ? 18.sp : 16.sp,
+            fontSize: 16.sp,
             fontWeight: FontWeight.bold,
             color: AppTheme.colors['indigo'],
           ),

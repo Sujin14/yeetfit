@@ -17,25 +17,24 @@ class WeightChartSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     print('WeightChartSection: Building for userId=$userId, authUid=${FirebaseAuth.instance.currentUser?.uid}');
     final weeklyDataAsync = ref.watch(weeklyWeightDataProvider(userId));
-    final isDesktop = ScreenUtil().screenWidth >= 600.w;
 
     return GlassmorphicContainer(
       color: AppTheme.colors['indigo']!,
-      padding: EdgeInsets.all(isDesktop ? 24.w : 16.w),
+      padding: EdgeInsets.all(16.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Weight Trend',
             style: GoogleFonts.roboto(
-              fontSize: isDesktop ? 20.sp : 18.sp,
+              fontSize: 18.sp,
               fontWeight: FontWeight.bold,
               color: AppTheme.colors['onSurface'],
             ),
           ),
           SizedBox(height: 16.h),
           SizedBox(
-            height: isDesktop ? 300.h : 200.h,
+            height: 200.h,
             child: weeklyDataAsync.when(
               data: (weeklyData) {
                 print('WeightChartSection: weeklyData for userId=$userId, entries=${weeklyData.length}');
@@ -68,7 +67,7 @@ class WeightChartSection extends ConsumerWidget {
                               child: Text(
                                 date.day.toString(),
                                 style: GoogleFonts.roboto(
-                                  fontSize: isDesktop ? 14.sp : 12.sp,
+                                  fontSize: 12.sp,
                                   color: AppTheme.colors['onSurface'],
                                 ),
                               ),
@@ -84,7 +83,7 @@ class WeightChartSection extends ConsumerWidget {
                             return Text(
                               '${value.toInt()} kg',
                               style: GoogleFonts.roboto(
-                                fontSize: isDesktop ? 14.sp : 12.sp,
+                                fontSize: 12.sp,
                                 color: AppTheme.colors['onSurface'],
                               ),
                             );

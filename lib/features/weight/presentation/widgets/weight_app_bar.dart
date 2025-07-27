@@ -5,8 +5,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../shared/theme/theme.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import 'weight_goal_dialog.dart';
-
 class WeightAppBar extends ConsumerWidget implements PreferredSizeWidget {
   const WeightAppBar({super.key});
 
@@ -18,7 +16,6 @@ class WeightAppBar extends ConsumerWidget implements PreferredSizeWidget {
     final userId = ref.watch(firebaseAuthProvider).currentUser?.uid;
     print('WeightAppBar: userId=$userId, authUid=${FirebaseAuth.instance.currentUser?.uid}');
     return AppBar(
-      backgroundColor: Colors.transparent,
       elevation: 0,
       title: Text(
         'Weight Tracker',
@@ -28,27 +25,6 @@ class WeightAppBar extends ConsumerWidget implements PreferredSizeWidget {
           fontWeight: FontWeight.bold,
         ),
       ),
-      actions: [
-        IconButton(
-          icon: Icon(
-            Icons.edit,
-            color: AppTheme.colors['onSurface'],
-            size: 20.sp,
-          ),
-          onPressed: userId != null
-              ? () {
-                  print('WeightAppBar: Opening WeightGoalDialog for userId=$userId');
-                  showDialog(
-                    context: context,
-                    builder: (context) => WeightGoalDialog(userId: userId),
-                  );
-                }
-              : () {
-                  print('WeightAppBar: Cannot open dialog, no authenticated user');
-                },
-          tooltip: 'Edit Goal',
-        ),
-      ],
     );
   }
 }
