@@ -48,12 +48,16 @@ class SleepProgressSection extends StatelessWidget {
               ),
             ],
           ),
-          LinearProgressIndicator(
-            borderRadius: BorderRadius.circular(25),
-            value: goalHours > 0 ? duration / goalHours : 0.0,
-            minHeight: isDesktop ? 16 : 10,
-            color: progressColor,
-            backgroundColor: Colors.white.withOpacity(0.2),
+          TweenAnimationBuilder(
+            tween: ColorTween(begin: Colors.grey, end: progressColor),
+            duration: const Duration(milliseconds: 300),
+            builder: (context, color, child) => LinearProgressIndicator(
+              borderRadius: BorderRadius.circular(25),
+              value: goalHours > 0 ? duration / goalHours : 0.0,
+              minHeight: isDesktop ? 16 : 10,
+              color: color,
+              backgroundColor: Colors.white.withOpacity(0.2),
+            ),
           ),
         ],
       ),

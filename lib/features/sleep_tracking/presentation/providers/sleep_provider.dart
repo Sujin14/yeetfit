@@ -36,6 +36,7 @@ final sleepDurationProvider = StateNotifierProvider.autoDispose
   (ref, userId) => SleepDurationNotifier(
     ref,
     ref.read(getSleepDataProvider),
+    ref.read(addSleepEntryProvider),
     userId,
   ),
 );
@@ -122,9 +123,10 @@ final weeklySleepDataProvider = FutureProvider.family<List<SleepData>, String>(
 class SleepDurationNotifier extends StateNotifier<AsyncValue<double>> {
   final Ref _ref;
   final GetSleepData _getSleepData;
+  final AddSleepEntry _addSleepEntry;
   final String _userId;
 
-  SleepDurationNotifier(this._ref, this._getSleepData, this._userId)
+  SleepDurationNotifier(this._ref, this._getSleepData, this._addSleepEntry, this._userId)
       : super(const AsyncValue.loading()) {
     _fetchSleepDuration();
   }
@@ -134,6 +136,16 @@ class SleepDurationNotifier extends StateNotifier<AsyncValue<double>> {
       state = const AsyncValue.loading();
       final sleepData = await _getSleepData.call(_userId);
       state = AsyncValue.data(sleepData?.duration ?? 0.0);
+    } catch (e, stackTrace) {
+      state = AsyncValue.error(e, stackTrace);
+    }
+  }
+
+  Future<void> updateDuration(DateTime bedtime, DateTime wakeUpTime, double duration) async {
+    try {
+      state = const AsyncValue.loading();
+      await _addSleepEntry.call(_userId, bedtime, wakeUpTime, duration);
+      state = AsyncValue.data(duration);
     } catch (e, stackTrace) {
       state = AsyncValue.error(e, stackTrace);
     }
@@ -201,6 +213,8 @@ class SleepTimesNotifier extends StateNotifier<AsyncValue<Map<String, DateTime?>
     try {
       await _addSleepEntry.call(_userId, bedtime, wakeUpTime, duration);
       await _fetchSleepTimes();
+      // Update duration provider
+      _ref.read(sleepDurationProvider(_userId).notifier).updateDuration(bedtime, wakeUpTime, duration);
     } catch (e, stackTrace) {
       state = AsyncValue.error(e, stackTrace);
     }

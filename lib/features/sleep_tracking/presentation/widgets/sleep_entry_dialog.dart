@@ -97,6 +97,10 @@ class _SleepEntryDialogState extends ConsumerState<SleepEntryDialog> {
                       time.hour,
                       time.minute,
                     );
+                    // Adjust for next day if wake-up time is earlier than bedtime
+                    if (bedtime != null && wakeUpTime!.hour < bedtime!.hour) {
+                      wakeUpTime = wakeUpTime!.add(const Duration(days: 1));
+                    }
                   });
                 }
               },
@@ -114,11 +118,19 @@ class _SleepEntryDialogState extends ConsumerState<SleepEntryDialog> {
           ElevatedButton(
             onPressed: () {
               if (bedtime != null && wakeUpTime != null) {
+                DateTime adjustedWakeUpTime = wakeUpTime!;
+                if (wakeUpTime!.isBefore(bedtime!) ||
+                    wakeUpTime!.isAtSameMomentAs(bedtime!)) {
+                  adjustedWakeUpTime = wakeUpTime!.add(const Duration(days: 1));
+                }
+
                 final duration =
-                    wakeUpTime!.difference(bedtime!).abs().inMinutes / 60.0;
+                    adjustedWakeUpTime.difference(bedtime!).inMinutes / 60.0;
+
                 ref
                     .read(sleepTimesProvider(widget.userId).notifier)
-                    .addSleepEntry(bedtime!, wakeUpTime!, duration);
+                    .addSleepEntry(bedtime!, adjustedWakeUpTime, duration);
+
                 Navigator.pop(context);
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(

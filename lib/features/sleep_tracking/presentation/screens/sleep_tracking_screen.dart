@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../widgets/sleep_app_bar.dart';
@@ -21,7 +22,6 @@ class SleepTrackingScreen extends ConsumerWidget {
       );
     }
 
-    final isDesktop = MediaQuery.of(context).size.width >= 600;
     final today = DateTime.now().toIso8601String().split('T')[0];
 
     return Scaffold(
@@ -31,8 +31,8 @@ class SleepTrackingScreen extends ConsumerWidget {
           constraints: const BoxConstraints(maxWidth: 600),
           child: SingleChildScrollView(
             padding: EdgeInsets.symmetric(
-              horizontal: isDesktop ? 12 : 16,
-              vertical: isDesktop ? 12 : 20,
+              horizontal: 16.w,
+              vertical: 20.h,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
