@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import '../../../../shared/widgets/glassmorphic_container.dart';
 
 class StepsCaloriesCard extends StatelessWidget {
-  const StepsCaloriesCard({super.key});
+  final double caloriesBurned;
+  final double goalCalories;
+
+  const StepsCaloriesCard({
+    super.key,
+    required this.caloriesBurned,
+    required this.goalCalories,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width >= 600;
+    final isDesktop = ScreenUtil().screenWidth >= 600.w;
     return GlassmorphicContainer(
       color: const Color(0xFF3F51B5),
       child: Column(
@@ -18,47 +25,47 @@ class StepsCaloriesCard extends StatelessWidget {
             'Calories Burned',
             style: GoogleFonts.roboto(
               fontWeight: FontWeight.bold,
-              fontSize: isDesktop ? 16 : 18,
+              fontSize: isDesktop ? 16.sp : 18.sp,
               color: Colors.white,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 'Your Goal:',
                 style: GoogleFonts.roboto(
-                  fontSize: isDesktop ? 14 : 14,
+                  fontSize: isDesktop ? 14.sp : 14.sp,
                   color: Colors.white70,
                 ),
               ),
               Text(
-                '400 Cal 🔥',
+                '${goalCalories.toStringAsFixed(0)} Cal 🔥',
                 style: GoogleFonts.roboto(
                   fontWeight: FontWeight.bold,
-                  fontSize: isDesktop ? 14 : 14,
+                  fontSize: isDesktop ? 14.sp : 14.sp,
                   color: Colors.white,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: 4.h),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 'Today\'s Burn:',
                 style: GoogleFonts.roboto(
-                  fontSize: isDesktop ? 14 : 14,
+                  fontSize: isDesktop ? 14.sp : 14.sp,
                   color: Colors.white70,
                 ),
               ),
               Text(
-                '300 Cal 🔥',
+                '${caloriesBurned.toStringAsFixed(0)} Cal 🔥',
                 style: GoogleFonts.roboto(
                   fontWeight: FontWeight.bold,
-                  fontSize: isDesktop ? 14 : 14,
+                  fontSize: isDesktop ? 14.sp : 14.sp,
                   color: Colors.white,
                 ),
               ),
