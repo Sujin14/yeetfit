@@ -24,6 +24,14 @@ class AppTheme {
     'indigo': Color(0xFF3F51B5),
     'onSurface': Color(0xFF212121),
     'onSurfaceDark': Color.fromRGBO(245, 245, 245, 0.9),
+    'fullProgress': Color.fromARGB(255, 4, 160, 10),
+    'ThreeQuarterProgress': Color(0xFF4CAF50),
+    'halfProgress': Color(0xFFFFEB3B),
+    'QuarterProgress': Color(0xFFFF9800),
+    'noProgress': Color(0xFFF44336),
+    'waterChartBackground': Color(0xFF3F51B5),
+    'white': Colors.white,
+    'black': Colors.black,
   };
 
   static final textStyles = {

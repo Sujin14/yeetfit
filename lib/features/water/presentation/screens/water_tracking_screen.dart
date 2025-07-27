@@ -21,39 +21,42 @@ class WaterTrackingScreen extends ConsumerWidget {
       );
     }
 
-    final waterDataAsync = ref.watch(waterDataProvider(userId));
-    final waterGoalAsync = ref.watch(waterGoalProvider(userId));
-
     return Scaffold(
       appBar: const WaterAppBar(),
-      body: waterDataAsync.when(
-        data: (waterData) => ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            WaterProgressCard(
-              glassesConsumed: waterData?.glassesConsumed ?? 0,
-              goalGlasses: waterGoalAsync.value ?? 8,
-            ),
-            const SizedBox(height: 20),
-            WaterCircularIndicator(
-              progress: waterData != null && waterGoalAsync.value != null
-                  ? waterData.glassesConsumed / waterGoalAsync.value!
-                  : 0.0,
-            ),
-            const SizedBox(height: 10),
-            WaterActionButtons(
-              onAdd: () => ref.read(waterDataProvider(userId).notifier).addGlass(),
-              onRemove: () => ref.read(waterDataProvider(userId).notifier).removeGlass(),
-            ),
-            const SizedBox(height: 24),
-            const WaterTipCard(),
-            const SizedBox(height: 30),
-            WaterChartSection(userId: userId),
-            const SizedBox(height: 50),
-          ],
-        ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(child: Text('Error: $error')),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Consumer(
+            builder: (context, ref, _) {
+              final glassesConsumed = ref.watch(glassesConsumedProvider(userId).select((value) => value.value ?? 0));
+              final goalGlasses = ref.watch(waterGoalProvider(userId).select((value) => value.value ?? 8));
+              return WaterProgressCard(
+                glassesConsumed: glassesConsumed,
+                goalGlasses: goalGlasses,
+              );
+            },
+          ),
+          const SizedBox(height: 20),
+          Consumer(
+            builder: (context, ref, _) {
+              final glassesConsumed = ref.watch(glassesConsumedProvider(userId).select((value) => value.value ?? 0));
+              final goalGlasses = ref.watch(waterGoalProvider(userId).select((value) => value.value ?? 8));
+              return WaterCircularIndicator(
+                progress: goalGlasses > 0 ? glassesConsumed / goalGlasses : 0.0,
+              );
+            },
+          ),
+          const SizedBox(height: 10),
+          WaterActionButtons(
+            onAdd: () => ref.read(glassesConsumedProvider(userId).notifier).addGlass(),
+            onRemove: () => ref.read(glassesConsumedProvider(userId).notifier).removeGlass(),
+          ),
+          const SizedBox(height: 24),
+          const WaterTipCard(),
+          const SizedBox(height: 30),
+          WaterChartSection(userId: userId),
+          const SizedBox(height: 50),
+        ],
       ),
     );
   }

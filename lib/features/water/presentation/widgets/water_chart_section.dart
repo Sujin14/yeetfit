@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import '../../../../shared/theme/theme.dart';
 import '../../data/model/water_model.dart';
 import '../providers/water_provider.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
@@ -16,16 +17,16 @@ class WaterChartSection extends ConsumerWidget {
     final weeklyDataAsync = ref.watch(weeklyWaterDataProvider(userId));
 
     return GlassmorphicContainer(
-      color: const Color(0xFF3F51B5),
+      color: AppTheme.colors['waterChartBackground']!,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'This Week',
+            'This Week\'s Progress',
             style: GoogleFonts.roboto(
               fontWeight: FontWeight.bold,
               fontSize: 18,
-              color: Colors.white,
+              color: AppTheme.colors['white'],
             ),
           ),
           const SizedBox(height: 10),
@@ -37,22 +38,24 @@ class WaterChartSection extends ConsumerWidget {
                   BarChartData(
                     barGroups: List.generate(7, (index) {
                       final date = DateTime.now().subtract(Duration(days: 6 - index));
+                      final dateString = date.toIso8601String().split('T')[0];
                       final data = weeklyData.firstWhere(
-                        (entry) => entry.date == date.toIso8601String().split('T')[0],
-                        orElse: () => WaterData(date: date.toIso8601String().split('T')[0], glassesConsumed: 0, goalGlasses: 8),
+                        (entry) => entry.date == dateString,
+                        orElse: () => WaterData(date: dateString, glassesConsumed: 0, goalGlasses: 8),
                       );
+                      final progressColor = ref.watch(dailyProgressColorProvider('$userId|$dateString'));
                       return BarChartGroupData(
                         x: index,
                         barRods: [
                           BarChartRodData(
                             toY: data.glassesConsumed.toDouble(),
                             width: 18,
-                            color: const Color(0xFF26A69A),
+                            color: progressColor,
                             borderRadius: BorderRadius.circular(6),
                             backDrawRodData: BackgroundBarChartRodData(
                               show: true,
                               toY: data.goalGlasses.toDouble(),
-                              color: Colors.white.withOpacity(0.1),
+                              color: AppTheme.colors['lightBackground']!,
                             ),
                           ),
                         ],
@@ -67,11 +70,13 @@ class WaterChartSection extends ConsumerWidget {
                           showTitles: true,
                           reservedSize: 32,
                           getTitlesWidget: (value, _) {
-                            const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                            final date = DateTime.now().subtract(Duration(days: 6 - value.toInt()));
+                            final dateString = date.toIso8601String().split('T')[0];
+                            final dayName = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][value.toInt()];
                             return Padding(
                               padding: const EdgeInsets.only(top: 8),
                               child: Text(
-                                days[value.toInt()],
+                                dayName,
                                 style: GoogleFonts.roboto(
                                   fontSize: 12,
                                   color: Colors.white,

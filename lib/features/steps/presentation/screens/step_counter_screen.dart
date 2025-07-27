@@ -6,7 +6,6 @@ import '../widgets/steps_chart_card.dart';
 import '../widgets/steps_progress_card.dart';
 import '../widgets/steps_tip_card.dart';
 
-
 class StepCounterScreen extends StatelessWidget {
   const StepCounterScreen({super.key});
 

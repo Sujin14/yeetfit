@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
 
 class WaterCircularIndicator extends StatelessWidget {
@@ -20,7 +21,7 @@ class WaterCircularIndicator extends StatelessWidget {
                 height: 160,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.15),
+                  color: AppTheme.colors['white']!,
                 ),
               ),
               SizedBox(

@@ -2,10 +2,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yeetfit/shared/theme/theme.dart';
 import '../providers/water_provider.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
 
-class WaterProgressCard extends ConsumerWidget {
+class WaterProgressCard extends StatelessWidget {
   final int glassesConsumed;
   final int goalGlasses;
 
@@ -16,11 +17,11 @@ class WaterProgressCard extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final userId = FirebaseAuth.instance.currentUser?.uid;
 
     return GlassmorphicContainer(
-      color: const Color(0xFF26A69A),
+      color: AppTheme.colors['navBarActive']!,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -37,7 +38,7 @@ class WaterProgressCard extends ConsumerWidget {
               const Spacer(),
               IconButton(
                 onPressed: userId != null
-                    ? () => _showEditGoalDialog(context, ref, userId)
+                    ? () => _showEditGoalDialog(context, userId)
                     : null,
                 icon: const Icon(Icons.edit, size: 20, color: Colors.white),
                 tooltip: 'Edit Goal',
@@ -69,40 +70,42 @@ class WaterProgressCard extends ConsumerWidget {
     );
   }
 
-  void _showEditGoalDialog(BuildContext context, WidgetRef ref, String userId) {
+  void _showEditGoalDialog(BuildContext context, String userId) {
     final controller = TextEditingController(text: goalGlasses.toString());
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Edit Water Goal'),
-        content: TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: 'Glasses per Day',
-            hintText: 'Enter number of glasses',
+      builder: (context) => Consumer(
+        builder: (context, ref, _) => AlertDialog(
+          title: const Text('Edit Water Goal'),
+          content: TextField(
+            controller: controller,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Glasses per Day',
+              hintText: 'Enter number of glasses',
+            ),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                final newGoal = int.tryParse(controller.text);
+                if (newGoal != null && newGoal > 0) {
+                  ref.read(waterGoalProvider(userId).notifier).setGoal(newGoal);
+                  Navigator.pop(context);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please enter a valid number')),
+                  );
+                }
+              },
+              child: const Text('Save'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              final newGoal = int.tryParse(controller.text);
-              if (newGoal != null && newGoal > 0) {
-                ref.read(waterGoalProvider(userId).notifier).setGoal(newGoal);
-                Navigator.pop(context);
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Please enter a valid number')),
-                );
-              }
-            },
-            child: const Text('Save'),
-          ),
-        ],
       ),
     );
   }

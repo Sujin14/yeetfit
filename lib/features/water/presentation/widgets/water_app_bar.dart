@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:yeetfit/shared/theme/theme.dart';
 
 class WaterAppBar extends StatelessWidget implements PreferredSizeWidget {
   const WaterAppBar({super.key});
@@ -16,7 +17,7 @@ class WaterAppBar extends StatelessWidget implements PreferredSizeWidget {
         'Water Tracker',
         style: GoogleFonts.roboto(
           fontSize: 26,
-          color: Colors.white,
+          color: AppTheme.colors['teal'],
           fontWeight: FontWeight.bold,
         ),
       ),
