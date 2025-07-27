@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
-
 
 class WeightTipCard extends StatelessWidget {
   const WeightTipCard({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width >= 600.w;
+    final isDesktop = ScreenUtil().screenWidth >= 600.w;
     return GlassmorphicContainer(
       color: AppTheme.colors['deepOrange']!,
       padding: EdgeInsets.all(isDesktop ? 20.w : 14.w),

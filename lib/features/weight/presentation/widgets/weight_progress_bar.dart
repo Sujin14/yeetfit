@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
 
 class WeightProgressBar extends StatelessWidget {
-  const WeightProgressBar({super.key});
+  final double progress;
+  final Color progressColor;
+
+  const WeightProgressBar({
+    super.key,
+    required this.progress,
+    required this.progressColor,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width >= 600.w;
+    final isDesktop = ScreenUtil().screenWidth >= 600.w;
     return GlassmorphicContainer(
       color: AppTheme.colors['indigo']!,
       padding: EdgeInsets.all(16.w),
@@ -29,17 +35,21 @@ class WeightProgressBar extends StatelessWidget {
           Stack(
             alignment: Alignment.centerRight,
             children: [
-              LinearProgressIndicator(
-                value: 0.95,
-                minHeight: isDesktop ? 12.h : 8.h,
-                borderRadius: BorderRadius.circular(10.r),
-                color: AppTheme.colors['teal'],
-                backgroundColor: AppTheme.colors['onSurface']!.withOpacity(0.2),
+              TweenAnimationBuilder(
+                tween: ColorTween(begin: Colors.grey, end: progressColor),
+                duration: const Duration(milliseconds: 300),
+                builder: (context, color, child) => LinearProgressIndicator(
+                  value: progress,
+                  minHeight: isDesktop ? 12.h : 8.h,
+                  borderRadius: BorderRadius.circular(10.r),
+                  color: color,
+                  backgroundColor: AppTheme.colors['onSurface']!.withOpacity(0.2),
+                ),
               ),
               Padding(
                 padding: EdgeInsets.only(right: 12.w),
                 child: Text(
-                  '95%',
+                  '${(progress * 100).toStringAsFixed(0)}%',
                   style: GoogleFonts.roboto(
                     fontSize: isDesktop ? 14.sp : 12.sp,
                     color: AppTheme.colors['onSurface'],
