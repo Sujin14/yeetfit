@@ -1,13 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:intl/intl.dart';
+import '../providers/sleep_provider.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
 
-class SleepEntryDialog extends StatelessWidget {
-  const SleepEntryDialog({super.key});
+class SleepEntryDialog extends ConsumerStatefulWidget {
+  final String userId;
+
+  const SleepEntryDialog({super.key, required this.userId});
+
+  @override
+  ConsumerState<SleepEntryDialog> createState() => _SleepEntryDialogState();
+}
+
+class _SleepEntryDialogState extends ConsumerState<SleepEntryDialog> {
+  DateTime? bedtime;
+  DateTime? wakeUpTime;
 
   @override
   Widget build(BuildContext context) {
+    final sleepTimesAsync = ref.watch(sleepTimesProvider(widget.userId));
+    bedtime ??= sleepTimesAsync.value?['bedtime'];
+    wakeUpTime ??= sleepTimesAsync.value?['wakeUpTime'];
+
     return GlassmorphicContainer(
       color: const Color(0xFFFF5722),
       child: AlertDialog(
@@ -29,10 +45,30 @@ class SleepEntryDialog extends StatelessWidget {
                 style: GoogleFonts.roboto(color: Colors.white),
               ),
               trailing: Text(
-                '10:00 PM',
+                bedtime != null
+                    ? DateFormat('h:mm a').format(bedtime!)
+                    : 'Select',
                 style: GoogleFonts.roboto(color: Colors.white),
               ),
-              onTap: () {},
+              onTap: () async {
+                final time = await showTimePicker(
+                  context: context,
+                  initialTime: TimeOfDay.fromDateTime(
+                    bedtime ?? DateTime.now(),
+                  ),
+                );
+                if (time != null) {
+                  setState(() {
+                    bedtime = DateTime(
+                      DateTime.now().year,
+                      DateTime.now().month,
+                      DateTime.now().day,
+                      time.hour,
+                      time.minute,
+                    );
+                  });
+                }
+              },
             ),
             ListTile(
               title: Text(
@@ -40,10 +76,30 @@ class SleepEntryDialog extends StatelessWidget {
                 style: GoogleFonts.roboto(color: Colors.white),
               ),
               trailing: Text(
-                '06:00 AM',
+                wakeUpTime != null
+                    ? DateFormat('h:mm a').format(wakeUpTime!)
+                    : 'Select',
                 style: GoogleFonts.roboto(color: Colors.white),
               ),
-              onTap: () {},
+              onTap: () async {
+                final time = await showTimePicker(
+                  context: context,
+                  initialTime: TimeOfDay.fromDateTime(
+                    wakeUpTime ?? DateTime.now(),
+                  ),
+                );
+                if (time != null) {
+                  setState(() {
+                    wakeUpTime = DateTime(
+                      DateTime.now().year,
+                      DateTime.now().month,
+                      DateTime.now().day,
+                      time.hour,
+                      time.minute,
+                    );
+                  });
+                }
+              },
             ),
           ],
         ),
@@ -56,7 +112,24 @@ class SleepEntryDialog extends StatelessWidget {
             ),
           ),
           ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              if (bedtime != null && wakeUpTime != null) {
+                final duration =
+                    wakeUpTime!.difference(bedtime!).abs().inMinutes / 60.0;
+                ref
+                    .read(sleepTimesProvider(widget.userId).notifier)
+                    .addSleepEntry(bedtime!, wakeUpTime!, duration);
+                Navigator.pop(context);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Please select both bedtime and wake-up time',
+                    ),
+                  ),
+                );
+              }
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF26A69A).withOpacity(0.3),
             ),
