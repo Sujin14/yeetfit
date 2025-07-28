@@ -1,9 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/custom_appbar.dart';
@@ -20,6 +20,7 @@ class PlanDetailPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final plan = extra['plan'] as PlanModel;
     final category = extra['category'] as String?;
+    final onUnfavorite = extra['onUnfavorite'] as VoidCallback?;
     final userId = FirebaseAuth.instance.currentUser?.uid;
 
     if (userId == null) {
@@ -52,7 +53,7 @@ class PlanDetailPage extends ConsumerWidget {
           .doc(plan.id)
           .snapshots(),
       builder: (context, snapshot) {
-        PlanModel? updatedPlan = plan;
+        PlanModel updatedPlan = plan;
         if (snapshot.hasData && snapshot.data != null) {
           updatedPlan = PlanModel.fromFirestore(snapshot.data!);
         }
@@ -61,17 +62,20 @@ class PlanDetailPage extends ConsumerWidget {
           controller: YoutubePlayerController(),
           builder: (context, child) => Scaffold(
             appBar: CustomAppBar(
-              title: updatedPlan!.title,
+              title: updatedPlan.title,
               showSettings: true,
               onSettings: () => context.push('/settings'),
               showFavorite: true,
               isFavorite: updatedPlan.isFavorite,
+              favoriteColor: updatedPlan.isFavorite 
+                  ? AppTheme.colors['favorite'] ?? Colors.red 
+                  : AppTheme.colors['secondaryText'] ?? Colors.grey,
               onFavorite: () async {
                 try {
                   await ref
                       .read(toggleFavoriteUseCaseProvider)
                       .execute(
-                        updatedPlan!.id!,
+                        updatedPlan.id!,
                         updatedPlan.type,
                         !updatedPlan.isFavorite,
                       );
@@ -84,18 +88,16 @@ class PlanDetailPage extends ConsumerWidget {
                         updatedPlan.isFavorite
                             ? 'Removed from favorites'
                             : 'Added to favorites',
-                        style:
-                            AppTheme.textStyles['body']?.copyWith(
-                              color:
-                                  AppTheme.colors['primaryText'] ??
-                                  Colors.black,
-                            ) ??
-                            const TextStyle(color: Colors.black),
+                        style: AppTheme.textStyles['body']?.copyWith(
+                          color: AppTheme.colors['primaryText'] ?? Colors.black,
+                        ) ?? const TextStyle(color: Colors.black),
                       ),
-                      backgroundColor:
-                          AppTheme.colors['primaryButton'] ?? Colors.blue,
+                      backgroundColor: AppTheme.colors['primaryButton'] ?? Colors.blue,
                     ),
                   );
+                  if (!updatedPlan.isFavorite && onUnfavorite != null) {
+                    onUnfavorite();
+                  }
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -103,13 +105,9 @@ class PlanDetailPage extends ConsumerWidget {
                         e.toString().contains('PERMISSION_DENIED')
                             ? 'Permission denied: Only admins can update plans'
                             : 'Error: $e',
-                        style:
-                            AppTheme.textStyles['body']?.copyWith(
-                              color:
-                                  AppTheme.colors['primaryText'] ??
-                                  Colors.black,
-                            ) ??
-                            const TextStyle(color: Colors.black),
+                        style: AppTheme.textStyles['body']?.copyWith(
+                          color: AppTheme.colors['primaryText'] ?? Colors.black,
+                        ) ?? const TextStyle(color: Colors.black),
                       ),
                       backgroundColor: AppTheme.colors['error'] ?? Colors.red,
                     ),
@@ -126,14 +124,10 @@ class PlanDetailPage extends ConsumerWidget {
                     if (updatedPlan.assignedBy != null) ...[
                       Text(
                         'Assigned by: ${updatedPlan.assignedBy}',
-                        style:
-                            AppTheme.textStyles['body']?.copyWith(
-                              color:
-                                  AppTheme.colors['secondaryText'] ??
-                                  Colors.grey,
-                              fontSize: 14.sp,
-                            ) ??
-                            TextStyle(fontSize: 14.sp, color: Colors.grey),
+                        style: AppTheme.textStyles['body']?.copyWith(
+                          color: AppTheme.colors['secondaryText'] ?? Colors.grey,
+                          fontSize: 14.sp,
+                        ) ?? TextStyle(fontSize: 14.sp, color: Colors.grey),
                       ),
                       SizedBox(height: 8.h),
                     ],

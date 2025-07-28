@@ -9,6 +9,7 @@ import 'package:yeetfit/features/meal_tracking/presentation/screens/calorie_trac
 import 'package:yeetfit/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:yeetfit/features/plans/presentation/screens/favorites_page.dart';
 import 'package:yeetfit/features/plans/presentation/screens/plan_detail_page.dart';
+import 'package:yeetfit/features/plans/presentation/screens/plan_list_screen.dart';
 import 'package:yeetfit/features/progress/presentation/screens/progress_screen.dart';
 import 'package:yeetfit/features/settings/presentation/screens/settings_screen.dart';
 import 'package:yeetfit/features/splash/presentation/screens/splash_screen.dart';
@@ -61,9 +62,16 @@ final GoRouter appRouter = GoRouter(
       },
     ),
     GoRoute(
-      path: '/plans/:id',
-      builder: (context, state) =>
-          PlanDetailPage(extra: state.extra as Map<String, dynamic>),
+      path: '/plans/:category',
+      builder: (context, state) => PlanListScreen(
+        category: state.pathParameters['category']!,
+      ),
+    ),
+    GoRoute(
+      path: '/plans/:category/:id',
+      builder: (context, state) => PlanDetailPage(
+        extra: state.extra as Map<String, dynamic>,
+      ),
     ),
     GoRoute(
       path: '/modal/food',
@@ -175,7 +183,6 @@ class _ShellScaffoldState extends State<ShellScaffold> {
             );
           }
         },
-
         showSettings: true,
         onSettings: () => context.push('/settings'),
       ),

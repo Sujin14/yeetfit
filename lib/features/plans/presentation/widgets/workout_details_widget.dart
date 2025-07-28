@@ -10,88 +10,144 @@ class WorkoutDetailsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (exercises.isEmpty) {
+    final validExercises = exercises
+        .whereType<Map<String, dynamic>>()
+        .toList();
+
+    if (validExercises.isEmpty) {
       return Center(
         child: Text(
           'No exercises available',
-          style:
-              AppTheme.textStyles['body']?.copyWith(
-                color: AppTheme.colors['secondaryText'] ?? Colors.grey,
-                fontSize: 16.sp,
-              ) ??
-              TextStyle(fontSize: 16.sp, color: Colors.grey),
+          style: AppTheme.textStyles['body']?.copyWith(
+            color: AppTheme.colors['secondaryText'] ?? Colors.grey,
+            fontSize: 16.sp,
+          ) ?? TextStyle(fontSize: 16.sp, color: Colors.grey),
         ),
       );
     }
+
     return ListView.builder(
-      itemCount: exercises.length,
+      itemCount: validExercises.length,
       itemBuilder: (context, index) {
-        final exercise = exercises[index] as Map<String, dynamic>;
+        final exercise = validExercises[index];
+        final name = exercise['name'] ?? 'Unnamed';
         final videoUrl = exercise['videoUrl'] as String?;
         final description = exercise['description'] as String?;
-        final instructions = exercise['instructions'] as String?;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Exercise ${index + 1}: ${exercise['name'] ?? 'Unnamed'}',
-              style:
-                  AppTheme.textStyles['subheading']?.copyWith(
-                    color: AppTheme.colors['primaryText'] ?? Colors.black,
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.w600,
-                  ) ??
-                  TextStyle(
-                    fontSize: 18.sp,
-                    color: Colors.black,
-                    fontWeight: FontWeight.w600,
+        final reps = exercise['reps'] ?? 'N/A';
+        final repsType = exercise['repsType'] ?? '';
+        final sets = exercise['sets']?.toString() ?? 'N/A';
+        final rawInstructions = exercise['instructions'];
+        final List<String> instructions;
+
+        if (rawInstructions is List) {
+          instructions = rawInstructions
+              .whereType<Map<String, dynamic>>()
+              .map((e) => e['text']?.toString() ?? '')
+              .where((text) => text.isNotEmpty)
+              .toList();
+        } else if (rawInstructions is String) {
+          instructions = [rawInstructions];
+        } else {
+          instructions = [];
+        }
+
+        return Padding(
+          padding: EdgeInsets.only(bottom: 16.h),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Exercise ${index + 1}: $name',
+                style: AppTheme.textStyles['subheading']?.copyWith(
+                      color: AppTheme.colors['primaryText'] ?? Colors.black,
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.w600,
+                    ) ??
+                    TextStyle(
+                      fontSize: 18.sp,
+                      color: Colors.black,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              SizedBox(height: 8.h),
+
+              Text(
+                'Reps: $reps $repsType',
+                style: AppTheme.textStyles['body']?.copyWith(
+                      color: AppTheme.colors['secondaryText'] ?? Colors.grey,
+                      fontSize: 14.sp,
+                    ) ??
+                    TextStyle(fontSize: 14.sp, color: Colors.grey),
+              ),
+
+              // Sets
+              SizedBox(height: 8.h),
+              Text(
+                'Sets: $sets',
+                style: AppTheme.textStyles['body']?.copyWith(
+                      color: AppTheme.colors['secondaryText'] ?? Colors.grey,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w500,
+                    ) ??
+                    TextStyle(
+                      fontSize: 14.sp,
+                      color: Colors.grey,
+                      fontWeight: FontWeight.w500,
+                    ),
+              ),
+
+              // Description
+              if (description != null && description.isNotEmpty) ...[
+                SizedBox(height: 8.h),
+                Text(
+                  'Description: $description',
+                  style: AppTheme.textStyles['body']?.copyWith(
+                        color:
+                            AppTheme.colors['secondaryText'] ?? Colors.grey,
+                        fontSize: 14.sp,
+                      ) ??
+                      TextStyle(fontSize: 14.sp, color: Colors.grey),
+                ),
+              ],
+
+              // Instructions
+              if (instructions.isNotEmpty) ...[
+                SizedBox(height: 8.h),
+                Text(
+                  'Instructions:',
+                  style: AppTheme.textStyles['body']?.copyWith(
+                        color:
+                            AppTheme.colors['secondaryText'] ?? Colors.grey,
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w500,
+                      ) ??
+                      TextStyle(
+                        fontSize: 14.sp,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.w500,
+                      ),
+                ),
+                ...instructions.map(
+                  (text) => Padding(
+                    padding: EdgeInsets.only(left: 16.w, top: 4.h),
+                    child: Text(
+                      '- $text',
+                      style: AppTheme.textStyles['body']?.copyWith(
+                            color: AppTheme.colors['secondaryText'] ??
+                                Colors.grey,
+                            fontSize: 14.sp,
+                          ) ??
+                          TextStyle(fontSize: 14.sp, color: Colors.grey),
+                    ),
                   ),
-            ),
-            SizedBox(height: 8.h),
-            Text(
-              'Reps: ${exercise['reps'] ?? 'N/A'} ${exercise['repsType'] ?? ''}',
-              style:
-                  AppTheme.textStyles['body']?.copyWith(
-                    color: AppTheme.colors['secondaryText'] ?? Colors.grey,
-                    fontSize: 14.sp,
-                  ) ??
-                  TextStyle(fontSize: 14.sp, color: Colors.grey),
-            ),
-            Text(
-              'Sets: ${exercise['sets'] ?? 'N/A'}',
-              style:
-                  AppTheme.textStyles['body']?.copyWith(
-                    color: AppTheme.colors['secondaryText'] ?? Colors.grey,
-                    fontSize: 14.sp,
-                  ) ??
-                  TextStyle(fontSize: 14.sp, color: Colors.grey),
-            ),
-            if (description != null && description.isNotEmpty)
-              Text(
-                'Description: $description',
-                style:
-                    AppTheme.textStyles['body']?.copyWith(
-                      color: AppTheme.colors['secondaryText'] ?? Colors.grey,
-                      fontSize: 14.sp,
-                    ) ??
-                    TextStyle(fontSize: 14.sp, color: Colors.grey),
-              ),
-            if (instructions != null && instructions.isNotEmpty)
-              Text(
-                'Instructions: $instructions',
-                style:
-                    AppTheme.textStyles['body']?.copyWith(
-                      color: AppTheme.colors['secondaryText'] ?? Colors.grey,
-                      fontSize: 14.sp,
-                    ) ??
-                    TextStyle(fontSize: 14.sp, color: Colors.grey),
-              ),
-            if (videoUrl != null && videoUrl.isNotEmpty) ...[
-              SizedBox(height: 16.h),
-              YoutubePlayerWidget(videoUrl: videoUrl),
+                ),
+              ],
+              if (videoUrl != null && videoUrl.isNotEmpty) ...[
+                SizedBox(height: 16.h),
+                YoutubePlayerWidget(videoUrl: videoUrl),
+              ],
             ],
-            SizedBox(height: 16.h),
-          ],
+          ),
         );
       },
     );
