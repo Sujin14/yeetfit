@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-
 import '../widgets/nutrition_back_button.dart';
 import '../widgets/nutrition_card.dart';
 import '../widgets/nutrition_header.dart';
-
 
 class NutritionDetailsScreen extends StatelessWidget {
   const NutritionDetailsScreen({super.key});

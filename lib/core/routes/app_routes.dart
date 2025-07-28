@@ -6,6 +6,8 @@ import 'package:yeetfit/features/auth/presentation/screens/sign_up_screen.dart';
 import 'package:yeetfit/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:yeetfit/features/explore/presentation/screens/explore_screen.dart';
 import 'package:yeetfit/features/meal_tracking/presentation/screens/calorie_tracking_screen.dart';
+import 'package:yeetfit/features/meal_tracking/presentation/screens/food_search_screen.dart';
+import 'package:yeetfit/features/meal_tracking/presentation/screens/weekly_calorie_chart_screen.dart';
 import 'package:yeetfit/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:yeetfit/features/plans/presentation/screens/favorites_page.dart';
 import 'package:yeetfit/features/plans/presentation/screens/plan_detail_page.dart';
@@ -76,6 +78,16 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/modal/food',
       builder: (context, state) => const CalorieTrackingScreen(),
+    ),
+    GoRoute(
+      path: '/food-search',
+      builder: (context, state) => FoodSearchScreen(
+        mealType: state.extra as String? ?? 'Breakfast',
+      ),
+    ),
+    GoRoute(
+      path: '/weekly-calorie-chart',
+      builder: (context, state) => const WeeklyCalorieChartScreen(),
     ),
     GoRoute(
       path: '/modal/steps',

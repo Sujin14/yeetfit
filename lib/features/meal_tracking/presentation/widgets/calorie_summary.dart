@@ -1,15 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:yeetfit/shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-class CalorieSummary extends StatelessWidget {
-  const CalorieSummary({super.key});
+class CalorieSummary extends ConsumerWidget {
+  final double totalCalories;
+  final double goalCalories;
+  final Color progressColor;
+
+  const CalorieSummary({
+    super.key,
+    required this.totalCalories,
+    required this.goalCalories,
+    required this.progressColor,
+  });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
     return GlassmorphicContainer(
-      color: const Color(0xFFFF5722),
+      color: AppTheme.colors['deepOrange']!,
       child: Row(
         children: [
           Stack(
@@ -19,16 +32,16 @@ class CalorieSummary extends StatelessWidget {
                 height: 60,
                 width: 60,
                 child: CircularProgressIndicator(
-                  value: 0.7,
+                  value: goalCalories > 0 ? totalCalories / goalCalories : 0.0,
                   strokeWidth: 6,
-                  backgroundColor: Colors.white.withOpacity(0.2),
-                  valueColor: const AlwaysStoppedAnimation(Color(0xFF3F51B5)),
+                  backgroundColor: AppTheme.colors['white']!.withOpacity(0.2),
+                  valueColor: AlwaysStoppedAnimation(progressColor),
                 ),
               ),
-              const Icon(
+              Icon(
                 Icons.local_dining,
                 size: 28,
-                color: Color(0xFF3F51B5),
+                color: AppTheme.colors['indigo'],
               ),
             ],
           ),
@@ -37,29 +50,23 @@ class CalorieSummary extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '1225 of 1750 Cal',
+                '${totalCalories.toStringAsFixed(0)} of ${goalCalories.toStringAsFixed(0)} Cal',
                 style: GoogleFonts.roboto(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              GestureDetector(
-                onTap: () {},
-                child: const Icon(
-                  Icons.edit,
-                  size: 20,
-                  color: Colors.white,
+                  color: AppTheme.colors['onSurface'],
                 ),
               ),
             ],
           ),
           const Spacer(),
           GestureDetector(
-            onTap: () {},
-            child: const Icon(
+            onTap: () {
+              context.push('/weekly-calorie-chart');
+            },
+            child: Icon(
               Icons.bar_chart,
-              color: Color(0xFF3F51B5),
+              color: AppTheme.colors['indigo'],
               size: 28,
             ),
           ),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../shared/theme/theme.dart';
+
 class NutritionHeader extends StatelessWidget implements PreferredSizeWidget {
   const NutritionHeader({super.key});
 
@@ -17,8 +19,8 @@ class NutritionHeader extends StatelessWidget implements PreferredSizeWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            const Color(0xFF26A69A).withOpacity(0.3),
-            const Color(0xFF3F51B5).withOpacity(0.3),
+            AppTheme.colors['teal']!.withOpacity(0.3),
+            AppTheme.colors['indigo']!.withOpacity(0.3),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -37,14 +39,13 @@ class NutritionHeader extends StatelessWidget implements PreferredSizeWidget {
           Container(
             width: 50,
             height: 50,
-            color: Colors.grey.withOpacity(0.3),
-            // Comment: This is a placeholder for the food image
+            color: AppTheme.colors['gray']!.withOpacity(0.3),
           ),
           Text(
             'Sample Food',
             style: GoogleFonts.righteous(
               fontSize: isLargeScreen ? 32 : size.width * 0.06,
-              color: Colors.white,
+              color: AppTheme.colors['onSurface'],
             ),
           ),
           const SizedBox(height: 4),
@@ -52,7 +53,7 @@ class NutritionHeader extends StatelessWidget implements PreferredSizeWidget {
             'Nutritional Details',
             style: GoogleFonts.roboto(
               fontSize: isLargeScreen ? 18 : size.width * 0.035,
-              color: Colors.white70,
+              color: AppTheme.colors['onSurface']!.withOpacity(0.7),
             ),
           ),
         ],
