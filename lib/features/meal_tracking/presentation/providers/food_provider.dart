@@ -5,12 +5,10 @@ import '../../data/model/food_model.dart';
 import '../../data/repositories/food_repository.dart';
 import '../../domain/usecases/food_usecases.dart';
 
-/// Repository provider
 final foodRepositoryProvider = Provider<FoodRepositoryImpl>(
   (ref) => FoodRepositoryImpl(FoodDataSource()),
 );
 
-/// UseCase providers
 final addFoodEntryProvider = Provider<AddFoodEntry>(
   (ref) => AddFoodEntry(ref.read(foodRepositoryProvider)),
 );
@@ -27,14 +25,13 @@ final getWeeklyFoodDataProvider = Provider<GetWeeklyFoodData>(
   (ref) => GetWeeklyFoodData(ref.read(foodRepositoryProvider)),
 );
 
-/// Provider for daily calories
-final dailyCaloriesProvider = StateNotifierProvider.autoDispose
-    .family<DailyCaloriesNotifier, AsyncValue<double>, String>(
+final dailyFoodItemsProvider = StateNotifierProvider.autoDispose
+    .family<DailyFoodItemsNotifier, AsyncValue<List<FoodItem>>, String>(
   (ref, userIdAndMealType) {
     final parts = userIdAndMealType.split('|');
     final userId = parts[0];
     final mealType = parts[1];
-    return DailyCaloriesNotifier(
+    return DailyFoodItemsNotifier(
       ref,
       ref.read(getFoodDataProvider),
       ref.read(addFoodEntryProvider),
@@ -44,7 +41,30 @@ final dailyCaloriesProvider = StateNotifierProvider.autoDispose
   },
 );
 
-/// Provider for calorie goal
+final dailyCaloriesProvider = Provider.autoDispose.family<double, String>(
+  (ref, userIdAndMealType) {
+    final foodItems = ref.watch(dailyFoodItemsProvider(userIdAndMealType)).value ?? [];
+    return foodItems.fold(0.0, (sum, item) => sum + item.calories);
+  },
+);
+
+final dailyNutrientsProvider = Provider.autoDispose.family<Map<String, double>, String>(
+  (ref, userId) {
+    final mealTypes = ['Breakfast', 'Morning Snack', 'Lunch', 'Evening Snack', 'Dinner'];
+    final nutrients = {'protein': 0.0, 'fat': 0.0, 'carbs': 0.0, 'fiber': 0.0};
+    for (final mealType in mealTypes) {
+      final foodItems = ref.watch(dailyFoodItemsProvider('$userId|$mealType')).value ?? [];
+      for (final item in foodItems) {
+        nutrients['protein'] = nutrients['protein']! + item.protein;
+        nutrients['fat'] = nutrients['fat']! + item.fat;
+        nutrients['carbs'] = nutrients['carbs']! + item.carbs;
+        nutrients['fiber'] = nutrients['fiber']! + item.fiber;
+      }
+    }
+    return nutrients;
+  },
+);
+
 final calorieGoalProvider = StateNotifierProvider.autoDispose
     .family<CalorieGoalNotifier, AsyncValue<double>, String>(
   (ref, userId) => CalorieGoalNotifier(
@@ -55,36 +75,33 @@ final calorieGoalProvider = StateNotifierProvider.autoDispose
   ),
 );
 
-/// Provider for daily progress color
 final dailyCalorieProgressColorProvider = Provider.autoDispose.family<Color, String>(
   (ref, userIdAndDate) {
     final parts = userIdAndDate.split('|');
     final userId = parts[0];
-    final date = parts[1];
     final mealTypes = ['Breakfast', 'Morning Snack', 'Lunch', 'Evening Snack', 'Dinner'];
     double totalCalories = 0.0;
-    
+
     for (final mealType in mealTypes) {
-      final calories = ref.watch(dailyCaloriesProvider('$userId|$mealType').select((value) => value.value ?? 0.0));
+      final calories = ref.watch(dailyCaloriesProvider('$userId|$mealType'));
       totalCalories += calories;
     }
-    
-    final goalCalories = ref.watch(calorieGoalProvider(userId).select((value) => value.value ?? 1750.0));
+
+    final goalCalories = ref.watch(calorieGoalProvider(userId)).value ?? 1750.0;
     final progress = goalCalories > 0 ? totalCalories / goalCalories : 0.0;
 
-    if (progress >= 1.0) return const Color(0xFF4CAF50); // Green for 100%
-    if (progress > 0.75) return const Color(0xFFFFEB3B); // Yellow for >75%
-    if (progress >= 0.5) return const Color(0xFFFF9800); // Orange for ~50%
-    return const Color(0xFFF44336); // Red for <50%
+    if (progress >= 1.0) return const Color(0xFF4CAF50);
+    if (progress > 0.75) return const Color(0xFFFFEB3B);
+    if (progress >= 0.5) return const Color(0xFFFF9800);
+    return const Color(0xFFF44336);
   },
 );
 
-/// Weekly Food Data Provider
 final weeklyFoodDataProvider = FutureProvider.family<Map<String, List<FoodItem>>, String>(
   (ref, userId) async {
     final mealTypes = ['Breakfast', 'Morning Snack', 'Lunch', 'Evening Snack', 'Dinner'];
     final Map<String, List<FoodItem>> weeklyData = {};
-    
+
     for (final mealType in mealTypes) {
       final asyncResult = await ref.read(getWeeklyFoodDataProvider).call(userId, mealType);
       weeklyData[mealType] = asyncResult.when(
@@ -93,53 +110,53 @@ final weeklyFoodDataProvider = FutureProvider.family<Map<String, List<FoodItem>>
         loading: () => [],
       );
     }
-    
+
     return weeklyData;
   },
 );
 
-/// Notifier for daily calories
-class DailyCaloriesNotifier extends StateNotifier<AsyncValue<double>> {
+class DailyFoodItemsNotifier extends StateNotifier<AsyncValue<List<FoodItem>>> {
   final Ref _ref;
   final GetFoodData _getFoodData;
   final AddFoodEntry _addFoodEntry;
   final String _userId;
   final String _mealType;
 
-  DailyCaloriesNotifier(this._ref, this._getFoodData, this._addFoodEntry, this._userId, this._mealType)
+  DailyFoodItemsNotifier(this._ref, this._getFoodData, this._addFoodEntry, this._userId, this._mealType)
       : super(const AsyncValue.loading()) {
-    _fetchCalories();
+    _fetchFoodItems();
   }
 
-  Future<void> _fetchCalories() async {
+  Future<void> _fetchFoodItems() async {
     try {
       state = const AsyncValue.loading();
       final foodData = await _getFoodData.call(_userId, _mealType);
-      state = AsyncValue.data(foodData?.calories ?? 0.0);
+      state = AsyncValue.data(foodData);
     } catch (e, stackTrace) {
       state = AsyncValue.error(e, stackTrace);
     }
   }
 
-  Future<void> updateCalories(
+  Future<void> addFoodItem(
     String foodName,
     double calories,
     double protein,
     double fat,
     double carbs,
     double fiber,
+    double quantity,
+    String? image,
   ) async {
     try {
       state = const AsyncValue.loading();
-      await _addFoodEntry.call(_userId, _mealType, foodName, calories, protein, fat, carbs, fiber);
-      state = AsyncValue.data(calories);
+      await _addFoodEntry.call(_userId, _mealType, foodName, calories, protein, fat, carbs, fiber, quantity, image);
+      await _fetchFoodItems();
     } catch (e, stackTrace) {
       state = AsyncValue.error(e, stackTrace);
     }
   }
 }
 
-/// Notifier for calorie goal
 class CalorieGoalNotifier extends StateNotifier<AsyncValue<double>> {
   final Ref _ref;
   final FoodRepositoryImpl _repository;

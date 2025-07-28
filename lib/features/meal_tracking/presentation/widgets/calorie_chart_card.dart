@@ -75,6 +75,7 @@ class CalorieChartCard extends ConsumerWidget {
                               fat: 0.0,
                               carbs: 0.0,
                               fiber: 0.0,
+                              quantity: 0.0
                             ),
                           );
                           totalCalories += dayData.calories;

@@ -62,7 +62,7 @@ class NutritionCards extends StatelessWidget {
     return SizedBox(
       width: isWide ? 300 : double.infinity,
       child: GlassmorphicContainer(
-        color: const Color(0xFFFF5722),
+        color: AppTheme.colors['deepOrange']!,
         child: ListTile(
           leading: CircleAvatar(
             backgroundColor: color.withOpacity(0.15),
@@ -72,7 +72,7 @@ class NutritionCards extends StatelessWidget {
             label,
             style: GoogleFonts.roboto(
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: AppTheme.colors['primaryColor'],
             ),
           ),
           trailing: Text(

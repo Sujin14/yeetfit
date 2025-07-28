@@ -9,7 +9,7 @@ class FoodRepositoryImpl implements FoodRepository {
   FoodRepositoryImpl(this._dataSource);
 
   @override
-  Future<FoodItem?> getFoodData(String userId, String mealType) async {
+  Future<List<FoodItem>> getFoodData(String userId, String mealType) async {
     final today = DateTime.now().toIso8601String().split('T')[0];
     return await _dataSource.getFoodData(userId, today, mealType);
   }
@@ -30,6 +30,8 @@ class FoodRepositoryImpl implements FoodRepository {
     double fat,
     double carbs,
     double fiber,
+    double quantity,
+    String? image,
   ) async {
     final today = DateTime.now().toIso8601String().split('T')[0];
     await _dataSource.addFoodEntry(
@@ -42,6 +44,8 @@ class FoodRepositoryImpl implements FoodRepository {
       fat,
       carbs,
       fiber,
+      quantity,
+      image,
     );
   }
 

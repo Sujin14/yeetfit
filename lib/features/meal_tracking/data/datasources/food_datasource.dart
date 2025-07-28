@@ -4,21 +4,18 @@ import '../model/food_model.dart';
 class FoodDataSource {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<FoodItem?> getFoodData(String userId, String date, String mealType) async {
-    final docRef = _firestore
+  Future<List<FoodItem>> getFoodData(String userId, String date, String mealType) async {
+    final querySnapshot = await _firestore
         .collection('users')
         .doc(userId)
         .collection('progress')
         .doc('food')
         .collection('food')
-        .doc('$date-$mealType'); // Use a composite ID to store mealType and date
+        .where('date', isEqualTo: date)
+        .where('mealType', isEqualTo: mealType)
+        .get();
 
-    final doc = await docRef.get();
-
-    if (doc.exists) {
-      return FoodItem.fromMap(doc.data()!);
-    }
-    return null;
+    return querySnapshot.docs.map((doc) => FoodItem.fromMap(doc.data())).toList();
   }
 
   Future<double> getCalorieGoal(String userId, String date) async {
@@ -28,7 +25,7 @@ class FoodDataSource {
         .collection('progress')
         .doc('food')
         .collection('food')
-        .doc('$date-goal'); // Store calorie goal with a specific suffix
+        .doc('$date-goal');
 
     final doc = await docRef.get();
     return doc.exists ? (doc.data()!['calorieGoal'] as num?)?.toDouble() ?? 1750.0 : 1750.0;
@@ -44,6 +41,8 @@ class FoodDataSource {
     double fat,
     double carbs,
     double fiber,
+    double quantity,
+    String? image,
   ) async {
     final docRef = _firestore
         .collection('users')
@@ -51,19 +50,21 @@ class FoodDataSource {
         .collection('progress')
         .doc('food')
         .collection('food')
-        .doc('$date-$mealType'); // Use a composite ID
+        .doc();
 
     await docRef.set({
       'date': date,
-      'mealType': mealType, // Store mealType explicitly
+      'mealType': mealType,
       'foodName': foodName,
       'calories': calories,
       'protein': protein,
       'fat': fat,
       'carbs': carbs,
       'fiber': fiber,
+      'quantity': quantity,
+      'image': image,
       'timestamp': Timestamp.fromDate(DateTime.parse('$date 00:00:00')),
-    }, SetOptions(merge: true));
+    });
   }
 
   Future<List<FoodItem>> getWeeklyFoodData(
@@ -78,7 +79,7 @@ class FoodDataSource {
         .collection('progress')
         .doc('food')
         .collection('food')
-        .where('mealType', isEqualTo: mealType) // Filter by mealType
+        .where('mealType', isEqualTo: mealType)
         .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
         .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
         .get();

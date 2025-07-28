@@ -19,24 +19,23 @@ class FoodSearchBar extends ConsumerStatefulWidget {
 }
 
 class _FoodSearchBarState extends ConsumerState<FoodSearchBar> {
-  final TextEditingController _controller = TextEditingController();
-  List<FoodItem> _searchResults = [];
+  final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _quantityController = TextEditingController(text: '100');
+  List<Map<String, dynamic>> _searchResults = [];
 
   @override
   void dispose() {
-    _controller.dispose();
+    _searchController.dispose();
+    _quantityController.dispose();
     super.dispose();
   }
 
   Future<void> _searchFood(String query) async {
-    if (query.isEmpty) {
-      setState(() => _searchResults = []);
-      return;
-    }
     try {
       final results = await searchFood(query);
       setState(() => _searchResults = results);
     } catch (e) {
+      setState(() => _searchResults = []); // Clear results on error
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error searching food: $e')),
       );
@@ -50,19 +49,41 @@ class _FoodSearchBarState extends ConsumerState<FoodSearchBar> {
       children: [
         GlassmorphicContainer(
           color: AppTheme.colors['indigo']!,
-          child: TextField(
-            controller: _controller,
-            onChanged: _searchFood,
-            decoration: InputDecoration(
-              labelText: 'Enter food name',
-              labelStyle: GoogleFonts.roboto(color: AppTheme.colors['onSurface']!),
-              filled: true,
-              fillColor: Colors.transparent,
-              prefixIcon: Icon(Icons.fastfood, color: AppTheme.colors['onSurface']),
-              suffixIcon: Icon(Icons.search, color: AppTheme.colors['onSurface']),
-              border: InputBorder.none,
-            ),
-            style: GoogleFonts.roboto(color: AppTheme.colors['onSurface']),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: _searchFood,
+                  decoration: InputDecoration(
+                    labelText: 'Enter food name',
+                    labelStyle: GoogleFonts.roboto(color: AppTheme.colors['onSurface']!),
+                    filled: true,
+                    fillColor: Colors.transparent,
+                    prefixIcon: Icon(Icons.fastfood, color: AppTheme.colors['onSurface']),
+                    suffixIcon: Icon(Icons.search, color: AppTheme.colors['onSurface']),
+                    border: InputBorder.none,
+                  ),
+                  style: GoogleFonts.roboto(color: AppTheme.colors['onSurface']),
+                ),
+              ),
+              const SizedBox(width: 8),
+              SizedBox(
+                width: 100,
+                child: TextField(
+                  controller: _quantityController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: 'Qty (g)',
+                    labelStyle: GoogleFonts.roboto(color: AppTheme.colors['onSurface']!),
+                    filled: true,
+                    fillColor: Colors.transparent,
+                    border: InputBorder.none,
+                  ),
+                  style: GoogleFonts.roboto(color: AppTheme.colors['onSurface']),
+                ),
+              ),
+            ],
           ),
         ),
         if (_searchResults.isNotEmpty)
@@ -72,29 +93,56 @@ class _FoodSearchBarState extends ConsumerState<FoodSearchBar> {
               shrinkWrap: true,
               itemCount: _searchResults.length,
               itemBuilder: (context, index) {
-                final food = _searchResults[index];
-                return ListTile(
-                  title: Text(
-                    food.foodName,
-                    style: GoogleFonts.roboto(color: AppTheme.colors['onSurface']),
-                  ),
-                  subtitle: Text(
-                    '${food.calories.toStringAsFixed(0)} kcal',
-                    style: GoogleFonts.roboto(color: AppTheme.colors['onSurface']!.withOpacity(0.7)),
-                  ),
-                  onTap: () {
-                    ref.read(dailyCaloriesProvider('$userId|${widget.mealType}').notifier).updateCalories(
-                          food.foodName,
-                          food.calories,
-                          food.protein,
-                          food.fat,
-                          food.carbs,
-                          food.fiber,
-                        );
-                    context.go('/modal/food');
-                  },
-                );
+                final food = _searchResults[index]['food'];
+                final quantity = double.tryParse(_quantityController.text) ?? 100.0;
+                try {
+                  final foodItem = FoodItem.fromJson(food, quantity: quantity);
+                  return ListTile(
+                    title: Text(
+                      food['label'] ?? 'Unknown Food',
+                      style: GoogleFonts.roboto(color: AppTheme.colors['onSurface']),
+                    ),
+                    subtitle: Text(
+                      '${foodItem.calories.toStringAsFixed(0)} kcal (${quantity.toStringAsFixed(0)}g)',
+                      style: GoogleFonts.roboto(color: AppTheme.colors['onSurface']!.withOpacity(0.7)),
+                    ),
+                    onTap: () {
+                      ref
+                          .read(dailyFoodItemsProvider('$userId|${widget.mealType}').notifier)
+                          .addFoodItem(
+                            foodItem.foodName,
+                            foodItem.calories,
+                            foodItem.protein,
+                            foodItem.fat,
+                            foodItem.carbs,
+                            foodItem.fiber,
+                            quantity,
+                            foodItem.image,
+                          );
+                      context.go('/modal/food');
+                    },
+                  );
+                } catch (e) {
+                  return ListTile(
+                    title: Text(
+                      food['label'] ?? 'Unknown Food',
+                      style: GoogleFonts.roboto(color: AppTheme.colors['onSurface']),
+                    ),
+                    subtitle: Text(
+                      'Error loading nutrition data',
+                      style: GoogleFonts.roboto(color: AppTheme.colors['error']),
+                    ),
+                  );
+                }
               },
+            ),
+          ),
+        if (_searchResults.isEmpty && _searchController.text.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              'No results found',
+              style: GoogleFonts.roboto(color: AppTheme.colors['onSurface']!.withOpacity(0.7)),
             ),
           ),
       ],

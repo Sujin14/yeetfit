@@ -4,7 +4,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yeetfit/shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
 import '../providers/food_provider.dart';
 
 class ManualAddButton extends ConsumerWidget {
@@ -50,8 +49,7 @@ class _ManualFoodEntryDialog extends ConsumerStatefulWidget {
   _ManualFoodEntryDialogState createState() => _ManualFoodEntryDialogState();
 }
 
-class _ManualFoodEntryDialogState
-    extends ConsumerState<_ManualFoodEntryDialog> {
+class _ManualFoodEntryDialogState extends ConsumerState<_ManualFoodEntryDialog> {
   final _formKey = GlobalKey<FormState>();
   String _foodName = '';
   double _calories = 0.0;
@@ -59,6 +57,7 @@ class _ManualFoodEntryDialogState
   double _fat = 0.0;
   double _carbs = 0.0;
   double _fiber = 0.0;
+  double _quantity = 100.0;
 
   @override
   Widget build(BuildContext context) {
@@ -72,95 +71,68 @@ class _ManualFoodEntryDialogState
             children: [
               TextFormField(
                 decoration: const InputDecoration(labelText: 'Food Name'),
+                validator: (value) => value == null || value.isEmpty ? 'Please enter a food name' : null,
+                onChanged: (value) => _foodName = value,
+              ),
+              TextFormField(
+                decoration: const InputDecoration(labelText: 'Quantity (g)'),
+                keyboardType: TextInputType.number,
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a food name';
-                  }
+                  if (value == null || value.isEmpty) return 'Please enter quantity';
+                  if (double.tryParse(value) == null) return 'Please enter a valid number';
                   return null;
                 },
-                onChanged: (value) {
-                  _foodName = value;
-                },
+                onChanged: (value) => _quantity = double.tryParse(value) ?? 100.0,
               ),
               TextFormField(
                 decoration: const InputDecoration(labelText: 'Calories (kcal)'),
                 keyboardType: TextInputType.number,
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter calories';
-                  }
-                  if (double.tryParse(value) == null) {
-                    return 'Please enter a valid number';
-                  }
+                  if (value == null || value.isEmpty) return 'Please enter calories';
+                  if (double.tryParse(value) == null) return 'Please enter a valid number';
                   return null;
                 },
-                onChanged: (value) {
-                  _calories = double.tryParse(value) ?? 0.0;
-                },
+                onChanged: (value) => _calories = double.tryParse(value) ?? 0.0,
               ),
               TextFormField(
                 decoration: const InputDecoration(labelText: 'Protein (g)'),
                 keyboardType: TextInputType.number,
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter protein amount';
-                  }
-                  if (double.tryParse(value) == null) {
-                    return 'Please enter a valid number';
-                  }
+                  if (value == null || value.isEmpty) return 'Please enter protein amount';
+                  if (double.tryParse(value) == null) return 'Please enter a valid number';
                   return null;
                 },
-                onChanged: (value) {
-                  _protein = double.tryParse(value) ?? 0.0;
-                },
+                onChanged: (value) => _protein = double.tryParse(value) ?? 0.0,
               ),
               TextFormField(
                 decoration: const InputDecoration(labelText: 'Fat (g)'),
                 keyboardType: TextInputType.number,
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter fat amount';
-                  }
-                  if (double.tryParse(value) == null) {
-                    return 'Please enter a valid number';
-                  }
+                  if (value == null || value.isEmpty) return 'Please enter fat amount';
+                  if (double.tryParse(value) == null) return 'Please enter a valid number';
                   return null;
                 },
-                onChanged: (value) {
-                  _fat = double.tryParse(value) ?? 0.0;
-                },
+                onChanged: (value) => _fat = double.tryParse(value) ?? 0.0,
               ),
               TextFormField(
                 decoration: const InputDecoration(labelText: 'Carbs (g)'),
                 keyboardType: TextInputType.number,
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter carbs amount';
-                  }
-                  if (double.tryParse(value) == null) {
-                    return 'Please enter a valid number';
-                  }
+                  if (value == null || value.isEmpty) return 'Please enter carbs amount';
+                  if (double.tryParse(value) == null) return 'Please enter a valid number';
                   return null;
                 },
-                onChanged: (value) {
-                  _carbs = double.tryParse(value) ?? 0.0;
-                },
+                onChanged: (value) => _carbs = double.tryParse(value) ?? 0.0,
               ),
               TextFormField(
                 decoration: const InputDecoration(labelText: 'Fiber (g)'),
                 keyboardType: TextInputType.number,
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter fiber amount';
-                  }
-                  if (double.tryParse(value) == null) {
-                    return 'Please enter a valid number';
-                  }
+                  if (value == null || value.isEmpty) return 'Please enter fiber amount';
+                  if (double.tryParse(value) == null) return 'Please enter a valid number';
                   return null;
                 },
-                onChanged: (value) {
-                  _fiber = double.tryParse(value) ?? 0.0;
-                },
+                onChanged: (value) => _fiber = double.tryParse(value) ?? 0.0,
               ),
             ],
           ),
@@ -175,18 +147,16 @@ class _ManualFoodEntryDialogState
           onPressed: () {
             if (_formKey.currentState!.validate()) {
               ref
-                  .read(
-                    dailyCaloriesProvider(
-                      '${widget.userId}|${widget.mealType}',
-                    ).notifier,
-                  )
-                  .updateCalories(
+                  .read(dailyFoodItemsProvider('${widget.userId}|${widget.mealType}').notifier)
+                  .addFoodItem(
                     _foodName,
                     _calories,
                     _protein,
                     _fat,
                     _carbs,
                     _fiber,
+                    _quantity,
+                    null,
                   );
               Navigator.pop(context);
             }

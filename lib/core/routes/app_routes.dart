@@ -25,6 +25,8 @@ import 'package:yeetfit/shared/widgets/custom_appbar.dart';
 import 'package:yeetfit/shared/widgets/bottom_nav_bar.dart';
 import '../../features/chat/presentation/screens/chat_screen.dart';
 import '../../features/dashboard/presentation/widgets/calendar_dialog.dart';
+import '../../features/meal_tracking/data/model/food_model.dart';
+import '../../features/meal_tracking/presentation/screens/nutrition_details_screen.dart';
 import '../../features/payment/presentation/screens/payment_screen.dart';
 
 final GoRouter appRouter = GoRouter(
@@ -85,6 +87,13 @@ final GoRouter appRouter = GoRouter(
         mealType: state.extra as String? ?? 'Breakfast',
       ),
     ),
+    GoRoute(
+  path: '/nutrition-details',
+  builder: (context, state) {
+    final foodItem = state.extra as FoodItem;
+    return NutritionDetailsScreen(foodItem: foodItem);
+  },
+),
     GoRoute(
       path: '/weekly-calorie-chart',
       builder: (context, state) => const WeeklyCalorieChartScreen(),

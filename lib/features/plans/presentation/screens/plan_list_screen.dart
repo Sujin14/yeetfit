@@ -42,17 +42,17 @@ class PlanListScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppTheme.colors['transparent'],
         elevation: 0,
+        centerTitle: true,
         title: Text(
           category == 'diet' ? 'Diet Plans' : 'Workout Plans',
           style: GoogleFonts.roboto(
             fontSize: 28.sp,
             fontWeight: FontWeight.bold,
-            color: AppTheme.colors['teal'],
+            color: AppTheme.colors['primaryText'],
           ),
         ),
-        iconTheme: IconThemeData(color: AppTheme.colors['onSurfaceDark']),
       ),
       body: SafeArea(
         child: StreamBuilder<QuerySnapshot>(

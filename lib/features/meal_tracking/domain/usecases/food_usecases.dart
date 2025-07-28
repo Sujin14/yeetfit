@@ -16,6 +16,8 @@ class AddFoodEntry {
     double fat,
     double carbs,
     double fiber,
+    double quantity,
+    String? image,
   ) async {
     await _repository.addFoodEntry(
       userId,
@@ -26,6 +28,8 @@ class AddFoodEntry {
       fat,
       carbs,
       fiber,
+      quantity,
+      image,
     );
   }
 }
@@ -35,7 +39,7 @@ class GetFoodData {
 
   GetFoodData(this._repository);
 
-  Future<FoodItem?> call(String userId, String mealType) async {
+  Future<List<FoodItem>> call(String userId, String mealType) async {
     return await _repository.getFoodData(userId, mealType);
   }
 }

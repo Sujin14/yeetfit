@@ -33,16 +33,10 @@ class CalorieTrackingScreen extends ConsumerWidget {
               Consumer(
                 builder: (context, ref, _) {
                   final totalCalories = ['Breakfast', 'Morning Snack', 'Lunch', 'Evening Snack', 'Dinner']
-                      .map((mealType) => ref.watch(
-                            dailyCaloriesProvider('$userId|$mealType').select((value) => value.value ?? 0.0),
-                          ))
+                      .map((mealType) => ref.watch(dailyCaloriesProvider('$userId|$mealType')))
                       .fold(0.0, (sum, calories) => sum + calories);
-                  final goalCaloriesAsync = ref.watch(
-                    calorieGoalProvider(userId).select((value) => value),
-                  );
-                  final progressColor = ref.watch(
-                    dailyCalorieProgressColorProvider('$userId|$today'),
-                  );
+                  final goalCaloriesAsync = ref.watch(calorieGoalProvider(userId));
+                  final progressColor = ref.watch(dailyCalorieProgressColorProvider('$userId|$today'));
                   return goalCaloriesAsync.when(
                     data: (goalCalories) => CalorieSummary(
                       totalCalories: totalCalories,
