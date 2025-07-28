@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../payment/presentation/providers/payment_provider.dart';
 import '../widgets/dashboard_body.dart';
@@ -10,23 +12,23 @@ class DashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) {
+      return Scaffold(
+        backgroundColor: AppTheme.colors['lightBackground'],
+        body: const Center(child: Text('Please log in to view dashboard')),
+      );
+    }
     return Scaffold(
-      backgroundColor: AppTheme.colors['lightBackground'],
-      body: const DashboardBody(),
+      body: DashboardBody(userId: userId),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: AppTheme.colors['primaryAccent'] ?? Colors.blue, // Fallback color
-        foregroundColor: AppTheme.colors['onSurfaceDark'] ?? Colors.white, // Fallback color
+        backgroundColor: AppTheme.colors['primaryAccent'] ?? Colors.blue,
+        foregroundColor: AppTheme.colors['onSurfaceDark'] ?? Colors.white,
         onPressed: () {
-          print('FAB tapped'); // Debug log
           final hasPaid = ref.read(paymentStatusProvider).value ?? false;
-          print('Payment status: $hasPaid'); // Debug log
-          if (hasPaid) {
-            context.go('/chat', extra: 'KzWEi9szv2dg9wvEKN6ZEGmZt7L2');
-          } else {
-            context.go('/chat', extra: 'KzWEi9szv2dg9wvEKN6ZEGmZt7L2');
-          }
+          context.go('/chat', extra: userId);
         },
-        child: Icon(Icons.chat),
+        child: Icon(Icons.chat, size: 24.sp),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );

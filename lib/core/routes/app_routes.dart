@@ -21,6 +21,7 @@ import 'package:yeetfit/features/weight_tracking/presentation/screens/weight_tra
 import 'package:yeetfit/shared/widgets/custom_appbar.dart';
 import 'package:yeetfit/shared/widgets/bottom_nav_bar.dart';
 import '../../features/chat/presentation/screens/chat_screen.dart';
+import '../../features/dashboard/presentation/widgets/calendar_dialog.dart';
 import '../../features/payment/presentation/screens/payment_screen.dart';
 
 final GoRouter appRouter = GoRouter(
@@ -29,7 +30,13 @@ final GoRouter appRouter = GoRouter(
     final user = FirebaseAuth.instance.currentUser;
     final currentPath = state.uri.toString();
     if (user == null &&
-        !['/', '/login', '/signup', '/onboarding', '/welcome'].contains(currentPath)) {
+        ![
+          '/',
+          '/login',
+          '/signup',
+          '/onboarding',
+          '/welcome',
+        ].contains(currentPath)) {
       return '/login';
     }
     return null;
@@ -127,12 +134,10 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/chat',
-      builder: (context, state) => ChatScreen(
-        adminId: state.extra as String,
-      ),
+      builder: (context, state) => ChatScreen(adminId: state.extra as String),
     ),
-    ],
-  );
+  ],
+);
 
 class ShellScaffold extends StatefulWidget {
   final StatefulNavigationShell navigationShell;
@@ -160,6 +165,17 @@ class _ShellScaffoldState extends State<ShellScaffold> {
     return Scaffold(
       appBar: CustomAppBar(
         title: _getTitle(_currentIndex),
+        showCalendar: true,
+        onCalendar: () {
+          final user = FirebaseAuth.instance.currentUser;
+          if (user != null) {
+            showDialog(
+              context: context,
+              builder: (context) => CalendarDialog(userId: user.uid),
+            );
+          }
+        },
+
         showSettings: true,
         onSettings: () => context.push('/settings'),
       ),

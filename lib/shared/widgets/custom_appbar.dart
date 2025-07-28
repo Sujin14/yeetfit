@@ -9,6 +9,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool showFavorite;
   final bool isFavorite;
   final VoidCallback? onFavorite;
+  final bool showCalendar;
+  final VoidCallback? onCalendar;
 
   const CustomAppBar({
     super.key,
@@ -18,6 +20,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.showFavorite = false,
     this.isFavorite = false,
     this.onFavorite,
+    this.showCalendar = false,
+    this.onCalendar,
   });
 
   @override
@@ -25,13 +29,11 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       backgroundColor: AppTheme.colors['navigationAccent'],
       elevation: 5,
-      title: Center(
-        child: Text(
-          title,
-          style: AppTheme.textStyles['title']!.copyWith(
-            fontSize: 20.sp,
-            color: AppTheme.colors['primaryText'],
-          ),
+      title: Text(
+        title,
+        style: AppTheme.textStyles['title']!.copyWith(
+          fontSize: 20.sp,
+          color: AppTheme.colors['primaryText'],
         ),
       ),
       centerTitle: true,
@@ -46,6 +48,11 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                   : AppTheme.colors['primaryText'],
             ),
             onPressed: onFavorite,
+          ),
+        if (showCalendar)
+          IconButton(
+            icon: Icon(Icons.calendar_month_rounded, color: AppTheme.colors['primaryText']),
+            onPressed: onCalendar,
           ),
         if (showSettings)
           IconButton(

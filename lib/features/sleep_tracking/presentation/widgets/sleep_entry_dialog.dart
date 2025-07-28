@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../../../shared/theme/theme.dart';
 import '../providers/sleep_provider.dart';
-import '../../../../shared/widgets/glassmorphic_container.dart';
 
 class SleepEntryDialog extends ConsumerStatefulWidget {
   final String userId;
@@ -24,16 +24,14 @@ class _SleepEntryDialogState extends ConsumerState<SleepEntryDialog> {
     bedtime ??= sleepTimesAsync.value?['bedtime'];
     wakeUpTime ??= sleepTimesAsync.value?['wakeUpTime'];
 
-    return GlassmorphicContainer(
-      color: const Color(0xFFFF5722),
-      child: AlertDialog(
-        backgroundColor: Colors.transparent,
+    return AlertDialog(
+        backgroundColor: AppTheme.colors['deepOrange']!.withOpacity(0.4),
         contentPadding: EdgeInsets.zero,
         title: Text(
           'Add Sleep Entry',
           style: GoogleFonts.roboto(
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: AppTheme.colors['white']!,
           ),
         ),
         content: Column(
@@ -42,13 +40,13 @@ class _SleepEntryDialogState extends ConsumerState<SleepEntryDialog> {
             ListTile(
               title: Text(
                 'Bed Time',
-                style: GoogleFonts.roboto(color: Colors.white),
+                style: GoogleFonts.roboto(color: AppTheme.colors['white']!),
               ),
               trailing: Text(
                 bedtime != null
                     ? DateFormat('h:mm a').format(bedtime!)
                     : 'Select',
-                style: GoogleFonts.roboto(color: Colors.white),
+                style: GoogleFonts.roboto(color: AppTheme.colors['white']!),
               ),
               onTap: () async {
                 final time = await showTimePicker(
@@ -97,7 +95,6 @@ class _SleepEntryDialogState extends ConsumerState<SleepEntryDialog> {
                       time.hour,
                       time.minute,
                     );
-                    // Adjust for next day if wake-up time is earlier than bedtime
                     if (bedtime != null && wakeUpTime!.hour < bedtime!.hour) {
                       wakeUpTime = wakeUpTime!.add(const Duration(days: 1));
                     }
@@ -143,12 +140,11 @@ class _SleepEntryDialogState extends ConsumerState<SleepEntryDialog> {
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF26A69A).withOpacity(0.3),
+              backgroundColor: AppTheme.colors['navBarActive']!.withOpacity(0.6),
             ),
             child: Text('Add', style: GoogleFonts.roboto(color: Colors.white)),
           ),
         ],
-      ),
     );
   }
 }

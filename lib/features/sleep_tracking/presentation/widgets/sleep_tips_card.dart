@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:yeetfit/shared/theme/theme.dart';
 
 import '../../../../shared/widgets/glassmorphic_container.dart';
 
@@ -10,7 +11,7 @@ class SleepTipsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDesktop = MediaQuery.of(context).size.width >= 600;
     return GlassmorphicContainer(
-      color: const Color(0xFF3F51B5),
+      color: AppTheme.colors['indigo']!,
       padding: EdgeInsets.all(isDesktop ? 8 : 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -20,7 +21,7 @@ class SleepTipsCard extends StatelessWidget {
             style: GoogleFonts.roboto(
               fontWeight: FontWeight.bold,
               fontSize: isDesktop ? 5 : 18,
-              color: Colors.white,
+              color: AppTheme.colors['onSurface'],
             ),
           ),
           const SizedBox(height: 6),
@@ -28,7 +29,7 @@ class SleepTipsCard extends StatelessWidget {
             'To improve your sleep quality, exercise daily. Vigorous exercise is best, but even light exercise is better than no activity.',
             style: GoogleFonts.roboto(
               fontSize: isDesktop ? 4 : 14,
-              color: Colors.white70,
+              color: AppTheme.colors['onSurface']!.withOpacity(0.7),
             ),
           ),
         ],
