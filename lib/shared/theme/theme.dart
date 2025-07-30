@@ -35,6 +35,7 @@ class AppTheme {
     'black': Colors.black,
     'gray': Colors.grey,
     'transparent': Colors.transparent,
+    'aquaBlue': Color.fromARGB(255, 89, 196, 245),
   };
 
   static final textStyles = {

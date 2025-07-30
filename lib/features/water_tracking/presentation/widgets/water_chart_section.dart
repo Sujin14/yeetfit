@@ -17,7 +17,7 @@ class WaterChartSection extends ConsumerWidget {
     final weeklyDataAsync = ref.watch(weeklyWaterDataProvider(userId));
 
     return GlassmorphicContainer(
-      color: AppTheme.colors['waterChartBackground']!,
+      color: AppTheme.colors['navBarActive']!,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

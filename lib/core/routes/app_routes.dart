@@ -23,6 +23,7 @@ import 'package:yeetfit/features/water_tracking/presentation/screens/water_track
 import 'package:yeetfit/features/weight_tracking/presentation/screens/weight_tracking_screen.dart';
 import 'package:yeetfit/shared/widgets/custom_appbar.dart';
 import 'package:yeetfit/shared/widgets/bottom_nav_bar.dart';
+import 'package:yeetfit/shared/widgets/success_page.dart';
 import '../../features/chat/presentation/screens/chat_screen.dart';
 import '../../features/dashboard/presentation/widgets/calendar_dialog.dart';
 import '../../features/meal_tracking/data/model/food_model.dart';
@@ -88,12 +89,12 @@ final GoRouter appRouter = GoRouter(
       ),
     ),
     GoRoute(
-  path: '/nutrition-details',
-  builder: (context, state) {
-    final foodItem = state.extra as FoodItem;
-    return NutritionDetailsScreen(foodItem: foodItem);
-  },
-),
+      path: '/nutrition-details',
+      builder: (context, state) {
+        final foodItem = state.extra as FoodItem;
+        return NutritionDetailsScreen(foodItem: foodItem);
+      },
+    ),
     GoRoute(
       path: '/weekly-calorie-chart',
       builder: (context, state) => const WeeklyCalorieChartScreen(),
@@ -113,6 +114,14 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/modal/weight',
       builder: (context, state) => const WeightTrackingScreen(),
+    ),
+    GoRoute(
+      name: 'success',
+      path: '/success/:goal',
+      builder: (context, state) {
+        final goal = int.tryParse(state.pathParameters['goal'] ?? '0') ?? 0;
+        return SuccessPage(goal: goal);
+      },
     ),
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {

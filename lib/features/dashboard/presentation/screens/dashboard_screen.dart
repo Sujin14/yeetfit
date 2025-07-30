@@ -25,8 +25,13 @@ class DashboardScreen extends ConsumerWidget {
         backgroundColor: AppTheme.colors['primaryAccent'] ?? Colors.blue,
         foregroundColor: AppTheme.colors['onSurfaceDark'] ?? Colors.white,
         onPressed: () {
-          final hasPaid = ref.read(paymentStatusProvider).value ?? false;
-          context.go('/chat', extra: 'KzWEi9szv2dg9wvEKN6ZEGmZt7L2');
+          final hasPaid = ref.read(paymentStatusProvider).value ?? true;
+          if(hasPaid){
+            context.go('/chat', extra: 'KzWEi9szv2dg9wvEKN6ZEGmZt7L2');
+          } else {
+            context.go('/payment');
+          }
+          
         },
         child: Icon(Icons.chat, size: 24.sp),
       ),

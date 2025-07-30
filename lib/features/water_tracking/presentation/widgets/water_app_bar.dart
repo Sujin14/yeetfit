@@ -13,11 +13,12 @@ class WaterAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
+      centerTitle: true,
       title: Text(
         'Water Tracker',
         style: GoogleFonts.roboto(
           fontSize: 26,
-          color: AppTheme.colors['teal'],
+          color: AppTheme.colors['onSurface'],
           fontWeight: FontWeight.bold,
         ),
       ),
