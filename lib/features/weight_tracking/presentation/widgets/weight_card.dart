@@ -7,11 +7,13 @@ import '../../../../shared/widgets/glassmorphic_container.dart';
 class WeightCard extends StatelessWidget {
   final String title;
   final double weight;
+  final String? date;
 
   const WeightCard({
     super.key,
     required this.title,
     required this.weight,
+    this.date,
   });
 
   @override
@@ -28,6 +30,15 @@ class WeightCard extends StatelessWidget {
             color: AppTheme.colors['onSurface'],
           ),
         ),
+        subtitle: date != null
+            ? Text(
+                'Updated: $date',
+                style: GoogleFonts.roboto(
+                  fontSize: 12.sp,
+                  color: AppTheme.colors['onSurface']!.withOpacity(0.7),
+                ),
+              )
+            : null,
         trailing: Text(
           '${weight.toStringAsFixed(1)} kg',
           style: GoogleFonts.roboto(

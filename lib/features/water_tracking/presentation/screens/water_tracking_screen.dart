@@ -47,7 +47,7 @@ class _WaterTrackingScreenState extends ConsumerState<WaterTrackingScreen> {
       if (glassesConsumed == goalGlasses && !_hasNavigatedToSuccess && _lastNavigatedDate != today) {
         _hasNavigatedToSuccess = true;
         _lastNavigatedDate = today;
-        context.goNamed('success', pathParameters: {'goal': goalGlasses.toString()});
+        context.goNamed('water-success', pathParameters: {'goal': goalGlasses.toString()});
       }
     });
 

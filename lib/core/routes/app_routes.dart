@@ -23,12 +23,13 @@ import 'package:yeetfit/features/water_tracking/presentation/screens/water_track
 import 'package:yeetfit/features/weight_tracking/presentation/screens/weight_tracking_screen.dart';
 import 'package:yeetfit/shared/widgets/custom_appbar.dart';
 import 'package:yeetfit/shared/widgets/bottom_nav_bar.dart';
-import 'package:yeetfit/shared/widgets/success_page.dart';
+import 'package:yeetfit/features/water_tracking/presentation/widgets/water_success_page.dart';
 import '../../features/chat/presentation/screens/chat_screen.dart';
 import '../../features/dashboard/presentation/widgets/calendar_dialog.dart';
 import '../../features/meal_tracking/data/model/food_model.dart';
 import '../../features/meal_tracking/presentation/screens/nutrition_details_screen.dart';
 import '../../features/payment/presentation/screens/payment_screen.dart';
+import '../../features/weight_tracking/presentation/widgets/weight_success_page.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/',
@@ -68,15 +69,13 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/plans/:category',
-      builder: (context, state) => PlanListScreen(
-        category: state.pathParameters['category']!,
-      ),
+      builder: (context, state) =>
+          PlanListScreen(category: state.pathParameters['category']!),
     ),
     GoRoute(
       path: '/plans/:category/:id',
-      builder: (context, state) => PlanDetailPage(
-        extra: state.extra as Map<String, dynamic>,
-      ),
+      builder: (context, state) =>
+          PlanDetailPage(extra: state.extra as Map<String, dynamic>),
     ),
     GoRoute(
       path: '/modal/food',
@@ -84,9 +83,8 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/food-search',
-      builder: (context, state) => FoodSearchScreen(
-        mealType: state.extra as String? ?? 'Breakfast',
-      ),
+      builder: (context, state) =>
+          FoodSearchScreen(mealType: state.extra as String? ?? 'Breakfast'),
     ),
     GoRoute(
       path: '/nutrition-details',
@@ -116,13 +114,22 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const WeightTrackingScreen(),
     ),
     GoRoute(
-      name: 'success',
+      name: 'water-success',
       path: '/success/:goal',
       builder: (context, state) {
         final goal = int.tryParse(state.pathParameters['goal'] ?? '0') ?? 0;
-        return SuccessPage(goal: goal);
+        return WaterSuccessPage(goal: goal);
       },
     ),
+    GoRoute(
+      name: 'weight-success',
+      path: '/weight-success/:goal',
+      builder: (context, state) {
+        final goal = double.tryParse(state.pathParameters['goal'] ?? '0') ?? 0;
+        return WeightSuccessPage(goal: goal.toString());
+      },
+    ),
+
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
         return ShellScaffold(navigationShell: navigationShell);
