@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yeetfit/shared/theme/theme.dart';
 import '../../data/model/steps_model.dart';
 import '../providers/steps_provider.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
@@ -18,7 +19,7 @@ class StepsChartCard extends ConsumerWidget {
     final isDesktop = ScreenUtil().screenWidth >= 600.w;
 
     return GlassmorphicContainer(
-      color: const Color(0xFF3F51B5),
+      color: AppTheme.colors['indigo']!,
       padding: EdgeInsets.all(isDesktop ? 24.w : 12.w),
       child: SizedBox(
         height: isDesktop ? 300.h : 250.h,
@@ -85,7 +86,8 @@ class StepsChartCard extends ConsumerWidget {
                             days[value.toInt()],
                             style: GoogleFonts.roboto(
                               fontSize: isDesktop ? 14.sp : 10.sp,
-                              color: Colors.white,
+                              color: AppTheme.colors['primaryText']!
+                                  .withOpacity(0.9),
                             ),
                           ),
                         );

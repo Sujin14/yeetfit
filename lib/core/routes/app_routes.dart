@@ -29,6 +29,7 @@ import '../../features/dashboard/presentation/widgets/calendar_dialog.dart';
 import '../../features/meal_tracking/data/model/food_model.dart';
 import '../../features/meal_tracking/presentation/screens/nutrition_details_screen.dart';
 import '../../features/payment/presentation/screens/payment_screen.dart';
+import '../../features/steps_tracking/presentation/widgets/steps_success_page.dart';
 import '../../features/weight_tracking/presentation/widgets/weight_success_page.dart';
 
 final GoRouter appRouter = GoRouter(
@@ -127,6 +128,14 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) {
         final goal = double.tryParse(state.pathParameters['goal'] ?? '0') ?? 0;
         return WeightSuccessPage(goal: goal.toString());
+      },
+    ),
+    GoRoute(
+      name: 'steps-success',
+      path: '/steps-success/:goal',
+      builder: (context, state) {
+        final goal = state.pathParameters['goal'] ?? '0';
+        return StepsSuccessPage(goal: goal);
       },
     ),
 

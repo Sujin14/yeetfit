@@ -4,9 +4,9 @@ import '../../data/datasources/steps_datasource.dart';
 import '../../data/model/steps_model.dart';
 import '../../data/repositories/steps_repository_impl.dart';
 import '../../domain/usecases/add_steps_entry.dart';
+import '../../domain/usecases/get_steps_data.dart';
 import '../../domain/usecases/get_weekly_steps.dart';
 import '../../domain/usecases/set_steps_goal.dart';
-import '../../domain/usecases/get_steps_data.dart';
 
 /// Repository provider
 final stepsRepositoryProvider = Provider<StepsRepositoryImpl>(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:yeetfit/shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
 
 class StepsTipCard extends StatelessWidget {
@@ -10,7 +11,7 @@ class StepsTipCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDesktop = ScreenUtil().screenWidth >= 600.w;
     return GlassmorphicContainer(
-      color: const Color(0xFFFF5722),
+      color: AppTheme.colors['deepOrange']!,
       padding: EdgeInsets.all(isDesktop ? 20.w : 14.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -20,7 +21,7 @@ class StepsTipCard extends StatelessWidget {
             style: GoogleFonts.roboto(
               fontWeight: FontWeight.bold,
               fontSize: isDesktop ? 16.sp : 14.sp,
-              color: Colors.white,
+              color: AppTheme.colors['primaryText']!.withOpacity(0.9),
             ),
           ),
           SizedBox(height: 6.h),
@@ -28,7 +29,7 @@ class StepsTipCard extends StatelessWidget {
             'Weighted vests can make your walks more effective. Use one that’s only 5–10% of your body weight for safety and comfort.',
             style: GoogleFonts.roboto(
               fontSize: isDesktop ? 13.sp : 11.sp,
-              color: Colors.white70,
+              color: AppTheme.colors['primaryText']!.withOpacity(0.7),
             ),
           ),
         ],
