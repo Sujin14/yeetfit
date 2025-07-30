@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
+  
   static const colors = {
     'lightBackground': Color(0xFFEAF1F8),
     'darkBackground': Color(0xFF0E0E11),
@@ -25,13 +26,16 @@ class AppTheme {
     'onSurface': Color(0xFF212121),
     'onSurfaceDark': Color.fromRGBO(245, 245, 245, 0.9),
     'fullProgress': Color.fromARGB(255, 4, 160, 10),
-    'ThreeQuarterProgress': Color(0xFF4CAF50),
+    'ThreeQuarterProgress': Color.fromARGB(255, 88, 184, 92),
     'halfProgress': Color(0xFFFFEB3B),
     'QuarterProgress': Color(0xFFFF9800),
     'noProgress': Color(0xFFF44336),
     'waterChartBackground': Color(0xFF3F51B5),
     'white': Colors.white,
     'black': Colors.black,
+    'gray': Colors.grey,
+    'transparent': Colors.transparent,
+    'aquaBlue': Color.fromARGB(255, 89, 196, 245),
   };
 
   static final textStyles = {

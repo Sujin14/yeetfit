@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../../../shared/theme/theme.dart';
+
 class SleepAppBar extends ConsumerWidget implements PreferredSizeWidget {
   const SleepAppBar({super.key});
 
@@ -19,7 +21,7 @@ class SleepAppBar extends ConsumerWidget implements PreferredSizeWidget {
         'Sleep Tracker',
         style: GoogleFonts.roboto(
           fontSize: 26,
-          color: Colors.white,
+          color: AppTheme.colors['onSurface'],
           fontWeight: FontWeight.bold,
         ),
       ),

@@ -21,9 +21,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   void initState() {
     super.initState();
     Future.microtask(() {
-      ref
-          .read(chatControllerProvider(widget.adminId).notifier)
-          .setupChat(context);
+      ref.read(chatControllerProvider(widget.adminId).notifier).setupChat(context);
     });
   }
 
@@ -32,25 +30,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final chatState = ref.watch(chatControllerProvider(widget.adminId));
 
     return Scaffold(
-  backgroundColor: AppTheme.colors['lightBackground'],
-  resizeToAvoidBottomInset: false,
-  appBar: PreferredSize(
-    preferredSize: Size.fromHeight(60.h),
-    child: ChatHeader(
-      controller: ref.read(chatControllerProvider(widget.adminId).notifier),
-    ),
-  ),
-  body: Stack(
-    children: [
-      Positioned.fill(
-        child: Image.asset(
-          'assets/images/chatscreen.jpg',
-          fit: BoxFit.cover,
-          filterQuality: FilterQuality.high,
+      backgroundColor: AppTheme.colors['lightBackground'],
+      resizeToAvoidBottomInset: false,
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(60.h),
+        child: ChatHeader(
+          controller: ref.read(chatControllerProvider(widget.adminId).notifier),
         ),
       ),
-
-      SafeArea(
+      body: SafeArea(
         child: AnimatedPadding(
           duration: const Duration(milliseconds: 150),
           curve: Curves.easeOut,
@@ -74,7 +62,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         },
                       ),
               ),
-
               MessageInput(
                 controller: ref.read(
                   chatControllerProvider(widget.adminId).notifier,
@@ -84,8 +71,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ),
         ),
       ),
-    ],
-  ),
-);
+    );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:yeetfit/shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
 import '../widgets/sleep_entry_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -14,7 +15,6 @@ class SleepTimeCards extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width >= 600;
     final userId = FirebaseAuth.instance.currentUser?.uid;
 
     return Column(
@@ -24,8 +24,8 @@ class SleepTimeCards extends StatelessWidget {
           'Sleep Time',
           style: GoogleFonts.roboto(
             fontWeight: FontWeight.bold,
-            fontSize: isDesktop ? 14 : 18,
-            color: Colors.white,
+            fontSize: 18.sp,
+            color: AppTheme.colors['onSurface']!.withOpacity(0.8),
           ),
         ),
         SizedBox(height: 20.h),
@@ -55,7 +55,7 @@ class SleepTimeCards extends StatelessWidget {
     String? userId,
   ) {
     return GlassmorphicContainer(
-      color: const Color(0xFFFF5722),
+      color: AppTheme.colors['deepOrange']!,
       child: ListTile(
         onTap: userId != null
             ? () => showDialog(
@@ -65,14 +65,14 @@ class SleepTimeCards extends StatelessWidget {
             : null,
         title: Text(
           title,
-          style: GoogleFonts.roboto(fontSize: 16, color: Colors.white),
+          style: GoogleFonts.roboto(fontSize: 16, color: AppTheme.colors['onSurface']!),
         ),
         trailing: Text(
           time,
           style: GoogleFonts.roboto(
             fontWeight: FontWeight.w600,
             fontSize: 16,
-            color: Colors.white,
+            color: AppTheme.colors['onSurface']!.withOpacity(0.8),
           ),
         ),
       ),

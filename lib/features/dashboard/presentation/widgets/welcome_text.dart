@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/gradient_text.dart';
+
 
 class WelcomeText extends StatelessWidget {
   final String name;
@@ -10,6 +12,7 @@ class WelcomeText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print('WelcomeText: Building with name=$name');
     return GradientText(
       text: 'Welcome, $name!',
       style: AppTheme.textStyles['heading']!.copyWith(

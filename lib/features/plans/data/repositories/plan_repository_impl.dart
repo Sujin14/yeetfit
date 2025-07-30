@@ -1,6 +1,6 @@
 import '../../../plans/data/data_sources/firestore_data_source.dart';
 import '../../../plans/data/models/plan_model.dart';
-import 'plan_repository.dart';
+import '../../domain/repositories/plan_repository.dart';
 
 class PlanRepositoryImpl implements PlanRepository {
   final FirestoreDataSource dataSource;

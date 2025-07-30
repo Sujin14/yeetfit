@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:glassmorphism/glassmorphism.dart';
+
 import '../../../../shared/theme/theme.dart';
 
 class BMICard extends StatelessWidget {
@@ -8,7 +9,6 @@ class BMICard extends StatelessWidget {
 
   const BMICard({super.key, required this.bmi});
 
-  // Compute BMI category
   String _getBMICategory(double bmi) {
     if (bmi < 18.5) return 'Underweight';
     if (bmi < 25) return 'Normal';
@@ -16,7 +16,6 @@ class BMICard extends StatelessWidget {
     return 'Obesity';
   }
 
-  // Compute BMI suggestion
   String _getBMISuggestion(double bmi) {
     if (bmi < 18.5) {
       return 'Consider a balanced diet with more calories and consult a nutritionist.';
@@ -30,7 +29,6 @@ class BMICard extends StatelessWidget {
     return 'Consult a healthcare professional for a personalized weight management plan.';
   }
 
-  // Get color based on BMI
   Color _getBMIColor(double bmi) {
     if (bmi < 18.5) return const Color(0xFFFF6B6B);
     if (bmi < 25) return const Color(0xFF4CAF50);
@@ -43,6 +41,7 @@ class BMICard extends StatelessWidget {
     final bmiCategory = _getBMICategory(bmi);
     final bmiSuggestion = _getBMISuggestion(bmi);
     final bmiColor = _getBMIColor(bmi);
+    print('BMICard: Building with bmi=$bmi, category=$bmiCategory');
 
     return GlassmorphicContainer(
       width: double.infinity,

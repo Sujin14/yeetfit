@@ -1,4 +1,4 @@
-import 'package:yeetfit/features/plans/data/repositories/plan_repository.dart';
+import 'package:yeetfit/features/plans/domain/repositories/plan_repository.dart';
 
 class ToggleFavoriteUseCase {
   final PlanRepository repository;

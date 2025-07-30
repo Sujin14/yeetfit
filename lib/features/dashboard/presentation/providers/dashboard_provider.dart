@@ -1,32 +1,41 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import '../../data/datasources/user_datasource.dart';
+import '../../data/datasources/progress_datasource.dart';
+import '../../data/datasources/weight_datasource.dart';
+import '../../data/repositories/user_repository_impl.dart';
+import '../../domain/usecases/get_user_data.dart';
+import '../../domain/usecases/get_daily_progress.dart';
+import '../../domain/usecases/get_bmi.dart';
 
-// Hard-coded user data for UI development
-final userDataProvider = Provider<Map<String, dynamic>>((ref) {
-  return {'name': 'Sujin', 'height': 170.0, 'weight': 70.0};
+final userDataSourceProvider = Provider((ref) => UserDataSource());
+final progressDataSourceProvider = Provider((ref) => ProgressDataSource());
+final weightDataSourceProvider = Provider((ref) => WeightDataSource());
+
+final userRepositoryProvider = Provider((ref) => UserRepositoryImpl(
+      userDataSource: ref.read(userDataSourceProvider),
+      progressDataSource: ref.read(progressDataSourceProvider),
+      weightDataSource: ref.read(weightDataSourceProvider),
+    ));
+
+final getUserDataProvider = Provider((ref) => GetUserData(ref.read(userRepositoryProvider)));
+final getDailyProgressProvider = Provider((ref) => GetDailyProgress(ref.read(userRepositoryProvider)));
+final getBMIProvider = Provider((ref) => GetBMI(ref.read(userRepositoryProvider)));
+
+final selectedDateProvider = StateProvider<DateTime>((ref) => DateTime.now());
+
+final userDataFutureProvider = FutureProvider.family<Map<String, dynamic>?, String>((ref, userId) async {
+  print('userDataFutureProvider: Fetching for userId=$userId');
+  return await ref.read(getUserDataProvider).call(userId);
 });
 
-// Hard-coded daily progress data for UI development
-final dailyProgressProvider = Provider<Map<String, dynamic>>((ref) {
-  return {
-    'steps': 5000,
-    'stepsGoal': 10000,
-    'stepsDescription': 'Steps improve heart health and boost stamina.',
-    'water': .5,
-    'waterGoal': 2.0,
-    'waterDescription': 'Hydration supports metabolism and energy levels.',
-    'calories': 2000,
-    'caloriesGoal': 2000,
-    'caloriesDescription': 'Calories fuel your daily activities.',
-    'sleep': 1.0,
-    'sleepGoal': 8.0,
-    'sleepDescription': 'Sleep enhances recovery and mental focus.',
-  };
+final dailyProgressStreamProvider = StreamProvider.family<Map<String, dynamic>, String>((ref, userId) async* {
+  final date = ref.watch(selectedDateProvider).toIso8601String().split('T')[0];
+  print('dailyProgressStreamProvider: Streaming for userId=$userId, date=$date');
+  yield* ref.read(getDailyProgressProvider).stream(userId, date);
 });
 
-// Calculate BMI from user data
-final bmiProvider = Provider<double>((ref) {
-  final userData = ref.watch(userDataProvider);
-  final height = userData['height'] / 100;
-  final weight = userData['weight'];
-  return weight / (height * height);
+final bmiFutureProvider = FutureProvider.family<double, String>((ref, userId) async {
+  final date = ref.watch(selectedDateProvider).toIso8601String().split('T')[0];
+  print('bmiFutureProvider: Fetching for userId=$userId, date=$date');
+  return await ref.read(getBMIProvider).call(userId, date);
 });

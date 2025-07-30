@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../../../shared/theme/theme.dart';
+import '../../../../shared/widgets/entry_dialog.dart';
 import '../widgets/sleep_app_bar.dart';
 import '../widgets/sleep_chart_section.dart';
 import '../widgets/sleep_entry_dialog.dart';
@@ -30,18 +32,25 @@ class SleepTrackingScreen extends ConsumerWidget {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 600),
           child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(
-              horizontal: 16.w,
-              vertical: 20.h,
-            ),
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Consumer(
                   builder: (context, ref, _) {
-                    final duration = ref.watch(sleepDurationProvider(userId).select((value) => value.value ?? 0.0));
-                    final goalHours = ref.watch(sleepGoalProvider(userId).select((value) => value.value ?? 8.0));
-                    final progressColor = ref.watch(dailySleepProgressColorProvider('$userId|$today'));
+                    final duration = ref.watch(
+                      sleepDurationProvider(
+                        userId,
+                      ).select((value) => value.value ?? 0.0),
+                    );
+                    final goalHours = ref.watch(
+                      sleepGoalProvider(
+                        userId,
+                      ).select((value) => value.value ?? 8.0),
+                    );
+                    final progressColor = ref.watch(
+                      dailySleepProgressColorProvider('$userId|$today'),
+                    );
                     return SleepProgressSection(
                       duration: duration,
                       goalHours: goalHours,
@@ -52,13 +61,16 @@ class SleepTrackingScreen extends ConsumerWidget {
                 const SizedBox(height: 16),
                 Consumer(
                   builder: (context, ref, _) {
-                    final sleepTimesAsync = ref.watch(sleepTimesProvider(userId));
+                    final sleepTimesAsync = ref.watch(
+                      sleepTimesProvider(userId),
+                    );
                     return sleepTimesAsync.when(
                       data: (sleepTimes) => SleepTimeCards(
                         bedtime: sleepTimes['bedtime'],
                         wakeUpTime: sleepTimes['wakeUpTime'],
                       ),
-                      loading: () => const Center(child: CircularProgressIndicator()),
+                      loading: () =>
+                          const Center(child: CircularProgressIndicator()),
                       error: (error, _) => Center(child: Text('Error: $error')),
                     );
                   },
@@ -74,21 +86,16 @@ class SleepTrackingScreen extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF3F51B5).withOpacity(0.3),
-        onPressed: () => _showSleepEntryDialog(context, ref, userId),
-        child: const Icon(
-          Icons.bed,
-          size: 22,
-          color: Colors.white,
-        ),
+        backgroundColor: AppTheme.colors['indigo']!.withOpacity(0.7),
+        onPressed: () {
+          entryDialog(
+            context: context,
+            ref: ref,
+            dialog: SleepEntryDialog(userId: userId),
+          );
+        },
+        child: Icon(Icons.bed_rounded, color: AppTheme.colors['white']!),
       ),
-    );
-  }
-
-  void _showSleepEntryDialog(BuildContext context, WidgetRef ref, String userId) {
-    showDialog(
-      context: context,
-      builder: (context) => SleepEntryDialog(userId: userId),
     );
   }
 }
