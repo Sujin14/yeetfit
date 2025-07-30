@@ -1,61 +1,80 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:yeetfit/shared/theme/theme.dart';
+import '../../data/model/food_model.dart';
 
-class NutritionHeader extends StatelessWidget implements PreferredSizeWidget {
-  const NutritionHeader({super.key});
+class NutritionHeader extends StatelessWidget {
+  final FoodItem foodItem;
 
-  @override
-  Size get preferredSize => const Size.fromHeight(150);
+  const NutritionHeader({super.key, required this.foodItem});
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isLargeScreen = size.width > 800;
 
-    return Container(
-      height: 150,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            const Color(0xFF26A69A).withOpacity(0.3),
-            const Color(0xFF3F51B5).withOpacity(0.3),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    return SizedBox(
+      height: 300,
+      width: double.infinity,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppTheme.colors['teal']!.withOpacity(0.3),
+              AppTheme.colors['indigo']!.withOpacity(0.3),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
         ),
-      ),
-      padding: EdgeInsets.only(
-        top: size.height * 0.07,
-        left: isLargeScreen ? 60 : size.width * 0.05,
-        right: isLargeScreen ? 60 : size.width * 0.05,
-      ),
-      alignment: Alignment.centerLeft,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Placeholder for food image
-          Container(
-            width: 50,
-            height: 50,
-            color: Colors.grey.withOpacity(0.3),
-            // Comment: This is a placeholder for the food image
-          ),
-          Text(
-            'Sample Food',
-            style: GoogleFonts.righteous(
-              fontSize: isLargeScreen ? 32 : size.width * 0.06,
-              color: Colors.white,
+        padding: EdgeInsets.only(
+          top: MediaQuery.of(context).padding.top + 12,
+          left: isLargeScreen ? 60 : size.width * 0.05,
+          right: isLargeScreen ? 60 : size.width * 0.05,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const BackButton(color: Colors.black), // back arrow
+            const SizedBox(height: 8),
+            Center(
+              child: foodItem.image != null
+                  ? Image.network(
+                      foodItem.image!,
+                      width: 100,
+                      height: 100,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        width: 100,
+                        height: 100,
+                        color: AppTheme.colors['gray']!.withOpacity(0.3),
+                      ),
+                    )
+                  : Container(
+                      width: 100,
+                      height: 100,
+                      color: AppTheme.colors['gray']!.withOpacity(0.3),
+                    ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Nutritional Details',
-            style: GoogleFonts.roboto(
-              fontSize: isLargeScreen ? 18 : size.width * 0.035,
-              color: Colors.white70,
+            const SizedBox(height: 16),
+            Text(
+              foodItem.foodName,
+              style: GoogleFonts.righteous(
+                fontSize: isLargeScreen ? 32 : size.width * 0.06,
+                color: AppTheme.colors['onSurface'],
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-          ),
-        ],
+            const SizedBox(height: 4),
+            Text(
+              'Nutritional Details (${foodItem.quantity.toStringAsFixed(0)}g)',
+              style: GoogleFonts.roboto(
+                fontSize: isLargeScreen ? 18 : size.width * 0.035,
+                color: AppTheme.colors['onSurface']!.withOpacity(0.7),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

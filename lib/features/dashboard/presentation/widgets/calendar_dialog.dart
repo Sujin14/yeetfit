@@ -23,7 +23,7 @@ class CalendarDialog extends ConsumerWidget {
       backgroundColor: Colors.white,
       child: GlassmorphicContainer(
         width: 350.w,
-        height: 485.h,
+        height: 500.h,
         borderRadius: 16.r,
         blur: 10,
         alignment: Alignment.center,

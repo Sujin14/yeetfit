@@ -1,4 +1,4 @@
-import '../models/plan_model.dart';
+import '../../data/models/plan_model.dart';
 
 abstract class PlanRepository {
   Future<PlanModel?> getPlan(String type);

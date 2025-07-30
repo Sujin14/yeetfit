@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:yeetfit/shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
 
 class WaterTipCard extends StatelessWidget {
@@ -7,18 +8,18 @@ class WaterTipCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GlassmorphicContainer(
-      color: const Color(0xFF3F51B5),
-      child: const Column(
+      color: AppTheme.colors['navBarActive']!,
+      child:  Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'General Tip',
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+            style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.colors['primaryText']!.withOpacity(0.8)),
           ),
           SizedBox(height: 6),
           Text(
             'Drinking water before meals can help with portion control. Stay hydrated to support your metabolism!',
-            style: TextStyle(color: Colors.white70),
+            style: TextStyle(color: AppTheme.colors['primaryText']!.withOpacity(0.6)),
           ),
         ],
       ),

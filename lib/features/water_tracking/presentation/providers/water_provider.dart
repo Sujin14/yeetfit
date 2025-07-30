@@ -83,7 +83,7 @@ final dailyProgressColorProvider = Provider.autoDispose.family<Color, String>(
 
     if (progress >= 1.0) return AppTheme.colors['fullProgress']!;
     if (progress >= 0.75) return AppTheme.colors['ThreeQuarterProgress']!;
-    if (progress >= 0.5) return AppTheme.colors['halfProgress']!; 
+    if (progress >= 0.5) return AppTheme.colors['halfProgress']!;
     if (progress >= 0.25) return AppTheme.colors['QuarterProgress']!;
     return AppTheme.colors['noProgress']!;
   },
@@ -121,6 +121,7 @@ class GlassesConsumedNotifier extends StateNotifier<AsyncValue<int>> {
   final AddGlass _addGlass;
   final RemoveGlass _removeGlass;
   final String _userId;
+  String? _lastDate; // Track the date of the last data fetch
 
   GlassesConsumedNotifier(
     this._ref,
@@ -136,7 +137,10 @@ class GlassesConsumedNotifier extends StateNotifier<AsyncValue<int>> {
     try {
       state = const AsyncValue.loading();
       final waterData = await _getWaterData.call(_userId);
-      state = AsyncValue.data(waterData?.glassesConsumed ?? 0);
+      final newValue = waterData?.glassesConsumed ?? 0;
+      final currentDate = waterData?.date ?? DateTime.now().toIso8601String().split('T')[0];
+      _lastDate = currentDate; // Update the last date
+      state = AsyncValue.data(newValue);
     } catch (e, stackTrace) {
       state = AsyncValue.error(e, stackTrace);
     }
@@ -159,6 +163,8 @@ class GlassesConsumedNotifier extends StateNotifier<AsyncValue<int>> {
       state = AsyncValue.error(e, stackTrace);
     }
   }
+
+  String? get lastDate => _lastDate; // Getter for lastDate
 }
 
 /// Notifier for water goal

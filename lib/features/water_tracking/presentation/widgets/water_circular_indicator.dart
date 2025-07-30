@@ -21,7 +21,7 @@ class WaterCircularIndicator extends StatelessWidget {
                 height: 160,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppTheme.colors['white']!,
+                  color: AppTheme.colors['transparent']!,
                 ),
               ),
               SizedBox(
@@ -30,8 +30,8 @@ class WaterCircularIndicator extends StatelessWidget {
                 child: CircularProgressIndicator(
                   value: progress,
                   strokeWidth: 20,
-                  backgroundColor: Colors.white.withOpacity(0.15),
-                  valueColor: const AlwaysStoppedAnimation(Color(0xFF3F51B5)),
+                  backgroundColor: AppTheme.colors['white']!.withOpacity(0.5),
+                  valueColor: AlwaysStoppedAnimation(AppTheme.colors['aquaBlue']),
                 ),
               ),
               GlassmorphicContainer(
@@ -42,19 +42,19 @@ class WaterCircularIndicator extends StatelessWidget {
                   width: 80,
                   height: 80,
                   decoration: const BoxDecoration(shape: BoxShape.circle),
-                  child: const Icon(
+                  child: Icon(
                     Icons.water_drop_outlined,
                     size: 40,
-                    color: Colors.white,
+                    color: AppTheme.colors['aquaBlue'],
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 20),
           Text(
             '1 Glass = 250 ml',
-            style: GoogleFonts.roboto(color: Colors.white70),
+            style: GoogleFonts.roboto(color: AppTheme.colors['primaryText']!.withOpacity(0.7)),
           ),
         ],
       ),

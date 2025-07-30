@@ -15,9 +15,11 @@ class WaterChartSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final weeklyDataAsync = ref.watch(weeklyWaterDataProvider(userId));
+    final now = DateTime.now();
+    final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
 
     return GlassmorphicContainer(
-      color: AppTheme.colors['waterChartBackground']!,
+      color: AppTheme.colors['navBarActive']!,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -37,18 +39,26 @@ class WaterChartSection extends ConsumerWidget {
                 return BarChart(
                   BarChartData(
                     barGroups: List.generate(7, (index) {
-                      final date = DateTime.now().subtract(Duration(days: 6 - index));
+                      final date = startOfWeek.add(Duration(days: index));
                       final dateString = date.toIso8601String().split('T')[0];
                       final data = weeklyData.firstWhere(
                         (entry) => entry.date == dateString,
-                        orElse: () => WaterData(date: dateString, glassesConsumed: 0, goalGlasses: 8),
+                        orElse: () => WaterData(
+                          date: dateString,
+                          glassesConsumed: 0,
+                          goalGlasses: 8,
+                        ),
                       );
-                      final progressColor = ref.watch(dailyProgressColorProvider('$userId|$dateString'));
+                      final progressColor = ref.watch(
+                        dailyProgressColorProvider('$userId|$dateString'),
+                      );
                       return BarChartGroupData(
                         x: index,
                         barRods: [
                           BarChartRodData(
-                            toY: data.glassesConsumed.toDouble(),
+                            toY: data.glassesConsumed > data.goalGlasses
+                                ? data.goalGlasses.toDouble()
+                                : data.glassesConsumed.toDouble(),
                             width: 18,
                             color: progressColor,
                             borderRadius: BorderRadius.circular(6),
@@ -70,31 +80,60 @@ class WaterChartSection extends ConsumerWidget {
                           showTitles: true,
                           reservedSize: 32,
                           getTitlesWidget: (value, _) {
-                            final date = DateTime.now().subtract(Duration(days: 6 - value.toInt()));
-                            final dateString = date.toIso8601String().split('T')[0];
-                            final dayName = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][value.toInt()];
+                            final date = startOfWeek.add(
+                              Duration(days: value.toInt()),
+                            );
+                            final isToday =
+                                date.year == now.year &&
+                                date.month == now.month &&
+                                date.day == now.day;
+                            final dayName = [
+                              'Mon',
+                              'Tue',
+                              'Wed',
+                              'Thu',
+                              'Fri',
+                              'Sat',
+                              'Sun',
+                            ][date.weekday - 1];
                             return Padding(
                               padding: const EdgeInsets.only(top: 8),
                               child: Text(
-                                dayName,
+                                isToday ? 'Today' : dayName,
                                 style: GoogleFonts.roboto(
                                   fontSize: 12,
-                                  color: Colors.white,
+                                  fontWeight: isToday
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                  color: isToday
+                                      ? AppTheme.colors['white']
+                                      : AppTheme.colors['white']!.withOpacity(
+                                          0.6,
+                                        ),
                                 ),
                               ),
                             );
                           },
                         ),
                       ),
-                      leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                      rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                      topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      leftTitles: AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                      rightTitles: AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                      topTitles: AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
                     ),
                   ),
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) => Text('Error: $error', style: const TextStyle(color: Colors.white)),
+              error: (error, _) => Text(
+                'Error: $error',
+                style: const TextStyle(color: Colors.white),
+              ),
             ),
           ),
         ],

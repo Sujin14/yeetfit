@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yeetfit/shared/theme/theme.dart';
@@ -32,7 +33,7 @@ class WaterProgressCard extends StatelessWidget {
                 style: GoogleFonts.roboto(
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
-                  color: Colors.white,
+                  color: AppTheme.colors['primaryText']!.withOpacity(0.7),
                 ),
               ),
               const Spacer(),
@@ -40,7 +41,7 @@ class WaterProgressCard extends StatelessWidget {
                 onPressed: userId != null
                     ? () => _showEditGoalDialog(context, userId)
                     : null,
-                icon: const Icon(Icons.edit, size: 20, color: Colors.white),
+                icon: Icon(Icons.edit, size: 20, color: AppTheme.colors['primaryText']!.withOpacity(0.7),),
                 tooltip: 'Edit Goal',
               ),
             ],
@@ -53,14 +54,14 @@ class WaterProgressCard extends StatelessWidget {
                 value: goalGlasses > 0 ? glassesConsumed / goalGlasses : 0.0,
                 minHeight: 18,
                 borderRadius: BorderRadius.circular(10),
-                color: const Color(0xFF3F51B5),
+                color: AppTheme.colors['aquaBlue'],
                 backgroundColor: Colors.white.withOpacity(0.2),
               ),
               Padding(
                 padding: const EdgeInsets.only(right: 12),
                 child: Text(
                   '${goalGlasses > 0 ? ((glassesConsumed / goalGlasses) * 100).toInt() : 0}%',
-                  style: GoogleFonts.roboto(fontSize: 14, color: Colors.white),
+                  style: GoogleFonts.roboto(fontSize: 14, color: AppTheme.colors['white']),
                 ),
               ),
             ],
@@ -87,15 +88,15 @@ class WaterProgressCard extends StatelessWidget {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => context.pop(),
               child: const Text('Cancel'),
             ),
-            TextButton(
+            ElevatedButton(
               onPressed: () {
                 final newGoal = int.tryParse(controller.text);
                 if (newGoal != null && newGoal > 0) {
                   ref.read(waterGoalProvider(userId).notifier).setGoal(newGoal);
-                  Navigator.pop(context);
+                  context.pop();
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Please enter a valid number')),
