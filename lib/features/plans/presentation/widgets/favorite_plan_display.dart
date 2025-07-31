@@ -38,13 +38,13 @@ class FavoritePlansDisplay extends ConsumerWidget {
                       'Favorite Plan tapped: id=${plan.id}, type=${plan.type}, category=$category',
                     );
                     context.push(
-                      '/plans/${plan.id}',
+                      '/plans/$category/${plan.id}',
                       extra: {
                         'plan': plan,
                         'category': category,
                         'onUnfavorite': () {
                           if (!plan.isFavorite) {
-                            context.pop();
+                            context.go('/favorites');
                           }
                         },
                       },

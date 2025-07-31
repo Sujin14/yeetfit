@@ -6,22 +6,31 @@ import 'package:yeetfit/features/auth/presentation/screens/sign_up_screen.dart';
 import 'package:yeetfit/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:yeetfit/features/explore/presentation/screens/explore_screen.dart';
 import 'package:yeetfit/features/meal_tracking/presentation/screens/calorie_tracking_screen.dart';
+import 'package:yeetfit/features/meal_tracking/presentation/screens/food_search_screen.dart';
+import 'package:yeetfit/features/meal_tracking/presentation/screens/weekly_calorie_chart_screen.dart';
 import 'package:yeetfit/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:yeetfit/features/plans/presentation/screens/favorites_page.dart';
 import 'package:yeetfit/features/plans/presentation/screens/plan_detail_page.dart';
+import 'package:yeetfit/features/plans/presentation/screens/plan_list_screen.dart';
 import 'package:yeetfit/features/progress/presentation/screens/progress_screen.dart';
 import 'package:yeetfit/features/settings/presentation/screens/settings_screen.dart';
 import 'package:yeetfit/features/splash/presentation/screens/splash_screen.dart';
 import 'package:yeetfit/features/user_info/presentation/screens/user_info_step_page.dart';
 import 'package:yeetfit/features/welcome/presentation/screens/welcome_screen.dart';
 import 'package:yeetfit/features/sleep_tracking/presentation/screens/sleep_tracking_screen.dart';
-import 'package:yeetfit/features/steps/presentation/screens/step_counter_screen.dart';
-import 'package:yeetfit/features/water/presentation/screens/water_tracking_screen.dart';
-import 'package:yeetfit/features/weight/presentation/screens/weight_tracking_screen.dart';
+import 'package:yeetfit/features/steps_tracking/presentation/screens/step_counter_screen.dart';
+import 'package:yeetfit/features/water_tracking/presentation/screens/water_tracking_screen.dart';
+import 'package:yeetfit/features/weight_tracking/presentation/screens/weight_tracking_screen.dart';
 import 'package:yeetfit/shared/widgets/custom_appbar.dart';
 import 'package:yeetfit/shared/widgets/bottom_nav_bar.dart';
+import 'package:yeetfit/features/water_tracking/presentation/widgets/water_success_page.dart';
 import '../../features/chat/presentation/screens/chat_screen.dart';
+import '../../features/dashboard/presentation/widgets/calendar_dialog.dart';
+import '../../features/meal_tracking/data/model/food_model.dart';
+import '../../features/meal_tracking/presentation/screens/nutrition_details_screen.dart';
 import '../../features/payment/presentation/screens/payment_screen.dart';
+import '../../features/steps_tracking/presentation/widgets/steps_success_page.dart';
+import '../../features/weight_tracking/presentation/widgets/weight_success_page.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/',
@@ -29,7 +38,13 @@ final GoRouter appRouter = GoRouter(
     final user = FirebaseAuth.instance.currentUser;
     final currentPath = state.uri.toString();
     if (user == null &&
-        !['/', '/login', '/signup', '/onboarding', '/welcome'].contains(currentPath)) {
+        ![
+          '/',
+          '/login',
+          '/signup',
+          '/onboarding',
+          '/welcome',
+        ].contains(currentPath)) {
       return '/login';
     }
     return null;
@@ -54,13 +69,34 @@ final GoRouter appRouter = GoRouter(
       },
     ),
     GoRoute(
-      path: '/plans/:id',
+      path: '/plans/:category',
+      builder: (context, state) =>
+          PlanListScreen(category: state.pathParameters['category']!),
+    ),
+    GoRoute(
+      path: '/plans/:category/:id',
       builder: (context, state) =>
           PlanDetailPage(extra: state.extra as Map<String, dynamic>),
     ),
     GoRoute(
       path: '/modal/food',
       builder: (context, state) => const CalorieTrackingScreen(),
+    ),
+    GoRoute(
+      path: '/food-search',
+      builder: (context, state) =>
+          FoodSearchScreen(mealType: state.extra as String? ?? 'Breakfast'),
+    ),
+    GoRoute(
+      path: '/nutrition-details',
+      builder: (context, state) {
+        final foodItem = state.extra as FoodItem;
+        return NutritionDetailsScreen(foodItem: foodItem);
+      },
+    ),
+    GoRoute(
+      path: '/weekly-calorie-chart',
+      builder: (context, state) => const WeeklyCalorieChartScreen(),
     ),
     GoRoute(
       path: '/modal/steps',
@@ -78,6 +114,31 @@ final GoRouter appRouter = GoRouter(
       path: '/modal/weight',
       builder: (context, state) => const WeightTrackingScreen(),
     ),
+    GoRoute(
+      name: 'water-success',
+      path: '/success/:goal',
+      builder: (context, state) {
+        final goal = int.tryParse(state.pathParameters['goal'] ?? '0') ?? 0;
+        return WaterSuccessPage(goal: goal);
+      },
+    ),
+    GoRoute(
+      name: 'weight-success',
+      path: '/weight-success/:goal',
+      builder: (context, state) {
+        final goal = double.tryParse(state.pathParameters['goal'] ?? '0') ?? 0;
+        return WeightSuccessPage(goal: goal.toString());
+      },
+    ),
+    GoRoute(
+      name: 'steps-success',
+      path: '/steps-success/:goal',
+      builder: (context, state) {
+        final goal = state.pathParameters['goal'] ?? '0';
+        return StepsSuccessPage(goal: goal);
+      },
+    ),
+
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
         return ShellScaffold(navigationShell: navigationShell);
@@ -127,12 +188,10 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/chat',
-      builder: (context, state) => ChatScreen(
-        adminId: state.extra as String,
-      ),
+      builder: (context, state) => ChatScreen(adminId: state.extra as String),
     ),
-    ],
-  );
+  ],
+);
 
 class ShellScaffold extends StatefulWidget {
   final StatefulNavigationShell navigationShell;
@@ -160,6 +219,16 @@ class _ShellScaffoldState extends State<ShellScaffold> {
     return Scaffold(
       appBar: CustomAppBar(
         title: _getTitle(_currentIndex),
+        showCalendar: true,
+        onCalendar: () {
+          final user = FirebaseAuth.instance.currentUser;
+          if (user != null) {
+            showDialog(
+              context: context,
+              builder: (context) => CalendarDialog(userId: user.uid),
+            );
+          }
+        },
         showSettings: true,
         onSettings: () => context.push('/settings'),
       ),

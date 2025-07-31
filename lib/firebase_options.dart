@@ -51,7 +51,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBeclXcro3A5F0djHPMbXc-0MRd1FgK8Og',
+    apiKey: 'AIzaSyBFmz3iSNp5YH_rrdq_YZUQkQw_h5a1iCY',
     appId: '1:866289640315:android:965f3fa187e1221baa93de',
     messagingSenderId: '866289640315',
     projectId: 'yeetfit-43038',
@@ -64,7 +64,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '866289640315',
     projectId: 'yeetfit-43038',
     storageBucket: 'yeetfit-43038.firebasestorage.app',
-    androidClientId: '866289640315-b89hjpt5gjtbiu906l1he83hef3gvktc.apps.googleusercontent.com',
+    androidClientId: '866289640315-48h6gakdlrf7r0iuu14t2fhp8vcivh11.apps.googleusercontent.com',
     iosClientId: '866289640315-1ejs4n2j3m5ve9nooceort93cbn1ht47.apps.googleusercontent.com',
     iosBundleId: 'com.example.yeetfit',
   );
@@ -75,7 +75,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '866289640315',
     projectId: 'yeetfit-43038',
     storageBucket: 'yeetfit-43038.firebasestorage.app',
-    androidClientId: '866289640315-b89hjpt5gjtbiu906l1he83hef3gvktc.apps.googleusercontent.com',
+    androidClientId: '866289640315-48h6gakdlrf7r0iuu14t2fhp8vcivh11.apps.googleusercontent.com',
     iosClientId: '866289640315-1ejs4n2j3m5ve9nooceort93cbn1ht47.apps.googleusercontent.com',
     iosBundleId: 'com.example.yeetfit',
   );
@@ -89,4 +89,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'yeetfit-43038.firebasestorage.app',
     measurementId: 'G-BPPJRFPEM3',
   );
+
 }

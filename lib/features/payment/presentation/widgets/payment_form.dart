@@ -33,10 +33,12 @@ class PaymentForm extends StatelessWidget {
             controller: nameController,
             decoration: InputDecoration(
               labelText: 'Name',
-              labelStyle: TextStyle(color: AppTheme.colors['onSurfaceDark']),
+              labelStyle: TextStyle(color: AppTheme.colors['']),
               border: const OutlineInputBorder(),
             ),
-            style: TextStyle(color: AppTheme.colors['onSurfaceDark']),
+            style: TextStyle(
+              color: AppTheme.colors['primaryText']!.withOpacity(0.7),
+            ),
             validator: PaymentValidators.validateName,
           ),
           SizedBox(height: 12.h),
@@ -44,10 +46,14 @@ class PaymentForm extends StatelessWidget {
             controller: emailController,
             decoration: InputDecoration(
               labelText: 'Email',
-              labelStyle: TextStyle(color: AppTheme.colors['onSurfaceDark']),
+              labelStyle: TextStyle(
+                color: AppTheme.colors['primaryText']!.withOpacity(0.7),
+              ),
               border: const OutlineInputBorder(),
             ),
-            style: TextStyle(color: AppTheme.colors['onSurfaceDark']),
+            style: TextStyle(
+              color: AppTheme.colors['primaryText']!.withOpacity(0.7),
+            ),
             keyboardType: TextInputType.emailAddress,
             validator: PaymentValidators.validateEmail,
           ),
@@ -56,10 +62,14 @@ class PaymentForm extends StatelessWidget {
             controller: contactController,
             decoration: InputDecoration(
               labelText: 'Contact Number',
-              labelStyle: TextStyle(color: AppTheme.colors['onSurfaceDark']),
+              labelStyle: TextStyle(
+                color: AppTheme.colors['primaryText']!.withOpacity(0.7),
+              ),
               border: const OutlineInputBorder(),
             ),
-            style: TextStyle(color: AppTheme.colors['onSurfaceDark']),
+            style: TextStyle(
+              color: AppTheme.colors['primaryText']!.withOpacity(0.7),
+            ),
             keyboardType: TextInputType.phone,
             validator: PaymentValidators.validateContact,
           ),
@@ -73,7 +83,7 @@ class PaymentForm extends StatelessWidget {
             child: Text(
               isLoading ? 'Processing...' : 'Pay Now',
               style: AppTheme.textStyles['title']!.copyWith(
-                color: AppTheme.colors['onSurfaceDark'],
+                color: AppTheme.colors['primaryText']!.withOpacity(0.7),
               ),
             ),
           ),

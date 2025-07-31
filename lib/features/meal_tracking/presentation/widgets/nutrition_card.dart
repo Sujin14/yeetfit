@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:yeetfit/shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
 
 class NutritionCards extends StatelessWidget {
@@ -17,35 +17,35 @@ class NutritionCards extends StatelessWidget {
           'Calories',
           200,
           Icons.local_fire_department,
-          Colors.orange,
+          AppTheme.colors['deepOrange']!,
           isWide,
         ),
         _buildNutritionCard(
           'Protein',
           15,
           Icons.fitness_center,
-          Colors.blue,
+          AppTheme.colors['navBarActive']!,
           isWide,
         ),
         _buildNutritionCard(
           'Fat',
           10,
           Icons.oil_barrel,
-          Colors.red,
+          AppTheme.colors['error']!,
           isWide,
         ),
         _buildNutritionCard(
           'Carbs',
           30,
           Icons.bubble_chart,
-          Colors.green,
+          AppTheme.colors['fullProgress']!,
           isWide,
         ),
         _buildNutritionCard(
           'Fiber',
           5,
           Icons.grass,
-          Colors.purple,
+          AppTheme.colors['indigo']!,
           isWide,
         ),
       ],
@@ -62,7 +62,7 @@ class NutritionCards extends StatelessWidget {
     return SizedBox(
       width: isWide ? 300 : double.infinity,
       child: GlassmorphicContainer(
-        color: const Color(0xFFFF5722),
+        color: AppTheme.colors['deepOrange']!,
         child: ListTile(
           leading: CircleAvatar(
             backgroundColor: color.withOpacity(0.15),
@@ -72,7 +72,7 @@ class NutritionCards extends StatelessWidget {
             label,
             style: GoogleFonts.roboto(
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: AppTheme.colors['primaryColor'],
             ),
           ),
           trailing: Text(

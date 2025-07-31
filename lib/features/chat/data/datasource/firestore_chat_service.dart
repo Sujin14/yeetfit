@@ -25,11 +25,6 @@ class FirestoreChatService {
   Stream<List<MessageModel>> getChatMessages(String chatId) {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
-      _firestore.collection('debug').doc('logs').collection('errors').add({
-        'error': 'User not authenticated',
-        'timestamp': FieldValue.serverTimestamp(),
-        'context': 'getChatMessages($chatId)',
-      });
       return Stream.error(Exception('User not authenticated'));
     }
     return _firestore
@@ -39,11 +34,6 @@ class FirestoreChatService {
         .debounce((_) => TimerStream(true, const Duration(milliseconds: 100)))
         .asyncMap<List<MessageModel>>((chatDoc) async {
           if (!chatDoc.exists) {
-            _firestore.collection('debug').doc('logs').collection('errors').add({
-              'error': 'Chat document not found: $chatId',
-              'timestamp': FieldValue.serverTimestamp(),
-              'context': 'getChatMessages',
-            });
             return <MessageModel>[];
           }
           final snapshot = await _firestore
@@ -56,11 +46,6 @@ class FirestoreChatService {
               .get();
           return await parseMessages(snapshot.docs);
         }).handleError((e) {
-          _firestore.collection('debug').doc('logs').collection('errors').add({
-            'error': e.toString(),
-            'timestamp': FieldValue.serverTimestamp(),
-            'context': 'getChatMessages($chatId)',
-          });
           return <MessageModel>[];
         });
   }
@@ -74,20 +59,10 @@ class FirestoreChatService {
         .snapshots()
         .map((doc) {
           if (!doc.exists) {
-            _firestore.collection('debug').doc('logs').collection('errors').add({
-              'error': 'Message document not found: $messageId',
-              'timestamp': FieldValue.serverTimestamp(),
-              'context': 'getMessageStatus($chatId, $messageId)',
-            });
             throw Exception('Message not found');
           }
           return MessageModel.fromMap(doc.data()!, doc.id);
         }).handleError((e) {
-          _firestore.collection('debug').doc('logs').collection('errors').add({
-            'error': e.toString(),
-            'timestamp': FieldValue.serverTimestamp(),
-            'context': 'getMessageStatus($chatId, $messageId)',
-          });
           throw e;
         });
   }
@@ -99,20 +74,10 @@ class FirestoreChatService {
         .snapshots()
         .map((doc) {
           if (!doc.exists) {
-            _firestore.collection('debug').doc('logs').collection('errors').add({
-              'error': 'User document not found: $userId',
-              'timestamp': FieldValue.serverTimestamp(),
-              'context': 'getUserProfile',
-            });
             return {'name': 'Admin', 'profileImage': ''};
           }
           return doc.data() ?? {'name': 'Admin', 'profileImage': ''};
         }).handleError((e) {
-          _firestore.collection('debug').doc('logs').collection('errors').add({
-            'error': e.toString(),
-            'timestamp': FieldValue.serverTimestamp(),
-            'context': 'getUserProfile($userId)',
-          });
           throw e;
         });
   }
@@ -136,11 +101,6 @@ class FirestoreChatService {
         'participantName': message.participantName,
       });
     } catch (e) {
-      _firestore.collection('debug').doc('logs').collection('errors').add({
-        'error': 'Failed to send message: $e',
-        'timestamp': FieldValue.serverTimestamp(),
-        'context': 'sendMessage($chatId)',
-      });
       throw Exception('Failed to send message: $e');
     }
   }
@@ -151,11 +111,6 @@ class FirestoreChatService {
         'typing_$userId': isTyping,
       });
     } catch (e) {
-      _firestore.collection('debug').doc('logs').collection('errors').add({
-        'error': 'Failed to update typing status: $e',
-        'timestamp': FieldValue.serverTimestamp(),
-        'context': 'updateTypingStatus($chatId, $userId)',
-      });
       throw Exception('Failed to update typing status: $e');
     }
   }
@@ -167,20 +122,10 @@ class FirestoreChatService {
         .snapshots()
         .map<bool>((doc) {
           if (!doc.exists) {
-            _firestore.collection('debug').doc('logs').collection('errors').add({
-              'error': 'Chat document not found: $chatId',
-              'timestamp': FieldValue.serverTimestamp(),
-              'context': 'getTypingStatus',
-            });
             return false;
           }
           return (doc.data()?['typing_$userId'] as bool?) ?? false;
         }).handleError((e) {
-          _firestore.collection('debug').doc('logs').collection('errors').add({
-            'error': e.toString(),
-            'timestamp': FieldValue.serverTimestamp(),
-            'context': 'getTypingStatus($chatId, $userId)',
-          });
           return false;
         });
   }
@@ -194,11 +139,6 @@ class FirestoreChatService {
           .doc(messageId)
           .update({'status': status});
     } catch (e) {
-      _firestore.collection('debug').doc('logs').collection('errors').add({
-        'error': 'Failed to update message status: $e',
-        'timestamp': FieldValue.serverTimestamp(),
-        'context': 'updateMessageStatus($chatId, $messageId)',
-      });
       throw Exception('Failed to update message status: $e');
     }
   }
@@ -225,11 +165,6 @@ class FirestoreChatService {
       }
       await _firestore.collection('chats').doc(chatId).delete();
     } catch (e) {
-      _firestore.collection('debug').doc('logs').collection('errors').add({
-        'error': 'Failed to delete chat: $e',
-        'timestamp': FieldValue.serverTimestamp(),
-        'context': 'deleteChat($chatId)',
-      });
       throw Exception('Failed to delete chat: $e');
     }
   }
@@ -252,11 +187,6 @@ class FirestoreChatService {
       }
       await _firestore.collection('chats').doc(chatId).collection('messages').doc(messageId).delete();
     } catch (e) {
-      _firestore.collection('debug').doc('logs').collection('errors').add({
-        'error': 'Failed to delete message: $e',
-        'timestamp': FieldValue.serverTimestamp(),
-        'context': 'deleteMessage($chatId, $messageId)',
-      });
       throw Exception('Failed to delete message: $e');
     }
   }
@@ -285,11 +215,6 @@ class FirestoreChatService {
     }
     return chatId;
   } catch (e) {
-    await _firestore.collection('debug').doc('logs').collection('errors').add({
-      'error': 'Failed to create or get chat: $e',
-      'timestamp': FieldValue.serverTimestamp(),
-      'context': 'createOrGetChat($adminId, $participantId)',
-    });
     rethrow;
   }
 }

@@ -1,5 +1,3 @@
-
-
 import '../../domain/repositories/payment_repository.dart';
 import '../datasource/payment_service.dart';
 import '../model/payment_model.dart';
@@ -12,11 +10,6 @@ class PaymentRepositoryImpl implements PaymentRepository {
   @override
   Future<void> updatePaymentStatus(String userId) {
     return service.updatePaymentStatus(userId);
-  }
-
-  @override
-  Future<Map<String, dynamic>> verifyPayment(String paymentId, String orderId, String signature) {
-    return service.verifyPayment(paymentId, orderId, signature);
   }
 
   @override
