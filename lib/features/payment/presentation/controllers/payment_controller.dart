@@ -13,17 +13,9 @@ class PaymentState {
   final String? error;
   final bool success;
 
-  PaymentState({
-    this.isLoading = false,
-    this.error,
-    this.success = false,
-  });
+  PaymentState({this.isLoading = false, this.error, this.success = false});
 
-  PaymentState copyWith({
-    bool? isLoading,
-    String? error,
-    bool? success,
-  }) {
+  PaymentState copyWith({bool? isLoading, String? error, bool? success}) {
     return PaymentState(
       isLoading: isLoading ?? this.isLoading,
       error: error,
@@ -64,11 +56,15 @@ class PaymentController extends StateNotifier<PaymentState> {
       return;
     }
     try {
-      final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get();
       final data = doc.data();
       if (data != null) {
         nameController.text = data['name'] ?? '';
-        emailController.text = data['email'] ?? FirebaseAuth.instance.currentUser?.email ?? '';
+        emailController.text =
+            data['email'] ?? FirebaseAuth.instance.currentUser?.email ?? '';
       }
     } catch (e) {
       print('User data load error: $e');
@@ -83,11 +79,7 @@ class PaymentController extends StateNotifier<PaymentState> {
       if (userId != null) {
         await updatePaymentStatus.call(userId);
       }
-      state = state.copyWith(
-        isLoading: false,
-        error: null,
-        success: true,
-      );
+      state = state.copyWith(isLoading: false, error: null, success: true);
     } catch (e) {
       print('Payment success handling error: $e');
       state = state.copyWith(
@@ -121,7 +113,7 @@ class PaymentController extends StateNotifier<PaymentState> {
         name: nameController.text.trim(),
         email: emailController.text.trim(),
         contact: contactController.text.trim(),
-        amount: 50000, // ₹500 in paise
+        amount: 500 * 100, // ₹50000 in paisa
         currency: 'INR',
       );
       final result = await createOrder.call(payment);
@@ -149,7 +141,7 @@ class PaymentController extends StateNotifier<PaymentState> {
         'email': payment.email,
         'contact': payment.contact,
       },
-      'timeout': 60, // in seconds
+      'timeout': 300, // in seconds
     };
     try {
       _razorpay.open(options);

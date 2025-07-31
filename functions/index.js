@@ -15,7 +15,7 @@ exports.createOrder = functions.region("asia-south1").https.onCall(async (data, 
     const response = await axios.post(
       "https://api.razorpay.com/v1/orders",
       {
-        amount: amount * 100, // Amount in paise
+        amount: amount,
         currency: currency || "INR",
         receipt: receipt || `receipt_${Date.now()}`,
       },

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
+import '../controllers/payment_controller.dart';
 import '../providers/payment_provider.dart';
 import '../widgets/payment_form.dart';
 import '../widgets/payment_header.dart';
@@ -16,12 +17,18 @@ class PaymentScreen extends ConsumerWidget {
     final controller = ref.watch(paymentControllerProvider.notifier);
     final state = ref.watch(paymentControllerProvider);
 
+    ref.listen<PaymentState>(paymentControllerProvider, (previous, next) {
+      if (next.success) {
+        context.go('/chat', extra: 'KzWEi9szv2dg9wvEKN6ZEGmZt7L2');
+      }
+    });
+
     return Scaffold(
       backgroundColor: AppTheme.colors['lightBackground'] ?? Colors.grey[900],
       appBar: AppBar(
         leading: InkWell(
           onTap: () => context.go('/user-dashboard'),
-          child: const Icon(Icons.arrow_back),
+          child: const Icon(Icons.arrow_back_ios_new_rounded),
         ),
         title: Text('Unlock Chat Feature', style: AppTheme.textStyles['title']),
         backgroundColor: Colors.transparent,

@@ -12,14 +12,14 @@ class PaymentHeader extends StatelessWidget {
         Text(
           'One-Time Payment',
           style: AppTheme.textStyles['heading']!.copyWith(
-            color: AppTheme.colors['onSurfaceDark'],
+            color: AppTheme.colors['primaryText']!.withOpacity(0.7),
           ),
         ),
         SizedBox(height: 16.h),
         Text(
           'Unlock the chat feature for a one-time payment of ₹500.',
           style: AppTheme.textStyles['body']!.copyWith(
-            color: AppTheme.colors['onSurfaceDark'],
+            color: AppTheme.colors['primaryText']!.withOpacity(0.7),
           ),
           textAlign: TextAlign.center,
         ),
