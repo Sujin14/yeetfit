@@ -4,10 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
-import '../controllers/payment_controller.dart';
+import '../providers/payment_provider.dart';
 import '../widgets/payment_form.dart';
 import '../widgets/payment_header.dart';
-import '../widgets/web_view_widget.dart';
 
 class PaymentScreen extends ConsumerWidget {
   const PaymentScreen({super.key});
@@ -30,30 +29,43 @@ class PaymentScreen extends ConsumerWidget {
       ),
       body: Stack(
         children: [
-          if (state.paymentUrl != null)
-            PaymentWebView(webViewController: state.webViewController!)
-          else
-            SingleChildScrollView(
-              padding: EdgeInsets.all(16.w),
-              child: GlassmorphicContainer(
-                color: AppTheme.colors['primaryAccent'] ?? Colors.blue,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const PaymentHeader(),
-                    PaymentForm(
-                      nameController: controller.nameController,
-                      emailController: controller.emailController,
-                      contactController: controller.contactController,
-                      formKey: controller.formKey,
-                      onPayPressed: controller.startPayment,
-                      isLoading: state.isLoading,
-                    ),
-                  ],
-                ),
+          SingleChildScrollView(
+            padding: EdgeInsets.all(16.w),
+            child: GlassmorphicContainer(
+              color: AppTheme.colors['primaryAccent'] ?? Colors.blue,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const PaymentHeader(),
+                  PaymentForm(
+                    nameController: controller.nameController,
+                    emailController: controller.emailController,
+                    contactController: controller.contactController,
+                    formKey: controller.formKey,
+                    onPayPressed: controller.startPayment,
+                    isLoading: state.isLoading,
+                  ),
+                ],
               ),
             ),
+          ),
           if (state.isLoading) const Center(child: CircularProgressIndicator()),
+          if (state.error != null)
+            Center(
+              child: Text(
+                state.error!,
+                style: TextStyle(color: Colors.red, fontSize: 16.sp),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          if (state.success)
+            Center(
+              child: Text(
+                'Payment Successful!',
+                style: TextStyle(color: Colors.green, fontSize: 20.sp),
+                textAlign: TextAlign.center,
+              ),
+            ),
         ],
       ),
     );

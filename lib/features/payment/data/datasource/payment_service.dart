@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class PaymentService {
   Future<void> updatePaymentStatus(String userId) async {
@@ -9,43 +9,30 @@ class PaymentService {
     });
   }
 
-  Future<Map<String, dynamic>> verifyPayment(String paymentId, String orderId, String signature) async {
-    try {
-      final response = await http.post(
-        Uri.parse('https://yeetfit-backend.onrender.com/api/verify-payment'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'razorpay_order_id': orderId,
-          'razorpay_payment_id': paymentId,
-          'razorpay_signature': signature,
-        }),
-      );
-      final json = jsonDecode(response.body);
-      if (response.statusCode == 200 && json['status'] == 'success') {
-        return {'status': 'success'};
-      } else {
-        throw Exception('Verification failed: ${response.body}');
-      }
-    } catch (e) {
-      throw Exception('Error verifying payment: $e');
-    }
-  }
-
   Future<Map<String, dynamic>> createOrder(Map<String, dynamic> payload) async {
     try {
-      final response = await http.post(
-        Uri.parse('https://yeetfit-backend.onrender.com/api/create-order'),
-        headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
-        body: jsonEncode(payload),
-      );
-      final json = jsonDecode(response.body);
-      if (response.statusCode == 200 && json['orderId'] != null) {
-        return {'orderId': json['orderId']};
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw Exception('User not authenticated');
+      }
+      final token = await user.getIdToken(true);
+      print('Auth token: $token');
+      final callable = FirebaseFunctions.instanceFor(
+        region: 'asia-south1',
+      ).httpsCallable('createOrder');
+      final response = await callable.call(payload);
+      final data = response.data;
+      print('Cloud Function response: $data');
+      if (data['status'] == 'success' && data['orderId'] != null) {
+        return {'orderId': data['orderId']};
       } else {
-        throw Exception('Order failed: ${response.body}');
+        throw Exception(
+          'Order creation failed: ${data['message'] ?? 'Unknown error'}',
+        );
       }
     } catch (e) {
-      throw Exception('Error initiating payment: $e');
+      print('Create order error: $e');
+      throw Exception('Error creating order: $e');
     }
   }
 }

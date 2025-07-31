@@ -6,8 +6,7 @@ import '../../data/repositories/payment_repository_impl.dart';
 import '../../domain/repositories/payment_repository.dart';
 import '../../domain/usecases/create_order.dart';
 import '../../domain/usecases/update_payment_status.dart';
-import '../../domain/usecases/verify_payment.dart';
-
+import '../controllers/payment_controller.dart';
 
 final paymentServiceProvider = Provider<PaymentService>((ref) {
   return PaymentService();
@@ -23,14 +22,17 @@ final updatePaymentStatusProvider = Provider<UpdatePaymentStatus>((ref) {
   return UpdatePaymentStatus(repository);
 });
 
-final verifyPaymentProvider = Provider<VerifyPayment>((ref) {
-  final repository = ref.read(paymentRepositoryProvider);
-  return VerifyPayment(repository);
-});
-
 final createOrderProvider = Provider<CreateOrder>((ref) {
   final repository = ref.read(paymentRepositoryProvider);
   return CreateOrder(repository);
+});
+
+final paymentControllerProvider = StateNotifierProvider<PaymentController, PaymentState>((ref) {
+  return PaymentController(
+    createOrder: ref.read(createOrderProvider),
+    updatePaymentStatus: ref.read(updatePaymentStatusProvider),
+    ref: ref,
+  );
 });
 
 final adminIdProvider = FutureProvider<String>((ref) async {
