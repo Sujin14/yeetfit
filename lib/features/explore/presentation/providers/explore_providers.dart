@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:rxdart/rxdart.dart';
 import '../../../plans/data/models/plan_model.dart';
-import '../../../plans/data/repositories/plan_repository.dart';
+import '../../../plans/domain/repositories/plan_repository.dart';
 import '../../../plans/data/repositories/plan_repository_impl.dart';
 import '../../../plans/domain/use_cases/get_favorite_plans_use_case.dart';
 import '../../../plans/domain/use_cases/toggle_favorite_use_case.dart';

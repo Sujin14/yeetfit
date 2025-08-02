@@ -1,5 +1,5 @@
-import '../../data/repositories/user_repository.dart';
-import '../models/user_info_model.dart';
+import '../repositories/user_repository.dart';
+import '../../data/models/user_info_model.dart';
 
 class SaveUserInfo {
   final UserRepository repository;
