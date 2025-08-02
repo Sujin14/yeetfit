@@ -8,6 +8,7 @@ import '../widgets/goal_input.dart';
 import '../widgets/height_input.dart';
 import '../widgets/name_gender_input.dart';
 import '../widgets/weight_input.dart';
+import '../widgets/time_duration_input.dart';
 
 class UserInfoStepPage extends ConsumerWidget {
   final int step;
@@ -15,6 +16,7 @@ class UserInfoStepPage extends ConsumerWidget {
   UserInfoStepPage({super.key, required this.step});
 
   final List<GlobalKey<FormState>> formKeys = [
+    GlobalKey<FormState>(),
     GlobalKey<FormState>(),
     GlobalKey<FormState>(),
     GlobalKey<FormState>(),
@@ -41,6 +43,8 @@ class UserInfoStepPage extends ConsumerWidget {
           return HeightInput(formKey: formKeys[4]);
         case 5:
           return ActivityLevelDropdown(formKey: formKeys[5]);
+        case 6:
+          return TimeDurationInput(formKey: formKeys[6]);
         default:
           return const SizedBox.shrink();
       }
@@ -64,14 +68,14 @@ class UserInfoStepPage extends ConsumerWidget {
                 ElevatedButton(
                   onPressed: () async {
                     if (formKeys[step].currentState!.validate()) {
-                      if (step < 5) {
+                      if (step < 6) {
                         context.go('/user-info-step/${step + 1}');
                       } else {
                         await notifier.saveUserData(context);
                       }
                     }
                   },
-                  child: Text(step < 5 ? "Next" : "Save"),
+                  child: Text(step < 6 ? "Next" : "Save"),
                 ),
               ],
             ),

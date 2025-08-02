@@ -55,6 +55,10 @@ class UserInfoController extends StateNotifier<UserInfoModel> {
     state = state.copyWith(activityLevel: activityLevel);
   }
 
+  void updateTimeDuration(int duration, BuildContext context) {
+    state = state.copyWith(timeDurationWeeks: duration);
+  }
+
   void updateProfileImageUrl(String? profileImageUrl, BuildContext context) {
     state = state.copyWith(profileImageUrl: profileImageUrl);
   }
@@ -63,18 +67,18 @@ class UserInfoController extends StateNotifier<UserInfoModel> {
     try {
       final uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid == null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('User not authenticated')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User not authenticated')),
+        );
         return;
       }
       final updatedUserInfo = state.copyWith(uid: uid);
       await saveUserInfo(updatedUserInfo);
       context.go('/user-dashboard');
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error saving user data: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error saving user data: $e')),
+      );
     }
   }
 }

@@ -8,8 +8,9 @@ class UserInfoModel {
   final double goalWeight;
   final double height;
   final String activityLevel;
+  final int? timeDurationWeeks;
   final String? profileImageUrl;
-  final bool hasPaid; // New field for payment status
+  final bool hasPaid;
 
   UserInfoModel({
     this.uid = '',
@@ -21,8 +22,9 @@ class UserInfoModel {
     this.goalWeight = 0,
     this.height = 0,
     this.activityLevel = '',
+    this.timeDurationWeeks,
     this.profileImageUrl,
-    this.hasPaid = false, // Default to false
+    this.hasPaid = false,
   });
 
   Map<String, dynamic> toMap() {
@@ -36,6 +38,7 @@ class UserInfoModel {
       'goalWeight': goalWeight,
       'height': height,
       'activityLevel': activityLevel,
+      'timeDurationWeeks': timeDurationWeeks,
       'profileImageUrl': profileImageUrl,
       'hasPaid': hasPaid,
     };
@@ -52,6 +55,7 @@ class UserInfoModel {
       goalWeight: (map['goalWeight'] ?? 0).toDouble(),
       height: (map['height'] ?? 0).toDouble(),
       activityLevel: map['activityLevel'] ?? '',
+      timeDurationWeeks: map['timeDurationWeeks'],
       profileImageUrl: map['profileImageUrl'],
       hasPaid: map['hasPaid'] ?? false,
     );
@@ -67,6 +71,7 @@ class UserInfoModel {
     double? goalWeight,
     double? height,
     String? activityLevel,
+    int? timeDurationWeeks,
     String? profileImageUrl,
     bool? hasPaid,
   }) {
@@ -80,6 +85,7 @@ class UserInfoModel {
       goalWeight: goalWeight ?? this.goalWeight,
       height: height ?? this.height,
       activityLevel: activityLevel ?? this.activityLevel,
+      timeDurationWeeks: timeDurationWeeks ?? this.timeDurationWeeks,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       hasPaid: hasPaid ?? this.hasPaid,
     );
