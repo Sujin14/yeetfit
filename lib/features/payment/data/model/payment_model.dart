@@ -21,14 +21,12 @@ class PaymentModel {
 
   Map<String, dynamic> toMap() {
     return {
-      'paymentId': paymentId,
-      'orderId': orderId,
-      'signature': signature,
+      'amount': amount,
+      'currency': currency,
+      'receipt': 'receipt_${DateTime.now().millisecondsSinceEpoch}',
       'name': name,
       'email': email,
       'contact': contact,
-      'amount': amount,
-      'currency': currency,
     };
   }
 }

@@ -3,12 +3,12 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
-import '../../../shared/theme/theme.dart';
+import '../../../../../shared/theme/theme.dart';
 
-class SuccessPage extends StatelessWidget {
+class WaterSuccessPage extends StatelessWidget {
   final int goal;
 
-  const SuccessPage({super.key, required this.goal});
+  const WaterSuccessPage({super.key, required this.goal});
 
   @override
   Widget build(BuildContext context) {

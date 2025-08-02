@@ -10,7 +10,7 @@ class NotificationService extends ProviderObserver {
   Future<NotificationService> init() async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) {
-      return this; // Exit early if user is not authenticated
+      return this;
     }
 
     FirebaseFirestore.instance

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
 
 class StepsCaloriesCard extends StatelessWidget {
@@ -17,7 +18,7 @@ class StepsCaloriesCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDesktop = ScreenUtil().screenWidth >= 600.w;
     return GlassmorphicContainer(
-      color: const Color(0xFF3F51B5),
+      color: AppTheme.colors['indigo']!,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -26,7 +27,7 @@ class StepsCaloriesCard extends StatelessWidget {
             style: GoogleFonts.roboto(
               fontWeight: FontWeight.bold,
               fontSize: isDesktop ? 16.sp : 18.sp,
-              color: Colors.white,
+              color: AppTheme.colors['primaryText']!.withOpacity(0.8),
             ),
           ),
           SizedBox(height: 8.h),
@@ -37,7 +38,7 @@ class StepsCaloriesCard extends StatelessWidget {
                 'Your Goal:',
                 style: GoogleFonts.roboto(
                   fontSize: isDesktop ? 14.sp : 14.sp,
-                  color: Colors.white70,
+                  color: AppTheme.colors['primaryText']!.withOpacity(0.7),
                 ),
               ),
               Text(
@@ -45,7 +46,7 @@ class StepsCaloriesCard extends StatelessWidget {
                 style: GoogleFonts.roboto(
                   fontWeight: FontWeight.bold,
                   fontSize: isDesktop ? 14.sp : 14.sp,
-                  color: Colors.white,
+                  color: AppTheme.colors['primaryText']!.withOpacity(0.7),
                 ),
               ),
             ],
@@ -58,7 +59,7 @@ class StepsCaloriesCard extends StatelessWidget {
                 'Today\'s Burn:',
                 style: GoogleFonts.roboto(
                   fontSize: isDesktop ? 14.sp : 14.sp,
-                  color: Colors.white70,
+                  color: AppTheme.colors['primaryText']!.withOpacity(0.7),
                 ),
               ),
               Text(
@@ -66,7 +67,7 @@ class StepsCaloriesCard extends StatelessWidget {
                 style: GoogleFonts.roboto(
                   fontWeight: FontWeight.bold,
                   fontSize: isDesktop ? 14.sp : 14.sp,
-                  color: Colors.white,
+                  color: AppTheme.colors['primaryText']!.withOpacity(0.7),
                 ),
               ),
             ],

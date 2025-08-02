@@ -29,6 +29,13 @@ final getWeeklyWeightDataProvider = Provider<GetWeeklyWeightData>(
   (ref) => GetWeeklyWeightData(ref.read(weightRepositoryProvider)),
 );
 
+final currentWeightDataProvider = FutureProvider.family<WeightData?, String>(
+  (ref, userId) async {
+    print('currentWeightDataProvider: Fetching for userId=$userId, authUid=${FirebaseAuth.instance.currentUser?.uid}');
+    return await ref.read(getWeightDataProvider).call(userId);
+  },
+);
+
 final currentWeightProvider = StateNotifierProvider.autoDispose
     .family<CurrentWeightNotifier, AsyncValue<double>, String>(
   (ref, userId) {
@@ -202,4 +209,4 @@ class WeightGoalNotifier extends StateNotifier<AsyncValue<WeightData>> {
       state = AsyncValue.error(e, stackTrace);
     }
   }
-}
+} 
