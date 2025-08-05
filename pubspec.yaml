@@ -39,6 +39,7 @@ dependencies:
   table_calendar: ^3.2.0
   pedometer: ^4.1.1
   razorpay_flutter: ^1.4.0
+  google_generative_ai: ^0.4.7
   
 dev_dependencies:
   flutter_test:
