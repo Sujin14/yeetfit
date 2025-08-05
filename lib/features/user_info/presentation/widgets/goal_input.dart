@@ -22,7 +22,9 @@ class GoalInput extends ConsumerWidget {
           const Text("What is your fitness goal?"),
           const SizedBox(height: 8),
           DropdownButtonFormField<String>(
-            value: userInfo.goal.isEmpty ? null : userInfo.goal,
+            value: userInfo.value?.goal == null || userInfo.value!.goal.isEmpty
+                ? null
+                : userInfo.value!.goal,
             decoration: const InputDecoration(
               hintText: "Select your goal",
               border: OutlineInputBorder(),

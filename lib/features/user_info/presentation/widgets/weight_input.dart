@@ -21,12 +21,12 @@ class _WeightInputState extends ConsumerState<WeightInput> {
     super.initState();
     final userInfo = ref.read(userInfoControllerProvider);
     _currentWeightController = TextEditingController(
-      text: userInfo.currentWeight == 0
+      text: userInfo.value?.currentWeight == 0
           ? ''
-          : userInfo.currentWeight.toString(),
+          : userInfo.value?.currentWeight.toString(),
     );
     _goalWeightController = TextEditingController(
-      text: userInfo.goalWeight == 0 ? '' : userInfo.goalWeight.toString(),
+      text: userInfo.value?.goalWeight == 0 ? '' : userInfo.value?.goalWeight.toString(),
     );
   }
 

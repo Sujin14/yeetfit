@@ -21,4 +21,9 @@ class UserRepositoryImpl implements UserRepository {
   Future<UserInfoModel?> getUserData(String uid) {
     return userService.getUserData(uid);
   }
+
+  @override
+  Future<void> deleteUserData(String uid) {
+    return userService.deleteUserData(uid);
+  }
 }

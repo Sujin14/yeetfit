@@ -25,7 +25,9 @@ class _NameGenderInputState extends ConsumerState<NameGenderInput> {
     super.initState();
     // Initialize gender from userInfo to persist selection when navigating back
     final userInfo = ref.read(userInfoControllerProvider);
-    gender = userInfo.gender.isNotEmpty ? userInfo.gender : null;
+    gender = userInfo.value?.gender != null && userInfo.value!.gender.isNotEmpty
+        ? userInfo.value!.gender
+        : null;
   }
 
   Future<void> _pickImage() async {
@@ -141,7 +143,7 @@ class _NameGenderInputState extends ConsumerState<NameGenderInput> {
             ),
             const SizedBox(height: 12),
             TextFormField(
-              initialValue: userInfo.name,
+              initialValue: userInfo.value?.name ?? '',
               decoration: InputDecoration(
                 hintText: "Enter your name",
                 border: OutlineInputBorder(
@@ -186,11 +188,11 @@ class _NameGenderInputState extends ConsumerState<NameGenderInput> {
               height: 0,
               child: TextFormField(
                 enabled: false,
-                initialValue: gender ?? userInfo.gender,
+                initialValue: gender ?? userInfo.value?.gender ?? '',
                 decoration: const InputDecoration(
                 ),
                 validator: (value) {
-                  final error = UserInfoValidators.validateGender(gender ?? userInfo.gender);
+                  final error = UserInfoValidators.validateGender(gender ?? userInfo.value?.gender);
                   setState(() {
                     _genderError = error;
                   });

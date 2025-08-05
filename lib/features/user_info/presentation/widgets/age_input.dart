@@ -21,7 +21,9 @@ class AgeInput extends ConsumerWidget {
           const Text("What is your age?"),
           const SizedBox(height: 8),
           TextFormField(
-            initialValue: userInfo.age == 0 ? '' : userInfo.age.toString(),
+            initialValue: userInfo.value?.age == null || userInfo.value!.age == 0
+                ? ''
+                : userInfo.value!.age.toString(),
             decoration: const InputDecoration(hintText: "Enter your age"),
             keyboardType: TextInputType.number,
             validator: UserInfoValidators.validateAge,

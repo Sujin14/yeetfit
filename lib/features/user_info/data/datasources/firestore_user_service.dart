@@ -5,7 +5,7 @@ class FirestoreUserService {
   final FirebaseFirestore _firestore;
 
   FirestoreUserService({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   CollectionReference get _users => _firestore.collection('users');
 
@@ -19,7 +19,7 @@ class FirestoreUserService {
       ...userInfo.toMap(),
       'createdAt': FieldValue.serverTimestamp(),
       'role': 'user',
-    });
+    }, SetOptions(merge: true));
   }
 
   Future<UserInfoModel?> getUserData(String uid) async {
@@ -28,5 +28,16 @@ class FirestoreUserService {
       return UserInfoModel.fromMap(doc.data() as Map<String, dynamic>);
     }
     return null;
+  }
+
+  Future<void> deleteUserData(String uid) async {
+    print('FirestoreUserService: Deleting user data for uid=$uid');
+    try {
+      await _users.doc(uid).delete();
+      print('FirestoreUserService: User data deleted for uid=$uid');
+    } catch (e) {
+      print('FirestoreUserService: Error deleting user data for uid=$uid: $e');
+      rethrow;
+    }
   }
 }

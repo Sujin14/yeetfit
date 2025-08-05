@@ -19,41 +19,45 @@ class DashboardScreen extends ConsumerWidget {
         body: const Center(child: Text('Please log in to view dashboard')),
       );
     }
+
     return Scaffold(
-      body: DashboardBody(userId: userId),
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
+      backgroundColor: AppTheme.colors['lightBackground'],
+      body: Stack(
         children: [
-          FloatingActionButton(
-            backgroundColor: AppTheme.colors['primaryAccent'] ?? Colors.blue,
-            foregroundColor: AppTheme.colors['onSurfaceDark'] ?? Colors.white,
-            onPressed: () {
+          DashboardBody(userId: userId),
+
+          // Chatbot image (non-FAB)
+          Positioned(
+            bottom: 90.h,
+            right: 16.w,
+            child: GestureDetector(
+              onTap: () {
                 context.go('/chatbot');
-            },
-            heroTag: 'chatbot_fab',
-            child: Image.asset(
-              'assets/images/chatbot.png',
-              width: 24.sp,
-              height: 24.sp,
-              fit: BoxFit.contain,
+              },
+              child: Image.asset(
+                'assets/images/chatbot.png',
+                width: 56.w,
+                height: 56.w,
+                fit: BoxFit.contain,
+              ),
             ),
           ),
-          SizedBox(height: 16.h),
-          FloatingActionButton(
-            backgroundColor: AppTheme.colors['primaryAccent'] ?? Colors.blue,
-            foregroundColor: AppTheme.colors['onSurfaceDark'] ?? Colors.white,
-            onPressed: () {
-              final hasPaid = ref.read(paymentStatusProvider).value ?? false;
-              if (hasPaid) {
-                context.go('/chat', extra: 'KzWEi9szv2dg9wvEKN6ZEGmZt7L2');
-              } else {
-                context.go('/payment');
-              }
-            },
-            heroTag: 'chat_fab',
-            child: Icon(Icons.chat, size: 24.sp),
-          ),
         ],
+      ),
+
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AppTheme.colors['primaryAccent'] ?? Colors.blue,
+        foregroundColor: AppTheme.colors['onSurfaceDark'] ?? Colors.white,
+        onPressed: () {
+          final hasPaid = ref.read(paymentStatusProvider).value ?? false;
+          if (hasPaid) {
+            context.go('/chat', extra: 'KzWEi9szv2dg9wvEKN6ZEGmZt7L2');
+          } else {
+            context.go('/payment');
+          }
+        },
+        heroTag: 'chat_fab',
+        child: Icon(Icons.chat, size: 24.sp),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );

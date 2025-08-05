@@ -20,7 +20,9 @@ class _HeightInputState extends ConsumerState<HeightInput> {
     super.initState();
     final userInfo = ref.read(userInfoControllerProvider);
     _heightController = TextEditingController(
-      text: userInfo.height == 0 ? '' : userInfo.height.toString(),
+      text: userInfo.value?.height == null || userInfo.value!.height == 0
+          ? ''
+          : userInfo.value!.height.toString(),
     );
   }
 

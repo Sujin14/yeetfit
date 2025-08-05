@@ -20,7 +20,7 @@ class _TimeDurationInputState extends ConsumerState<TimeDurationInput> {
     super.initState();
     final userInfo = ref.read(userInfoControllerProvider);
     _timeDurationController = TextEditingController(
-      text: userInfo.timeDurationWeeks == null ? '' : userInfo.timeDurationWeeks.toString(),
+      text: userInfo.value?.timeDurationWeeks == null ? '' : userInfo.value?.timeDurationWeeks.toString(),
     );
   }
 

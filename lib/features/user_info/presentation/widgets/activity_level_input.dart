@@ -27,9 +27,9 @@ class ActivityLevelDropdown extends ConsumerWidget {
           const Text("What is your activity level?"),
           const SizedBox(height: 8),
           DropdownButtonFormField<String>(
-            value: userInfo.activityLevel.isEmpty
+            value: userInfo.value?.activityLevel == null || userInfo.value!.activityLevel.isEmpty
                 ? null
-                : userInfo.activityLevel,
+                : userInfo.value!.activityLevel,
             decoration: const InputDecoration(
               hintText: "Select activity level",
               border: OutlineInputBorder(),

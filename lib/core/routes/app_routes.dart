@@ -14,6 +14,9 @@ import 'package:yeetfit/features/plans/presentation/screens/plan_detail_page.dar
 import 'package:yeetfit/features/plans/presentation/screens/plan_list_screen.dart';
 import 'package:yeetfit/features/progress/presentation/screens/progress_screen.dart';
 import 'package:yeetfit/features/settings/presentation/screens/settings_screen.dart';
+import 'package:yeetfit/features/settings/presentation/screens/account_screen.dart';
+import 'package:yeetfit/features/settings/presentation/screens/basic_information_screen.dart';
+import 'package:yeetfit/features/settings/presentation/screens/goal_settings_screen.dart';
 import 'package:yeetfit/features/splash/presentation/screens/splash_screen.dart';
 import 'package:yeetfit/features/user_info/presentation/screens/user_info_step_page.dart';
 import 'package:yeetfit/features/welcome/presentation/screens/welcome_screen.dart';
@@ -24,14 +27,16 @@ import 'package:yeetfit/features/weight_tracking/presentation/screens/weight_tra
 import 'package:yeetfit/shared/widgets/custom_appbar.dart';
 import 'package:yeetfit/shared/widgets/bottom_nav_bar.dart';
 import 'package:yeetfit/features/water_tracking/presentation/widgets/water_success_page.dart';
-import '../../features/chat/presentation/screens/chat_screen.dart';
-import '../../features/chatbot/presentation/screens/chatbot_screen.dart';
-import '../../features/dashboard/presentation/widgets/calendar_dialog.dart';
-import '../../features/meal_tracking/data/model/food_model.dart';
-import '../../features/meal_tracking/presentation/screens/nutrition_details_screen.dart';
-import '../../features/payment/presentation/screens/payment_screen.dart';
-import '../../features/steps_tracking/presentation/widgets/steps_success_page.dart';
-import '../../features/weight_tracking/presentation/widgets/weight_success_page.dart';
+import 'package:yeetfit/features/chat/presentation/screens/chat_screen.dart';
+import 'package:yeetfit/features/chatbot/presentation/screens/chatbot_screen.dart';
+import 'package:yeetfit/features/dashboard/presentation/widgets/calendar_dialog.dart';
+import 'package:yeetfit/features/meal_tracking/data/model/food_model.dart';
+import 'package:yeetfit/features/meal_tracking/presentation/screens/nutrition_details_screen.dart';
+import 'package:yeetfit/features/payment/presentation/screens/payment_screen.dart';
+import 'package:yeetfit/features/steps_tracking/presentation/widgets/steps_success_page.dart';
+import 'package:yeetfit/features/weight_tracking/presentation/widgets/weight_success_page.dart';
+
+import '../../features/settings/food_preference_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/',
@@ -139,7 +144,6 @@ final GoRouter appRouter = GoRouter(
         return StepsSuccessPage(goal: goal);
       },
     ),
-
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
         return ShellScaffold(navigationShell: navigationShell);
@@ -182,6 +186,22 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/settings',
       builder: (context, state) => const SettingsScreen(),
+    ),
+    GoRoute(
+      path: '/account',
+      builder: (context, state) => const AccountScreen(),
+    ),
+    GoRoute(
+      path: '/basic-information',
+      builder: (context, state) => const BasicInformationScreen(),
+    ),
+    GoRoute(
+      path: '/goal-settings',
+      builder: (context, state) => const GoalSettingsScreen(),
+    ),
+    GoRoute(
+      path: '/food-preferences',
+      builder: (context, state) => const FoodPreferencesScreen(),
     ),
     GoRoute(
       path: '/payment',
