@@ -46,8 +46,9 @@ class UserInfoValidators {
   }
 
   static String? validateTimeDuration(String? value) {
-    if (value == null || value.trim().isEmpty)
+    if (value == null || value.trim().isEmpty) {
       return 'Time duration is required';
+    }
     final duration = int.tryParse(value);
     if (duration == null || duration < 1) return 'Enter a valid duration';
     return null;

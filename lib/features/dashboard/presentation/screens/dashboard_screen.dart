@@ -21,19 +21,39 @@ class DashboardScreen extends ConsumerWidget {
     }
     return Scaffold(
       body: DashboardBody(userId: userId),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: AppTheme.colors['primaryAccent'] ?? Colors.blue,
-        foregroundColor: AppTheme.colors['onSurfaceDark'] ?? Colors.white,
-        onPressed: () {
-          final hasPaid = ref.read(paymentStatusProvider).value ?? false;
-          if(hasPaid){
-            context.go('/chat', extra: 'KzWEi9szv2dg9wvEKN6ZEGmZt7L2');
-          } else {
-            context.go('/payment');
-          }
-          
-        },
-        child: Icon(Icons.chat, size: 24.sp),
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            backgroundColor: AppTheme.colors['primaryAccent'] ?? Colors.blue,
+            foregroundColor: AppTheme.colors['onSurfaceDark'] ?? Colors.white,
+            onPressed: () {
+                context.go('/chatbot');
+            },
+            heroTag: 'chatbot_fab',
+            child: Image.asset(
+              'assets/images/chatbot.png',
+              width: 24.sp,
+              height: 24.sp,
+              fit: BoxFit.contain,
+            ),
+          ),
+          SizedBox(height: 16.h),
+          FloatingActionButton(
+            backgroundColor: AppTheme.colors['primaryAccent'] ?? Colors.blue,
+            foregroundColor: AppTheme.colors['onSurfaceDark'] ?? Colors.white,
+            onPressed: () {
+              final hasPaid = ref.read(paymentStatusProvider).value ?? false;
+              if (hasPaid) {
+                context.go('/chat', extra: 'KzWEi9szv2dg9wvEKN6ZEGmZt7L2');
+              } else {
+                context.go('/payment');
+              }
+            },
+            heroTag: 'chat_fab',
+            child: Icon(Icons.chat, size: 24.sp),
+          ),
+        ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );

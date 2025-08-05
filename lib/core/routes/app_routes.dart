@@ -25,6 +25,7 @@ import 'package:yeetfit/shared/widgets/custom_appbar.dart';
 import 'package:yeetfit/shared/widgets/bottom_nav_bar.dart';
 import 'package:yeetfit/features/water_tracking/presentation/widgets/water_success_page.dart';
 import '../../features/chat/presentation/screens/chat_screen.dart';
+import '../../features/chatbot/presentation/screens/chatbot_screen.dart';
 import '../../features/dashboard/presentation/widgets/calendar_dialog.dart';
 import '../../features/meal_tracking/data/model/food_model.dart';
 import '../../features/meal_tracking/presentation/screens/nutrition_details_screen.dart';
@@ -189,6 +190,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/chat',
       builder: (context, state) => ChatScreen(adminId: state.extra as String),
+    ),
+    GoRoute(
+      path: '/chatbot',
+      builder: (context, state) => const ChatbotScreen(),
     ),
   ],
 );
