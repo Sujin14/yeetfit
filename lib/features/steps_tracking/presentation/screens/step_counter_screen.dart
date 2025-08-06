@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pedometer/pedometer.dart';
 import 'package:lottie/lottie.dart';
 import '../widgets/steps_app_bar.dart';
 import '../widgets/steps_calories_card.dart';
@@ -25,42 +24,11 @@ class StepCounterScreen extends ConsumerStatefulWidget {
 
 class _StepCounterScreenState extends ConsumerState<StepCounterScreen> {
   bool _usePedometer = false;
-  Stream<StepCount>? _stepCountStream;
-  int _pedometerSteps = 0;
 
   @override
   void initState() {
     super.initState();
-    _initPedometer();
     _checkGoal();
-  }
-
-  void _initPedometer() {
-    try {
-      _stepCountStream = Pedometer.stepCountStream;
-      _stepCountStream
-          ?.listen((StepCount event) {
-            if (_usePedometer) {
-              setState(() {
-                _pedometerSteps = event.steps;
-                final userId = FirebaseAuth.instance.currentUser?.uid;
-                if (userId != null) {
-                  ref
-                      .read(stepsCountProvider(userId).notifier)
-                      .addSteps(_pedometerSteps);
-                }
-              });
-            }
-          })
-          .onError((error) {
-            print('StepCounterScreen: Pedometer error: $error');
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Error accessing pedometer')),
-            );
-          });
-    } catch (e) {
-      print('StepCounterScreen: Failed to initialize pedometer: $e');
-    }
   }
 
   void _checkGoal() {
@@ -136,9 +104,6 @@ class _StepCounterScreenState extends ConsumerState<StepCounterScreen> {
                   onChanged: (value) {
                     setState(() {
                       _usePedometer = value;
-                      if (!value) {
-                        _pedometerSteps = 0;
-                      }
                     });
                   },
                   activeColor: AppTheme.colors['teal'],
@@ -148,11 +113,7 @@ class _StepCounterScreenState extends ConsumerState<StepCounterScreen> {
             SizedBox(height: 16.h),
             Consumer(
               builder: (context, ref, _) {
-                final steps = ref.watch(
-                  stepsCountProvider(
-                    userId,
-                  ).select((value) => value.value ?? 0),
-                );
+                final stepsAsync = ref.watch(stepsCountProvider(userId));
                 final goalSteps = ref.watch(
                   stepsGoalProvider(
                     userId,
@@ -161,10 +122,14 @@ class _StepCounterScreenState extends ConsumerState<StepCounterScreen> {
                 final progressColor = ref.watch(
                   dailyStepsProgressColorProvider('$userId|$today'),
                 );
-                return StepsProgressCard(
-                  steps: _usePedometer ? _pedometerSteps : steps,
-                  goalSteps: goalSteps,
-                  progressColor: progressColor,
+                return stepsAsync.when(
+                  data: (steps) => StepsProgressCard(
+                    steps: steps,
+                    goalSteps: goalSteps,
+                    progressColor: progressColor,
+                  ),
+                  loading: () => const CircularProgressIndicator(),
+                  error: (e, _) => Text('Error: $e'),
                 );
               },
             ),
@@ -180,9 +145,7 @@ class _StepCounterScreenState extends ConsumerState<StepCounterScreen> {
                   ).select((value) => value.value ?? 10000),
                 );
                 return StepsCaloriesCard(
-                  caloriesBurned: _usePedometer
-                      ? _pedometerSteps * 0.04
-                      : caloriesBurned,
+                  caloriesBurned: caloriesBurned,
                   goalCalories: goalSteps * 0.04,
                 );
               },

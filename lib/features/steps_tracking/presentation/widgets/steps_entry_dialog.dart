@@ -72,10 +72,10 @@ class _StepsEntryDialogState extends ConsumerState<StepsEntryDialog> {
           ),
         ),
         ElevatedButton(
-          onPressed: () {
+          onPressed: () async {
             final steps = int.tryParse(controller.text);
             if (steps != null && steps >= 0) {
-              ref
+              await ref
                   .read(stepsCountProvider(widget.userId).notifier)
                   .addSteps(steps);
               Navigator.pop(context);
