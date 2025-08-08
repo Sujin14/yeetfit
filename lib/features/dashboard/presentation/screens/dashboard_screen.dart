@@ -25,8 +25,6 @@ class DashboardScreen extends ConsumerWidget {
       body: Stack(
         children: [
           DashboardBody(userId: userId),
-
-          // Chatbot image (non-FAB)
           Positioned(
             bottom: 90.h,
             right: 16.w,

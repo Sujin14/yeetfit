@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../../../shared/theme/theme.dart';
-import '../user_info/presentation/providers/user_info_controller.dart';
+import '../../../../../../shared/theme/theme.dart';
+import '../../../user_info/presentation/providers/user_info_controller.dart';
 
 class FoodPreferencesScreen extends ConsumerStatefulWidget {
   const FoodPreferencesScreen({super.key});
@@ -77,7 +77,7 @@ class _FoodPreferencesScreenState extends ConsumerState<FoodPreferencesScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Image.asset(
-                  'assets/images/diet_image.png',
+                  'assets/images/diet_image.jpeg',
                   height: 150.h,
                   width: double.infinity,
                   fit: BoxFit.cover,

@@ -2,30 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:yeetfit/shared/theme/theme.dart';
 import '../providers/steps_provider.dart';
+import '../../../../shared/theme/theme.dart';
 
-class StepsEntryDialog extends ConsumerStatefulWidget {
+class StepsEntryDialog extends ConsumerWidget {
   final String userId;
+  final TextEditingController controller;
 
-  const StepsEntryDialog({super.key, required this.userId});
-
-  @override
-  ConsumerState<StepsEntryDialog> createState() => _StepsEntryDialogState();
-}
-
-class _StepsEntryDialogState extends ConsumerState<StepsEntryDialog> {
-  final controller = TextEditingController();
+  const StepsEntryDialog({
+    super.key,
+    required this.userId,
+    required this.controller,
+  });
 
   @override
-  void initState() {
-    super.initState();
-    final steps = ref.read(stepsCountProvider(widget.userId)).value ?? 0;
-    controller.text = steps.toString();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDesktop = ScreenUtil().screenWidth >= 600.w;
     return AlertDialog(
       backgroundColor: AppTheme.colors['lightBackground'],
@@ -72,12 +63,10 @@ class _StepsEntryDialogState extends ConsumerState<StepsEntryDialog> {
           ),
         ),
         ElevatedButton(
-          onPressed: () async {
+          onPressed: () {
             final steps = int.tryParse(controller.text);
             if (steps != null && steps >= 0) {
-              await ref
-                  .read(stepsCountProvider(widget.userId).notifier)
-                  .addSteps(steps);
+              ref.read(stepsCountProvider(userId).notifier).addSteps(steps);
               Navigator.pop(context);
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -100,11 +89,5 @@ class _StepsEntryDialogState extends ConsumerState<StepsEntryDialog> {
         ),
       ],
     );
-  }
-
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
   }
 }

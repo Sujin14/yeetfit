@@ -26,7 +26,13 @@ class StepsRepositoryImpl implements StepsRepository {
     final currentData = await _dataSource.getStepsData(userId, today);
     final goalSteps = currentData?.goalSteps ?? 10000;
     final caloriesBurned = steps * 0.04;
-    await _dataSource.addStepsEntry(userId, today, steps, goalSteps, caloriesBurned);
+    await _dataSource.addStepsEntry(
+      userId,
+      today,
+      steps,
+      goalSteps,
+      caloriesBurned,
+    );
   }
 
   @override
@@ -35,7 +41,13 @@ class StepsRepositoryImpl implements StepsRepository {
     final currentData = await _dataSource.getStepsData(userId, today);
     final steps = currentData?.steps ?? 0;
     final caloriesBurned = steps * 0.04;
-    await _dataSource.addStepsEntry(userId, today, steps, newGoal, caloriesBurned);
+    await _dataSource.addStepsEntry(
+      userId,
+      today,
+      steps,
+      newGoal,
+      caloriesBurned,
+    );
   }
 
   @override
@@ -43,10 +55,19 @@ class StepsRepositoryImpl implements StepsRepository {
     try {
       final endDate = DateTime.now();
       final startDate = endDate.subtract(const Duration(days: 6));
-      final data = await _dataSource.getWeeklyStepsData(userId, startDate, endDate);
+      final data = await _dataSource.getWeeklyStepsData(
+        userId,
+        startDate,
+        endDate,
+      );
       return AsyncValue.data(data);
     } catch (e, stackTrace) {
       return AsyncValue.error(e, stackTrace);
     }
+  }
+
+  @override
+  Future<void> syncLocalData(String userId) async {
+    await _dataSource.syncLocalData(userId);
   }
 }

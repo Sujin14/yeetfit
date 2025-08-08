@@ -79,11 +79,11 @@ class MessageBubble extends StatelessWidget {
   Widget _buildMessageStatusIcon(String status) {
     switch (status) {
       case 'sent':
-        return Icon(Icons.check, size: 16.sp, color: AppTheme.colors['secondaryText'] ?? Colors.grey);
+        return Icon(Icons.check, size: 16.sp, color: AppTheme.colors['secondaryText']);
       case 'delivered':
-        return Icon(Icons.done_all, size: 16.sp, color: AppTheme.colors['secondaryText'] ?? Colors.grey);
+        return Icon(Icons.done_all, size: 16.sp, color: AppTheme.colors['secondaryText']);
       case 'read':
-        return Icon(Icons.done_all, size: 16.sp, color: AppTheme.colors['primaryAccent'] ?? Colors.blue);
+        return Icon(Icons.done_all, size: 16.sp, color: AppTheme.colors['primaryAccent']);
       default:
         return const SizedBox.shrink();
     }

@@ -1,14 +1,36 @@
-import 'package:intl/intl.dart';
-
-String getFormattedDate(DateTime date) {
-  final today = DateTime.now();
+String getFormattedDate(DateTime dateTime) {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
   final yesterday = today.subtract(const Duration(days: 1));
+  final messageDate = DateTime(dateTime.year, dateTime.month, dateTime.day);
 
-  if (date.year == today.year && date.month == today.month && date.day == today.day) {
+  if (messageDate == today) {
     return 'Today';
-  } else if (date.year == yesterday.year && date.month == yesterday.month && date.day == yesterday.day) {
+  } else if (messageDate == yesterday) {
     return 'Yesterday';
   } else {
-    return DateFormat('dd-MM-yyyy').format(date);
+    // Return format like: 07 Aug 2025
+    final day = messageDate.day.toString().padLeft(2, '0');
+    final month = _monthAbbreviation(messageDate.month);
+    final year = messageDate.year.toString();
+    return '$day $month $year';
   }
+}
+
+String _monthAbbreviation(int month) {
+  const months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+  return months[month - 1];
 }

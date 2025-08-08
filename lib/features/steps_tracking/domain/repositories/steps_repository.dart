@@ -7,4 +7,5 @@ abstract class StepsRepository {
   Future<void> addStepsEntry(String userId, int steps);
   Future<void> setStepsGoal(String userId, int newGoal);
   Future<AsyncValue<List<StepsData>>> getWeeklyStepsData(String userId);
+  Future<void> syncLocalData(String userId);
 }

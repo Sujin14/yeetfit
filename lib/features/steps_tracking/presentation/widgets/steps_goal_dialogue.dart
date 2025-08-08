@@ -2,30 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:yeetfit/shared/theme/theme.dart';
 import '../providers/steps_provider.dart';
+import '../../../../shared/theme/theme.dart';
 
-class StepsGoalDialog extends ConsumerStatefulWidget {
+class StepsGoalDialog extends ConsumerWidget {
   final String userId;
+  final TextEditingController controller;
 
-  const StepsGoalDialog({super.key, required this.userId});
-
-  @override
-  ConsumerState<StepsGoalDialog> createState() => _StepsGoalDialogState();
-}
-
-class _StepsGoalDialogState extends ConsumerState<StepsGoalDialog> {
-  final controller = TextEditingController();
+  const StepsGoalDialog({
+    super.key,
+    required this.userId,
+    required this.controller,
+  });
 
   @override
-  void initState() {
-    super.initState();
-    final goalSteps = ref.read(stepsGoalProvider(widget.userId)).value ?? 10000;
-    controller.text = goalSteps.toString();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDesktop = ScreenUtil().screenWidth >= 600.w;
     return AlertDialog(
       backgroundColor: AppTheme.colors['lightBackground'],
@@ -77,9 +68,7 @@ class _StepsGoalDialogState extends ConsumerState<StepsGoalDialog> {
           onPressed: () {
             final newGoal = int.tryParse(controller.text);
             if (newGoal != null && newGoal > 0) {
-              ref
-                  .read(stepsGoalProvider(widget.userId).notifier)
-                  .setGoal(newGoal);
+              ref.read(stepsGoalProvider(userId).notifier).setGoal(newGoal);
               Navigator.pop(context);
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -100,11 +89,5 @@ class _StepsGoalDialogState extends ConsumerState<StepsGoalDialog> {
         ),
       ],
     );
-  }
-
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
   }
 }

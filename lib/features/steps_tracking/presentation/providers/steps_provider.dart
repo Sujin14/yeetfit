@@ -1,8 +1,10 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:pedometer/pedometer.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:workmanager/workmanager.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../data/datasources/steps_datasource.dart';
 import '../../data/model/steps_model.dart';
 import '../../data/repositories/steps_repository_impl.dart';
@@ -10,6 +12,9 @@ import '../../domain/usecases/add_steps_entry.dart';
 import '../../domain/usecases/get_steps_data.dart';
 import '../../domain/usecases/get_weekly_steps.dart';
 import '../../domain/usecases/set_steps_goal.dart';
+
+// Workmanager task identifier
+const String midnightResetTask = 'midnight_steps_reset_task';
 
 /// Repository provider
 final stepsRepositoryProvider = Provider<StepsRepositoryImpl>(
@@ -56,92 +61,159 @@ final stepsGoalProvider = StateNotifierProvider.autoDispose
     );
 
 /// Provider for calories burned
-final caloriesBurnedProvider = Provider.autoDispose.family<double, String>((
-  ref,
-  userId,
-) {
-  final steps = ref.watch(
-    stepsCountProvider(userId).select((value) => value.value ?? 0),
-  );
-  return steps * 0.04; // 0.04 calories per step
-});
+final caloriesBurnedProvider = Provider.autoDispose.family<double, String>(
+  (ref, userId) {
+    final steps = ref.watch(
+      stepsCountProvider(userId).select((value) => value.value ?? 0),
+    );
+    return steps * 0.04; // 0.04 calories per step
+  },
+);
+
+/// Provider for goal calories
+final goalCaloriesProvider = Provider.autoDispose.family<double, String>(
+  (ref, userId) {
+    final goalSteps = ref.watch(
+      stepsGoalProvider(userId).select((value) => value.value ?? 10000),
+    );
+    return goalSteps * 0.04; // 0.04 calories per step
+  },
+);
 
 /// Provider for daily progress color
-final dailyStepsProgressColorProvider = Provider.autoDispose
-    .family<Color, String>((ref, userIdAndDate) {
-      final parts = userIdAndDate.split('|');
-      final userId = parts[0];
-      final date = parts[1];
-      final weeklyData = ref.watch(weeklyStepsDataProvider(userId)).value ?? [];
-      final today = DateTime.now().toIso8601String().split('T')[0];
-      final steps = date == today
-          ? ref.watch(
-              stepsCountProvider(userId).select((value) => value.value ?? 0),
+final dailyStepsProgressColorProvider =
+    Provider.autoDispose.family<Color, String>((ref, userIdAndDate) {
+  final parts = userIdAndDate.split('|');
+  final userId = parts[0];
+  final date = parts[1];
+  final weeklyData = ref.watch(weeklyStepsDataProvider(userId)).value ?? [];
+  final today = DateTime.now().toIso8601String().split('T')[0];
+  final steps = date == today
+      ? ref.watch(
+          stepsCountProvider(userId).select((value) => value.value ?? 0),
+        )
+      : (weeklyData
+            .firstWhere(
+              (entry) => entry.date == date,
+              orElse: () => StepsData(
+                date: date,
+                steps: 0,
+                goalSteps: 10000,
+                caloriesBurned: 0.0,
+              ),
             )
-          : (weeklyData
-                .firstWhere(
-                  (entry) => entry.date == date,
-                  orElse: () => StepsData(
-                    date: date,
-                    steps: 0,
-                    goalSteps: 10000,
-                    caloriesBurned: 0.0,
-                  ),
-                )
-                .steps);
-      final goalSteps = date == today
-          ? ref.watch(
-              stepsGoalProvider(userId).select((value) => value.value ?? 10000),
+            .steps);
+  final goalSteps = date == today
+      ? ref.watch(
+          stepsGoalProvider(userId).select((value) => value.value ?? 10000),
+        )
+      : (weeklyData
+            .firstWhere(
+              (entry) => entry.date == date,
+              orElse: () => StepsData(
+                date: date,
+                steps: 0,
+                goalSteps: 10000,
+                caloriesBurned: 0.0,
+              ),
             )
-          : (weeklyData
-                .firstWhere(
-                  (entry) => entry.date == date,
-                  orElse: () => StepsData(
-                    date: date,
-                    steps: 0,
-                    goalSteps: 10000,
-                    caloriesBurned: 0.0,
-                  ),
-                )
-                .goalSteps);
-      final progress = goalSteps > 0 ? steps / goalSteps : 0.0;
+            .goalSteps);
+  final progress = goalSteps > 0 ? steps / goalSteps : 0.0;
 
-      if (progress >= 1.0) return const Color(0xFF4CAF50); // Green for 100%
-      if (progress > 0.5) return const Color(0xFFFFEB3B); // Yellow for >50%
-      if (progress >= 0.25) return const Color(0xFFFF9800); // Orange for ~50%
-      return const Color(0xFFF44336); // Red for <25%
-    });
+  if (progress >= 1.0) return const Color(0xFF4CAF50); // Green for 100%
+  if (progress > 0.5) return const Color(0xFFFFEB3B); // Yellow for >50%
+  if (progress >= 0.25) return const Color(0xFFFF9800); // Orange for ~50%
+  return const Color(0xFFF44336); // Red for <25%
+});
 
 /// Weekly Steps Data Provider
-final weeklyStepsDataProvider = FutureProvider.family<List<StepsData>, String>((
-  ref,
-  userId,
-) async {
+final weeklyStepsDataProvider =
+    FutureProvider.family<List<StepsData>, String>((ref, userId) async {
   final asyncResult = await ref.read(getWeeklyStepsDataProvider).call(userId);
-  final weeklyData = asyncResult.when(
+  return asyncResult.when(
     data: (data) => data,
     error: (e, _) => throw e,
     loading: () => [],
   );
+});
+
+/// Chart Data Provider
+final chartDataProvider = Provider.family<List<StepsData>, String>((ref, userId) {
+  final weeklyData = ref.watch(weeklyStepsDataProvider(userId)).value ?? [];
   final today = DateTime.now().toIso8601String().split('T')[0];
-  final steps = ref.watch(
-    stepsCountProvider(userId).select((value) => value.value ?? 0),
-  );
-  final goalSteps = ref.watch(
-    stepsGoalProvider(userId).select((value) => value.value ?? 10000),
-  );
-  final caloriesBurned = ref.watch(caloriesBurnedProvider(userId));
-  final updatedData = weeklyData.where((data) => data.date != today).toList()
-    ..add(
-      StepsData(
-        date: today,
-        steps: steps,
-        goalSteps: goalSteps,
-        caloriesBurned: caloriesBurned,
+  final todaySteps = ref.watch(stepsCountProvider(userId)).value ?? 0;
+  final todayGoal = ref.watch(stepsGoalProvider(userId)).value ?? 10000;
+  final now = DateTime.now();
+  final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+  return List.generate(7, (index) {
+    final date = startOfWeek.add(Duration(days: index));
+    final dateString = date.toIso8601String().split('T')[0];
+    if (dateString == today) {
+      return StepsData(
+        date: dateString,
+        steps: todaySteps,
+        goalSteps: todayGoal,
+        caloriesBurned: todaySteps * 0.04,
+      );
+    }
+    return weeklyData.firstWhere(
+      (entry) => entry.date == dateString,
+      orElse: () => StepsData(
+        date: dateString,
+        steps: 0,
+        goalSteps: 10000,
+        caloriesBurned: 0.0,
       ),
     );
-  updatedData.sort((a, b) => a.date.compareTo(b.date));
-  return updatedData.cast<StepsData>();
+  });
+});
+
+/// Chart Configuration Provider
+final chartConfigProvider = Provider.family<Map<String, dynamic>, String>((ref, userId) {
+  final chartData = ref.watch(chartDataProvider(userId));
+  final maxGoal = chartData
+      .map((e) => e.goalSteps.toDouble())
+      .reduce((a, b) => a > b ? a : b);
+  final maxY = (maxGoal * 1.2).ceilToDouble();
+  final interval = _calculateInterval(maxGoal);
+  return {
+    'maxY': maxY,
+    'interval': interval,
+  };
+});
+
+// Calculate dynamic interval based on max goal
+double _calculateInterval(double maxGoal) {
+  if (maxGoal <= 5000) return 1000;
+  if (maxGoal <= 10000) return 2000;
+  if (maxGoal <= 20000) return 5000;
+  return 10000;
+}
+
+// Format step count as 1k, 2k, 5k, 10k, etc.
+String formatStepCount(double value) {
+  if (value >= 1000) {
+    final thousands = (value / 1000).floor();
+    return '${thousands}k';
+  }
+  return value.toInt().toString();
+}
+
+/// Provider for StepsEntryDialog initial value
+final stepsEntryInitialValueProvider = Provider.family<String, String>((ref, userId) {
+  final steps = ref.watch(stepsCountProvider(userId)).value ?? 0;
+  return steps.toString();
+});
+
+/// Provider for StepsGoalDialog initial value
+final stepsGoalInitialValueProvider = Provider.family<String, String>((ref, userId) {
+  final goalSteps = ref.watch(stepsGoalProvider(userId)).value ?? 10000;
+  return goalSteps.toString();
+});
+
+/// Provider for StepsSuccessPage message
+final stepsSuccessMessageProvider = Provider.family<String, String>((ref, goal) {
+  return 'You reached your step goal of $goal steps — keep moving! 🚶';
 });
 
 /// Notifier for steps count
@@ -151,10 +223,13 @@ class StepsCountNotifier extends StateNotifier<AsyncValue<int>> {
   final AddStepsEntry _addStepsEntry;
   final String _userId;
 
-  late StreamSubscription<StepCount> _stepCountStream;
-  int _initialStepCount = 0;
-  int _currentStepCount = 0;
+  StreamSubscription<StepCount>? _stepCountStream;
+  int _initialStepCount = 0; // Pedometer's cumulative steps at app start
+  int _currentStepCount = 0; // Steps for the current day
   DateTime _lastRecordedDate = DateTime.now();
+  static const String _lastStepCountKey = 'last_step_count';
+  static const String _lastStepDateKey = 'last_step_date';
+  bool _isPedometerActive = true; // Track pedometer state
 
   StepsCountNotifier(
     this._ref,
@@ -167,53 +242,172 @@ class StepsCountNotifier extends StateNotifier<AsyncValue<int>> {
 
   Future<void> _init() async {
     try {
-      final todayStepsData = await _getStepsData.call(_userId);
-      _initialStepCount = todayStepsData?.steps ?? 0;
-      _currentStepCount = _initialStepCount;
+      // Request permissions
+      await _requestPermissions();
 
-      _startListening();
+      // Register Workmanager task
+      await _initializeWorkmanager();
+
+      // Fetch today's steps from Firestore or local storage
+      final today = DateTime.now().toIso8601String().split('T')[0];
+      final todayStepsData = await _getStepsData.call(_userId);
+      _currentStepCount = todayStepsData?.steps ?? 0;
+
+      // Load last step count and date from local storage
+      final prefs = await SharedPreferences.getInstance();
+      final lastStepDate = prefs.getString('$_lastStepDateKey$_userId');
+      final lastStepCount = prefs.getInt('$_lastStepCountKey$_userId') ?? 0;
+
+      // Initialize pedometer
+      final initialStepCount = await _getInitialStepCount();
+      if (initialStepCount != null) {
+        _initialStepCount = initialStepCount;
+        if (lastStepDate != today && lastStepDate != null) {
+          // Save previous day's steps if not already saved
+          final prevStepsData = await _getStepsData.call(_userId);
+          if (prevStepsData == null || prevStepsData.date != lastStepDate) {
+            final goalSteps = await _ref.read(stepsRepositoryProvider).getStepsGoal(_userId);
+            await _addStepsEntry.call(_userId, lastStepCount);
+          }
+        }
+      }
+
+      // Start pedometer stream if active
+      if (_isPedometerActive) {
+        _startListening();
+      }
+
       state = AsyncValue.data(_currentStepCount);
+
+      // Sync local data to Firestore
+      await _ref.read(stepsRepositoryProvider).syncLocalData(_userId);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
   }
 
-  void _startListening() {
-    _stepCountStream = Pedometer.stepCountStream.listen(
-      _onStepCount,
-      onError: _onStepCountError,
-      cancelOnError: true,
+  Future<void> _requestPermissions() async {
+    final status = await Permission.activityRecognition.request();
+    if (!status.isGranted) {
+      print('StepsCountNotifier: Activity recognition permission not granted');
+      _isPedometerActive = false;
+      state = AsyncValue.error('Permission denied for step tracking', StackTrace.current);
+    }
+  }
+
+  Future<int?> _getInitialStepCount() async {
+    try {
+      final completer = Completer<int>();
+      final subscription = Pedometer.stepCountStream.listen(
+        (event) {
+          completer.complete(event.steps);
+        },
+        onError: (error) {
+          completer.completeError(error);
+        },
+        cancelOnError: true,
+      );
+      final steps = await completer.future.timeout(const Duration(seconds: 5));
+      await subscription.cancel();
+      return steps;
+    } catch (e) {
+      print('StepsCountNotifier: Failed to get initial step count: $e');
+      return null;
+    }
+  }
+
+  Future<void> _initializeWorkmanager() async {
+    await Workmanager().registerPeriodicTask(
+      midnightResetTask,
+      midnightResetTask,
+      frequency: const Duration(hours: 24),
+      initialDelay: _calculateInitialDelay(),
+      constraints: Constraints(), // Allow offline operation
+      inputData: {'userId': _userId},
     );
   }
 
-  void _onStepCount(StepCount event) {
+  Duration _calculateInitialDelay() {
     final now = DateTime.now();
+    final midnight = DateTime(now.year, now.month, now.day + 1);
+    return midnight.difference(now);
+  }
+
+  void _startListening() {
+    _stepCountStream?.cancel(); // Cancel any existing subscription
+    if (!_isPedometerActive) return;
+
+    _stepCountStream = Pedometer.stepCountStream.listen(
+      _onStepCount,
+      onError: _onStepCountError,
+      cancelOnError: false,
+    );
+  }
+
+  void _onStepCount(StepCount event) async {
+    if (!_isPedometerActive) return;
+
+    final now = DateTime.now();
+    final today = now.toIso8601String().split('T')[0];
+    final prefs = await SharedPreferences.getInstance();
+
     if (!_isSameDay(now, _lastRecordedDate)) {
-      // Reset daily step count at midnight
+      // New day: save previous day's steps and reset
+      final prevSteps = _currentStepCount;
+      final prevDate = _lastRecordedDate.toIso8601String().split('T')[0];
+      if (prevSteps > 0) {
+        final goalSteps = await _ref.read(stepsRepositoryProvider).getStepsGoal(_userId);
+        await _addStepsEntry.call(_userId, prevSteps);
+      }
       _initialStepCount = event.steps;
       _currentStepCount = 0;
       _lastRecordedDate = now;
     } else {
-      _currentStepCount = event.steps - _initialStepCount;
+      // Same day: calculate daily steps
+      final newSteps = event.steps - _initialStepCount;
+      if (newSteps >= 0) {
+        _currentStepCount = newSteps;
+      } else {
+        // Handle device reboot or pedometer reset
+        print('StepsCountNotifier: Reset detected, recalibrating initial step count');
+        _initialStepCount = event.steps;
+        _currentStepCount = 0;
+      }
     }
 
+    // Save current step count and date to local storage
+    await prefs.setInt('$_lastStepCountKey$_userId', _currentStepCount);
+    await prefs.setString('$_lastStepDateKey$_userId', today);
+
+    // Update Firestore every 10 steps to reduce writes
+    if (_currentStepCount % 10 == 0) {
+      await _addStepsEntry.call(_userId, _currentStepCount);
+    }
+
+    // Update state to trigger UI refresh
     state = AsyncValue.data(_currentStepCount);
-    _addStepsEntry.call(_userId, _currentStepCount);
   }
 
   void _onStepCountError(error) {
+    print('StepsCountNotifier: Pedometer error: $error');
+    _isPedometerActive = false;
     state = AsyncValue.error(error, StackTrace.current);
+    // Attempt to restart the stream
+    Future.delayed(const Duration(seconds: 5), _startListening);
   }
 
   bool _isSameDay(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
-  // Add this method to allow manual step updates
   Future<void> addSteps(int steps) async {
     try {
       state = const AsyncValue.loading();
       _currentStepCount = steps;
+      final prefs = await SharedPreferences.getInstance();
+      final today = DateTime.now().toIso8601String().split('T')[0];
+      await prefs.setInt('$_lastStepCountKey$_userId', _currentStepCount);
+      await prefs.setString('$_lastStepDateKey$_userId', today);
       await _addStepsEntry.call(_userId, _currentStepCount);
       state = AsyncValue.data(_currentStepCount);
     } catch (e, st) {
@@ -221,9 +415,18 @@ class StepsCountNotifier extends StateNotifier<AsyncValue<int>> {
     }
   }
 
+  void togglePedometer(bool enable) {
+    _isPedometerActive = enable;
+    if (enable) {
+      _startListening();
+    } else {
+      _stepCountStream?.cancel();
+    }
+  }
+
   @override
   void dispose() {
-    _stepCountStream.cancel();
+    _stepCountStream?.cancel();
     super.dispose();
   }
 }
@@ -262,4 +465,35 @@ class StepsGoalNotifier extends StateNotifier<AsyncValue<int>> {
       state = AsyncValue.error(e, stackTrace);
     }
   }
+}
+
+/// Workmanager callback
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    if (task == midnightResetTask) {
+      final userId = inputData?['userId'] as String?;
+      if (userId == null) return false;
+
+      final prefs = await SharedPreferences.getInstance();
+      final lastStepCount = prefs.getInt('last_step_count$userId') ?? 0;
+      final lastStepDate = prefs.getString('last_step_date$userId');
+      final today = DateTime.now().toIso8601String().split('T')[0];
+
+      if (lastStepDate != null && lastStepDate != today && lastStepCount > 0) {
+        final dataSource = StepsDataSource();
+        final goalSteps = await dataSource.getStepsGoal(userId, lastStepDate);
+        await dataSource.addStepsEntry(
+          userId,
+          lastStepDate,
+          lastStepCount,
+          goalSteps,
+          lastStepCount * 0.04,
+        );
+        await prefs.setInt('last_step_count$userId', 0);
+        await prefs.setString('last_step_date$userId', today);
+      }
+      return true;
+    }
+    return false;
+  });
 }

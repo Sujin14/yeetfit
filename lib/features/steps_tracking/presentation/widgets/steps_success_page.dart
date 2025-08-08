@@ -2,17 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import '../providers/steps_provider.dart';
+import '../../../../shared/theme/theme.dart';
 import 'package:lottie/lottie.dart';
 
-import '../../../../shared/theme/theme.dart';
-
-class StepsSuccessPage extends StatelessWidget {
+class StepsSuccessPage extends ConsumerWidget {
   final String goal;
 
   const StepsSuccessPage({super.key, required this.goal});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final message = ref.watch(stepsSuccessMessageProvider(goal));
     return Scaffold(
       backgroundColor: AppTheme.colors['background'],
       body: Column(
@@ -37,7 +39,7 @@ class StepsSuccessPage extends StatelessWidget {
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.w),
             child: Text(
-              'You reached your step goal of $goal steps — keep moving! 🚶',
+              message,
               style: GoogleFonts.roboto(
                 fontSize: 18.sp,
                 color: AppTheme.colors['primaryText'],

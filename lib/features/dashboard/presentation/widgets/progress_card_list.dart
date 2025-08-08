@@ -1,11 +1,14 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../steps_tracking/presentation/providers/steps_provider.dart';
 import 'progress_card.dart';
 
-class ProgressCardsList extends StatefulWidget {
+class ProgressCardsList extends ConsumerStatefulWidget {
   final Map<String, dynamic> progress;
   final String userId;
 
@@ -15,7 +18,7 @@ class ProgressCardsList extends StatefulWidget {
   _ProgressCardsListState createState() => _ProgressCardsListState();
 }
 
-class _ProgressCardsListState extends State<ProgressCardsList> {
+class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
   final PageController _pageController = PageController();
   Timer? _autoSwipeTimer;
   int _currentPage = 0;
@@ -61,13 +64,16 @@ class _ProgressCardsListState extends State<ProgressCardsList> {
 
   @override
   Widget build(BuildContext context) {
+    final steps = ref.watch(stepsCountProvider(widget.userId)).value ?? 0;
+    final stepsGoal = ref.watch(stepsGoalProvider(widget.userId)).value ?? 10000;
+
     final cards = [
       ProgressCard(
         title: 'Steps',
-        percent: (widget.progress['steps'] / widget.progress['stepsGoal']).toDouble().clamp(0.0, 1.0),
-        value: '${widget.progress['steps'].toInt()}/${widget.progress['stepsGoal'].toInt()}',
+        percent: (steps / stepsGoal).clamp(0.0, 1.0),
+        value: '$steps/$stepsGoal',
         icon: Icons.directions_walk,
-        description: widget.progress['stepsDescription'],
+        description: widget.progress['stepsDescription'] ?? 'Steps improve heart health',
         route: '/modal/steps',
         userId: widget.userId,
       ),
@@ -86,7 +92,7 @@ class _ProgressCardsListState extends State<ProgressCardsList> {
         value: '${widget.progress['calories'].toInt()}/${widget.progress['caloriesGoal'].toInt()} kcal',
         icon: Icons.local_fire_department,
         description: widget.progress['caloriesDescription'],
-        route: null, // No navigation for calories
+        route: null,
         userId: widget.userId,
       ),
       ProgressCard(

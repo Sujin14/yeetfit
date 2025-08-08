@@ -36,7 +36,7 @@ import 'package:yeetfit/features/payment/presentation/screens/payment_screen.dar
 import 'package:yeetfit/features/steps_tracking/presentation/widgets/steps_success_page.dart';
 import 'package:yeetfit/features/weight_tracking/presentation/widgets/weight_success_page.dart';
 
-import '../../features/settings/food_preference_screen.dart';
+import '../../features/settings/presentation/screens/food_preference_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/',

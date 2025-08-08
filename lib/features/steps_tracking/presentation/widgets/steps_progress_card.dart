@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:yeetfit/shared/theme/theme.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import '../providers/steps_provider.dart';
+import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'steps_app_bar.dart';
+import 'steps_goal_dialogue.dart';
 
-import 'steps_goal.dart';
-
-class StepsProgressCard extends StatelessWidget {
+class StepsProgressCard extends ConsumerWidget {
   final int steps;
   final int goalSteps;
   final Color progressColor;
@@ -20,9 +21,8 @@ class StepsProgressCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
-
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userId = ref.watch(firebaseAuthProvider).currentUser?.uid;
     return GlassmorphicContainer(
       color: AppTheme.colors['deepOrange']!,
       child: Column(
@@ -43,10 +43,18 @@ class StepsProgressCard extends StatelessWidget {
               IconButton(
                 icon: Icon(Icons.edit, size: 18.sp, color: AppTheme.colors['onSurface']),
                 onPressed: userId != null
-                    ? () => showDialog(
+                    ? () {
+                        final controller = TextEditingController(
+                          text: ref.read(stepsGoalInitialValueProvider(userId)),
+                        );
+                        showDialog(
                           context: context,
-                          builder: (context) => StepsGoalDialog(userId: userId),
-                        )
+                          builder: (context) => StepsGoalDialog(
+                            userId: userId,
+                            controller: controller,
+                          ),
+                        ).then((_) => controller.dispose());
+                      }
                     : null,
                 tooltip: 'Set Steps Goal',
               ),
