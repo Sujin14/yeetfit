@@ -24,51 +24,44 @@ class AccountScreen extends ConsumerWidget {
           'Account',
           style: AppTheme.textStyles['title']!.copyWith(color: AppTheme.colors['primaryText']),
         ),
+        centerTitle: true,
         backgroundColor: AppTheme.colors['lightBackground'],
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: AppTheme.colors['primaryText']),
-          onPressed: () => context.pop(),
+          onPressed: () => context.go('/settings'),
         ),
       ),
       body: userDataAsync.when(
         data: (userInfo) => SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
+          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              ProfileCard(userInfo: userInfo),
+              Center(child: ProfileCard(userInfo: userInfo)),
               SizedBox(height: 24.h),
               BasicInfoCard(onTap: () => context.push('/basic-information')),
               SizedBox(height: 16.h),
               GoalCard(
-                goal: userInfo.goal.isNotEmpty ? userInfo.goal : 'Not set',
-                onTap: () => context.push('/goal-settings'),
+                title: 'Weight Goal',
+                icon: Icons.scale,
+                goal: '${userInfo.goalWeight} kg',
+                onEdit: () => ref.read(settingsControllerProvider.notifier).showEditGoalDialog(
+                      context: context,
+                      label: 'Weight Goal (kg)',
+                      initialValue: userInfo.goalWeight.toString(),
+                      type: 'Weight',
+                    ),
               ),
               SizedBox(height: 16.h),
               FoodPreferencesCard(onTap: () => context.push('/food-preferences')),
               SizedBox(height: 24.h),
               ElevatedButton(
-                onPressed: isSaving
-                    ? null
-                    : () async {
-                        final success = await ref.read(settingsControllerProvider.notifier).logout(context);
-                        if (success && context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'Logged out successfully',
-                                style: AppTheme.textStyles['body']!.copyWith(
-                                  color: AppTheme.colors['onSurfaceDark'],
-                                ),
-                              ),
-                              backgroundColor: AppTheme.colors['primaryButton'] ?? Colors.green,
-                            ),
-                          );
-                        }
-                      },
+                onPressed: isSaving ? null : () => ref.read(settingsControllerProvider.notifier).logout(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.colors['error'],
                   minimumSize: Size(double.infinity, 48.h),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
                 ),
                 child: isSaving
                     ? SizedBox(

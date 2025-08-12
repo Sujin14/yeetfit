@@ -71,11 +71,11 @@ class _FoodPreferencesScreenState extends ConsumerState<FoodPreferencesScreen> {
       ),
       body: settingsState.when(
         data: (_) => SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
+          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
           child: Form(
             key: _formKey,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Image.asset(
                   'assets/images/diet_image.jpeg',
@@ -93,6 +93,7 @@ class _FoodPreferencesScreenState extends ConsumerState<FoodPreferencesScreen> {
                     color: AppTheme.colors['primaryText'],
                   ),
                 ),
+                SizedBox(height: 8.h),
                 DropdownButtonFormField<String>(
                   value: _dietPreference,
                   decoration: InputDecoration(
@@ -136,6 +137,7 @@ class _FoodPreferencesScreenState extends ConsumerState<FoodPreferencesScreen> {
                         _otherAllergyController.clear();
                       }
                     }),
+                    contentPadding: EdgeInsets.zero,
                   ),
                 ),
                 if (_allergies['Others']!)
@@ -159,7 +161,7 @@ class _FoodPreferencesScreenState extends ConsumerState<FoodPreferencesScreen> {
                 Divider(color: AppTheme.colors['borderGradientStart']),
                 SizedBox(height: 16.h),
                 Text(
-                  'What is your Preferred Cuisine?',
+                  'Preferred Cuisine',
                   style: AppTheme.textStyles['subtitle']!.copyWith(
                     fontSize: 18.sp,
                     color: AppTheme.colors['primaryText'],
@@ -175,72 +177,64 @@ class _FoodPreferencesScreenState extends ConsumerState<FoodPreferencesScreen> {
                     ),
                     value: _cuisines[cuisine],
                     onChanged: (value) => setState(() => _cuisines[cuisine] = value ?? false),
+                    contentPadding: EdgeInsets.zero,
                   ),
                 ),
                 SizedBox(height: 24.h),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    ElevatedButton(
-                      onPressed: isSaving ? null : () => context.pop(),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.colors['error'],
-                        minimumSize: Size(150.w, 48.h),
-                      ),
-                      child: Text(
-                        'Cancel',
-                        style: AppTheme.textStyles['body']!.copyWith(
-                          color: AppTheme.colors['onSurfaceDark'],
-                          fontWeight: FontWeight.w600,
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: isSaving ? null : () => context.pop(),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.colors['error'],
+                          minimumSize: Size(150.w, 48.h),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                        ),
+                        child: Text(
+                          'Cancel',
+                          style: AppTheme.textStyles['body']!.copyWith(
+                            color: AppTheme.colors['onSurfaceDark'],
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
-                    ElevatedButton(
-                      onPressed: isSaving
-                          ? null
-                          : () async {
-                              final success = await ref
-                                  .read(settingsControllerProvider.notifier)
-                                  .saveFoodPreferences(
-                                    context: context,
-                                    dietPreference: _dietPreference,
-                                    allergies: _allergies,
-                                    otherAllergy: _otherAllergy,
-                                    cuisines: _cuisines,
-                                    formKey: _formKey,
-                                  );
-                              if (success && context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      'Food preferences saved successfully',
-                                      style: AppTheme.textStyles['body']!.copyWith(
-                                        color: AppTheme.colors['onSurfaceDark'],
-                                      ),
-                                    ),
-                                    backgroundColor: AppTheme.colors['primaryButton'] ?? Colors.green,
-                                  ),
-                                );
-                              }
-                            },
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: Size(150.w, 48.h),
+                    SizedBox(width: 16.w),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: isSaving
+                            ? null
+                            : () => ref.read(settingsControllerProvider.notifier).saveFoodPreferences(
+                                  context: context,
+                                  dietPreference: _dietPreference,
+                                  allergies: _allergies,
+                                  otherAllergy: _otherAllergy,
+                                  cuisines: _cuisines,
+                                  formKey: _formKey,
+                                ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.colors['primaryButton'],
+                          minimumSize: Size(150.w, 48.h),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                        ),
+                        child: isSaving
+                            ? SizedBox(
+                                width: 24.w,
+                                height: 24.h,
+                                child: CircularProgressIndicator(
+                                  color: AppTheme.colors['onSurfaceDark'],
+                                ),
+                              )
+                            : Text(
+                                'Save',
+                                style: AppTheme.textStyles['body']!.copyWith(
+                                  color: AppTheme.colors['onSurfaceDark'],
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                       ),
-                      child: isSaving
-                          ? SizedBox(
-                              width: 24.w,
-                              height: 24.h,
-                              child: CircularProgressIndicator(
-                                color: AppTheme.colors['onSurfaceDark'],
-                              ),
-                            )
-                          : Text(
-                              'Save',
-                              style: AppTheme.textStyles['body']!.copyWith(
-                                color: AppTheme.colors['onSurfaceDark'],
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
                     ),
                   ],
                 ),

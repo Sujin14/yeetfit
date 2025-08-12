@@ -71,10 +71,11 @@ class _BasicInformationScreenState extends ConsumerState<BasicInformationScreen>
       ),
       body: settingsState.when(
         data: (_) => SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
+          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
           child: Form(
             key: _formKey,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 InfoField(
                   controller: _nameController,
@@ -82,32 +83,38 @@ class _BasicInformationScreenState extends ConsumerState<BasicInformationScreen>
                   icon: Icons.person,
                   keyboardType: TextInputType.text,
                 ),
+                SizedBox(height: 16.h),
                 GenderDropdown(
                   value: _gender,
                   onChanged: (value) => setState(() => _gender = value),
                 ),
+                SizedBox(height: 16.h),
                 InfoField(
                   controller: _ageController,
                   label: 'Age',
                   icon: Icons.cake,
                   keyboardType: TextInputType.number,
                 ),
+                SizedBox(height: 16.h),
                 ActivityDropdown(
                   value: _dailyActivity,
                   onChanged: (value) => setState(() => _dailyActivity = value),
                 ),
+                SizedBox(height: 16.h),
                 InfoField(
                   controller: _heightController,
                   label: 'Height (cm)',
                   icon: Icons.height,
                   keyboardType: TextInputType.number,
                 ),
+                SizedBox(height: 16.h),
                 InfoField(
                   controller: _currentWeightController,
                   label: 'Current Weight (kg)',
                   icon: Icons.scale,
                   keyboardType: TextInputType.number,
                 ),
+                SizedBox(height: 16.h),
                 InfoField(
                   controller: _targetWeightController,
                   label: 'Target Weight (kg)',
@@ -118,69 +125,60 @@ class _BasicInformationScreenState extends ConsumerState<BasicInformationScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    ElevatedButton(
-                      onPressed: isSaving ? null : () => context.pop(),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.colors['error'],
-                        minimumSize: Size(150.w, 48.h),
-                      ),
-                      child: Text(
-                        'Cancel',
-                        style: AppTheme.textStyles['body']!.copyWith(
-                          color: AppTheme.colors['onSurfaceDark'],
-                          fontWeight: FontWeight.w600,
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: isSaving ? null : () => context.pop(),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.colors['error'],
+                          minimumSize: Size(150.w, 48.h),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                        ),
+                        child: Text(
+                          'Cancel',
+                          style: AppTheme.textStyles['body']!.copyWith(
+                            color: AppTheme.colors['onSurfaceDark'],
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
-                    ElevatedButton(
-                      onPressed: isSaving
-                          ? null
-                          : () async {
-                              final success = await ref
-                                  .read(settingsControllerProvider.notifier)
-                                  .saveBasicInformation(
-                                    context: context,
-                                    name: _nameController.text,
-                                    gender: _gender ?? '',
-                                    age: int.tryParse(_ageController.text) ?? 0,
-                                    height: double.tryParse(_heightController.text) ?? 0,
-                                    currentWeight: double.tryParse(_currentWeightController.text) ?? 0,
-                                    goalWeight: double.tryParse(_targetWeightController.text) ?? 0,
-                                    activityLevel: _dailyActivity ?? '',
-                                    formKey: _formKey,
-                                  );
-                              if (success && context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      'Information saved successfully',
-                                      style: AppTheme.textStyles['body']!.copyWith(
-                                        color: AppTheme.colors['onSurfaceDark'],
-                                      ),
-                                    ),
-                                    backgroundColor: AppTheme.colors['primaryButton'] ?? Colors.green,
-                                  ),
-                                );
-                              }
-                            },
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: Size(150.w, 48.h),
+                    SizedBox(width: 16.w),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: isSaving
+                            ? null
+                            : () => ref.read(settingsControllerProvider.notifier).saveBasicInformation(
+                                  context: context,
+                                  name: _nameController.text,
+                                  gender: _gender ?? '',
+                                  age: _ageController.text,
+                                  height: _heightController.text,
+                                  currentWeight: _currentWeightController.text,
+                                  goalWeight: _targetWeightController.text,
+                                  activityLevel: _dailyActivity ?? '',
+                                  formKey: _formKey,
+                                ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.colors['primaryButton'],
+                          minimumSize: Size(150.w, 48.h),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                        ),
+                        child: isSaving
+                            ? SizedBox(
+                                width: 24.w,
+                                height: 24.h,
+                                child: CircularProgressIndicator(
+                                  color: AppTheme.colors['onSurfaceDark'],
+                                ),
+                              )
+                            : Text(
+                                'Save',
+                                style: AppTheme.textStyles['body']!.copyWith(
+                                  color: AppTheme.colors['onSurfaceDark'],
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                       ),
-                      child: isSaving
-                          ? SizedBox(
-                              width: 24.w,
-                              height: 24.h,
-                              child: CircularProgressIndicator(
-                                color: AppTheme.colors['onSurfaceDark'],
-                              ),
-                            )
-                          : Text(
-                              'Save',
-                              style: AppTheme.textStyles['body']!.copyWith(
-                                color: AppTheme.colors['onSurfaceDark'],
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
                     ),
                   ],
                 ),

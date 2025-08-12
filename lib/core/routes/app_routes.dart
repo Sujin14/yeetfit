@@ -36,7 +36,10 @@ import 'package:yeetfit/features/payment/presentation/screens/payment_screen.dar
 import 'package:yeetfit/features/steps_tracking/presentation/widgets/steps_success_page.dart';
 import 'package:yeetfit/features/weight_tracking/presentation/widgets/weight_success_page.dart';
 
+import '../../features/settings/presentation/screens/about_screen.dart';
 import '../../features/settings/presentation/screens/food_preference_screen.dart';
+import '../../features/settings/presentation/screens/help_screen.dart';
+import '../../features/settings/presentation/screens/terms_and_conditions_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/',
@@ -214,6 +217,12 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/chatbot',
       builder: (context, state) => const ChatbotScreen(),
+    ),
+    GoRoute(path: '/about', builder: (context, state) => const AboutScreen()),
+    GoRoute(path: '/help', builder: (context, state) => const HelpScreen()),
+    GoRoute(
+      path: '/terms-and-conditions',
+      builder: (context, state) => const TermsAndConditionsScreen(),
     ),
   ],
 );
