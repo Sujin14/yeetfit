@@ -7,7 +7,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../shared/theme/theme.dart';
 import '../providers/dashboard_provider.dart';
 import 'progress_card.dart';
-import 'meal_tracking_card.dart';
 
 class ProgressCardsList extends ConsumerStatefulWidget {
   final String userId;
@@ -40,7 +39,7 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
     _autoSwipeTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
       if (!mounted || !_pageController.hasClients) return;
       setState(() {
-        _currentPage = (_currentPage + 1) % 5; // Updated to 5 for meal card
+        _currentPage = (_currentPage + 1) % 4; // Updated to 4 cards (steps, water, sleep, weight)
         _pageController.animateToPage(
           _currentPage,
           duration: const Duration(milliseconds: 300),
@@ -95,10 +94,6 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
         }
 
         final cards = [
-          MealTrackingCard(
-            progress: progress,
-            userId: widget.userId,
-          ),
           ProgressCard(
             title: 'Steps',
             percent: (progress['steps'] / progress['stepsGoal']).clamp(0.0, 1.0),
@@ -140,7 +135,7 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
         return Column(
           children: [
             SizedBox(
-              height: 300.h,
+              height: 200.h, // Reduced height for smaller cards
               child: PageView(
                 controller: _pageController,
                 onPageChanged: _onPageChanged,
@@ -164,11 +159,11 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
       },
       loading: () => Column(
         children: [
-          MealTrackingCard.loading(userId: widget.userId),
+          ProgressCard.loading(userId: widget.userId),
           SizedBox(height: 8.h),
           SmoothPageIndicator(
             controller: _pageController,
-            count: 5,
+            count: 4,
             effect: ExpandingDotsEffect(
               dotWidth: 8.w,
               dotHeight: 8.h,

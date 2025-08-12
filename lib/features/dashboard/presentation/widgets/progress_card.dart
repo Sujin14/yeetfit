@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:glassmorphism/glassmorphism.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../../../shared/theme/theme.dart';
+import '../providers/dashboard_provider.dart';
 
-class ProgressCard extends StatelessWidget {
+class ProgressCard extends ConsumerWidget {
   final String title;
   final double percent;
   final String value;
@@ -39,21 +41,16 @@ class ProgressCard extends StatelessWidget {
     required this.userId,
   }) : isLoading = true;
 
-  Color get progressColor {
-    if (percent < 0.25) return const Color(0xFFFF6B6B);
-    if (percent < 0.5) return const Color(0xFFFFB347);
-    if (percent < 0.75) return const Color(0xFFFFD700);
-    return const Color(0xFF4CAF50);
-  }
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     print('ProgressCard: Building $title with percent=$percent for userId=$userId, isLoading=$isLoading');
+    final progressColor = ref.watch(progressColorProvider(percent));
+
     return isLoading
         ? Shimmer.fromColors(
             baseColor: AppTheme.colors['secondaryText']!.withOpacity(0.2),
             highlightColor: AppTheme.colors['secondaryText']!.withOpacity(0.4),
-            child: _buildCard(context, isLoading: true),
+            child: _buildCard(context, progressColor: AppTheme.colors['secondaryText']!),
           )
         : GestureDetector(
             onTap: route != null
@@ -62,14 +59,14 @@ class ProgressCard extends StatelessWidget {
                     context.push(route!, extra: userId);
                   }
                 : null,
-            child: _buildCard(context, isLoading: false),
+            child: _buildCard(context, progressColor: progressColor),
           );
   }
 
-  Widget _buildCard(BuildContext context, {required bool isLoading}) {
+  Widget _buildCard(BuildContext context, {required Color progressColor}) {
     return GlassmorphicContainer(
       width: 340.w,
-      height: 300.h, // Match MealTrackingCard
+      height: 200.h, // Reduced height
       borderRadius: 16.r,
       blur: 10,
       alignment: Alignment.center,
@@ -97,12 +94,12 @@ class ProgressCard extends StatelessWidget {
               child: isLoading
                   ? _buildShimmerIndicator()
                   : CircularPercentIndicator(
-                      radius: 60.r, // Match MealTrackingCard
-                      lineWidth: 10.w,
+                      radius: 50.r, // Adjusted for smaller card
+                      lineWidth: 8.w,
                       percent: percent.clamp(0.0, 1.0),
                       center: Icon(
                         icon,
-                        size: 24.sp,
+                        size: 20.sp,
                         color: AppTheme.colors['primaryText'],
                       ),
                       progressColor: progressColor,
@@ -124,7 +121,7 @@ class ProgressCard extends StatelessWidget {
                         Text(
                           title,
                           style: AppTheme.textStyles['subtitle']!.copyWith(
-                            fontSize: 16.sp,
+                            fontSize: 14.sp,
                             color: AppTheme.colors['primaryText'],
                           ),
                         ),
@@ -132,7 +129,7 @@ class ProgressCard extends StatelessWidget {
                         Text(
                           value,
                           style: AppTheme.textStyles['body']!.copyWith(
-                            fontSize: 14.sp,
+                            fontSize: 12.sp,
                             color: AppTheme.colors['secondaryText'],
                           ),
                         ),
@@ -140,7 +137,7 @@ class ProgressCard extends StatelessWidget {
                         Text(
                           description,
                           style: AppTheme.textStyles['body']!.copyWith(
-                            fontSize: 12.sp,
+                            fontSize: 10.sp,
                             color: AppTheme.colors['secondaryText']!.withOpacity(0.7),
                           ),
                           maxLines: 2,
@@ -157,11 +154,11 @@ class ProgressCard extends StatelessWidget {
 
   Widget _buildShimmerIndicator() {
     return Container(
-      width: 120.w,
-      height: 120.h,
-      decoration: const BoxDecoration(
+      width: 100.w,
+      height: 100.h,
+      decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.white,
+        color: AppTheme.colors['white'],
       ),
     );
   }
@@ -172,20 +169,20 @@ class ProgressCard extends StatelessWidget {
       children: [
         Container(
           width: 100.w,
-          height: 16.h,
-          color: Colors.white,
+          height: 14.h,
+          color: AppTheme.colors['white'],
         ),
         SizedBox(height: 4.h),
         Container(
           width: 80.w,
-          height: 14.h,
-          color: Colors.white,
+          height: 12.h,
+          color: AppTheme.colors['white'],
         ),
         SizedBox(height: 4.h),
         Container(
           width: 150.w,
-          height: 24.h,
-          color: Colors.white,
+          height: 20.h,
+          color: AppTheme.colors['white'],
         ),
       ],
     );

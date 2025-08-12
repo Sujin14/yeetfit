@@ -43,11 +43,11 @@ class MealTrackingCard extends ConsumerWidget {
       data: (data) {
         final hasData = data['hasData'] ?? false;
         final calories = data['calories']?.toDouble() ?? 0.0;
-        final caloriesGoal = data['calorieGoal']?.toDouble() ?? 1750.0;
+        final caloriesGoal = data['caloriesGoal']?.toDouble() ?? 3500.0;
         final protein = data['protein']?.toDouble() ?? 0.0;
-        final proteinGoal = data['proteinGoal']?.toDouble() ?? 50.0;
+        final proteinGoal = data['proteinGoal']?.toDouble() ?? 150.0;
         final carbs = data['carbs']?.toDouble() ?? 0.0;
-        final carbsGoal = data['carbsGoal']?.toDouble() ?? 250.0;
+        final carbsGoal = data['carbsGoal']?.toDouble() ?? 300.0;
         final fat = data['fat']?.toDouble() ?? 0.0;
         final fatGoal = data['fatGoal']?.toDouble() ?? 70.0;
 
@@ -134,7 +134,6 @@ class MealTrackingCard extends ConsumerWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            // Progress Indicators (Left Half)
                             Expanded(
                               child: Center(
                                 child: Stack(
@@ -144,7 +143,7 @@ class MealTrackingCard extends ConsumerWidget {
                                       radius: 60.r,
                                       lineWidth: 10.w,
                                       percent: (calories / caloriesGoal).clamp(0.0, 1.0),
-                                      progressColor: Colors.blue,
+                                      progressColor: AppTheme.colors['caloriesProgress'],
                                       backgroundColor: AppTheme.colors['secondaryText']!.withOpacity(0.2),
                                       circularStrokeCap: CircularStrokeCap.round,
                                     ),
@@ -152,7 +151,7 @@ class MealTrackingCard extends ConsumerWidget {
                                       radius: 45.r,
                                       lineWidth: 8.w,
                                       percent: (protein / proteinGoal).clamp(0.0, 1.0),
-                                      progressColor: Colors.green,
+                                      progressColor: AppTheme.colors['proteinProgress'],
                                       backgroundColor: AppTheme.colors['secondaryText']!.withOpacity(0.2),
                                       circularStrokeCap: CircularStrokeCap.round,
                                     ),
@@ -160,7 +159,7 @@ class MealTrackingCard extends ConsumerWidget {
                                       radius: 30.r,
                                       lineWidth: 6.w,
                                       percent: (carbs / carbsGoal).clamp(0.0, 1.0),
-                                      progressColor: Colors.yellow,
+                                      progressColor: AppTheme.colors['carbsProgress'],
                                       backgroundColor: AppTheme.colors['secondaryText']!.withOpacity(0.2),
                                       circularStrokeCap: CircularStrokeCap.round,
                                     ),
@@ -168,7 +167,7 @@ class MealTrackingCard extends ConsumerWidget {
                                       radius: 15.r,
                                       lineWidth: 4.w,
                                       percent: (fat / fatGoal).clamp(0.0, 1.0),
-                                      progressColor: Colors.red,
+                                      progressColor: AppTheme.colors['fatProgress'],
                                       backgroundColor: AppTheme.colors['secondaryText']!.withOpacity(0.2),
                                       circularStrokeCap: CircularStrokeCap.round,
                                       center: Icon(
@@ -181,7 +180,6 @@ class MealTrackingCard extends ConsumerWidget {
                                 ),
                               ),
                             ),
-                            // Healthy Eating Tip (Right Half)
                             Expanded(
                               child: Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 8.w),
@@ -197,15 +195,14 @@ class MealTrackingCard extends ConsumerWidget {
                             ),
                           ],
                         ),
-                        SizedBox(height: 8.h),
-                        // Macro Containers
+                        SizedBox(height: 16.h),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
-                            _buildMacroContainer('Calories', '${calories.toInt()}/${caloriesGoal.toInt()} kcal', Colors.blue),
-                            _buildMacroContainer('Protein', '${protein.toInt()}/${proteinGoal.toInt()} g', Colors.green),
-                            _buildMacroContainer('Carbs', '${carbs.toInt()}/${carbsGoal.toInt()} g', Colors.yellow),
-                            _buildMacroContainer('Fat', '${fat.toInt()}/${fatGoal.toInt()} g', Colors.red),
+                            _buildMacroContainer('Calories', '${calories.toInt()}/${caloriesGoal.toInt()} kcal', AppTheme.colors['caloriesProgress']!),
+                            _buildMacroContainer('Protein', '${protein.toInt()}/${proteinGoal.toInt()} g', AppTheme.colors['proteinProgress']!),
+                            _buildMacroContainer('Carbs', '${carbs.toInt()}/${carbsGoal.toInt()} g', AppTheme.colors['carbsProgress']!),
+                            _buildMacroContainer('Fat', '${fat.toInt()}/${fatGoal.toInt()} g', AppTheme.colors['fatProgress']!),
                           ],
                         ),
                       ],
@@ -233,8 +230,8 @@ class MealTrackingCard extends ConsumerWidget {
     return Column(
       children: [
         Container(
-          width: 35.w,
-          height: 35.w,
+          width: 50.w,
+          height: 50.w,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: color.withOpacity(0.2),
@@ -244,7 +241,7 @@ class MealTrackingCard extends ConsumerWidget {
             child: Text(
               value.split('/')[0],
               style: AppTheme.textStyles['body']!.copyWith(
-                fontSize: 9.sp,
+                fontSize: 16.sp,
                 color: AppTheme.colors['primaryText'],
               ),
             ),
@@ -254,14 +251,14 @@ class MealTrackingCard extends ConsumerWidget {
         Text(
           title,
           style: AppTheme.textStyles['body']!.copyWith(
-            fontSize: 7.sp,
+            fontSize: 12.sp,
             color: AppTheme.colors['secondaryText'],
           ),
         ),
         Text(
           value,
           style: AppTheme.textStyles['body']!.copyWith(
-            fontSize: 7.sp,
+            fontSize: 12.sp,
             color: AppTheme.colors['secondaryText'],
           ),
         ),
@@ -299,7 +296,7 @@ class MealTrackingCard extends ConsumerWidget {
             Container(
               width: 100.w,
               height: 16.h,
-              color: Colors.white,
+              color: AppTheme.colors['white'],
             ),
             SizedBox(height: 6.h),
             Expanded(
@@ -313,9 +310,9 @@ class MealTrackingCard extends ConsumerWidget {
                           child: Container(
                             width: 120.w,
                             height: 120.h,
-                            decoration: const BoxDecoration(
+                            decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Colors.white,
+                              color: AppTheme.colors['white'],
                             ),
                           ),
                         ),
@@ -326,23 +323,26 @@ class MealTrackingCard extends ConsumerWidget {
                           child: Container(
                             width: double.infinity,
                             height: 40.h,
-                            color: Colors.white,
+                            color: AppTheme.colors['white'],
                           ),
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 8.h),
+                  SizedBox(height: 20.h),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: List.generate(4, (_) => Container(
-                      width: 35.w,
-                      height: 35.h,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white,
+                    children: List.generate(
+                      4,
+                      (_) => Container(
+                        width: 35.w,
+                        height: 35.h,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppTheme.colors['white'],
+                        ),
                       ),
-                    )),
+                    ),
                   ),
                 ],
               ),

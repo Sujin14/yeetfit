@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  
   static const colors = {
     'lightBackground': Color(0xFFEAF1F8),
     'darkBackground': Color(0xFF0E0E11),
@@ -26,9 +25,9 @@ class AppTheme {
     'onSurface': Color(0xFF212121),
     'onSurfaceDark': Color.fromRGBO(245, 245, 245, 0.9),
     'fullProgress': Color.fromARGB(255, 4, 160, 10),
-    'ThreeQuarterProgress': Color.fromARGB(255, 88, 184, 92),
+    'threeQuarterProgress': Color.fromARGB(255, 88, 184, 92),
     'halfProgress': Color(0xFFFFEB3B),
-    'QuarterProgress': Color(0xFFFF9800),
+    'quarterProgress': Color(0xFFFF9800),
     'noProgress': Color(0xFFF44336),
     'waterChartBackground': Color(0xFF3F51B5),
     'white': Colors.white,
@@ -36,6 +35,16 @@ class AppTheme {
     'gray': Colors.grey,
     'transparent': Colors.transparent,
     'aquaBlue': Color.fromARGB(255, 89, 196, 245),
+    // Added colors for MealTrackingCard
+    'caloriesProgress': Color(0xFF2196F3), // Blue for calories
+    'proteinProgress': Color(0xFF4CAF50), // Green for protein
+    'carbsProgress': Color(0xFFFFEB3B), // Yellow for carbs
+    'fatProgress': Color(0xFFF44336), // Red for fat
+    // Added colors for BMI categories
+    'bmiUnderweight': Color(0xFFFF6B6B), // Red for underweight
+    'bmiNormal': Color(0xFF4CAF50), // Green for normal
+    'bmiOverweight': Color(0xFFFFD700), // Yellow for overweight
+    'bmiObese': Color(0xFFFFB347), // Orange for obese
   };
 
   static final textStyles = {

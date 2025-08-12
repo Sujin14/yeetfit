@@ -3,7 +3,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:glassmorphism/glassmorphism.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../shared/theme/theme.dart';
 import '../providers/dashboard_provider.dart';
 
@@ -15,12 +14,10 @@ class CalendarDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedDate = ref.watch(selectedDateProvider);
-    print(
-      'CalendarDialog: Building for userId=$userId, selectedDate=$selectedDate',
-    );
+    print('CalendarDialog: Building for userId=$userId, selectedDate=$selectedDate');
 
     return Dialog(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.colors['white'],
       child: GlassmorphicContainer(
         width: 350.w,
         height: 520.h,
@@ -46,14 +43,12 @@ class CalendarDialog extends ConsumerWidget {
               padding: EdgeInsets.all(16.w),
               child: Text(
                 'Select Date',
-                style: GoogleFonts.roboto(
+                style: AppTheme.textStyles['title']!.copyWith(
                   fontSize: 20.sp,
-                  fontWeight: FontWeight.bold,
                   color: AppTheme.colors['primaryText'],
                 ),
               ),
             ),
-
             Flexible(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 8.w),
@@ -67,7 +62,7 @@ class CalendarDialog extends ConsumerWidget {
                     Navigator.pop(context);
                   },
                   calendarStyle: CalendarStyle(
-                    defaultTextStyle: GoogleFonts.roboto(
+                    defaultTextStyle: AppTheme.textStyles['body']!.copyWith(
                       fontSize: 14.sp,
                       color: AppTheme.colors['primaryText'],
                     ),
@@ -82,10 +77,8 @@ class CalendarDialog extends ConsumerWidget {
                   ),
                   headerStyle: HeaderStyle(
                     formatButtonVisible: false,
-                    titleTextStyle: GoogleFonts.roboto(
-                      fontSize: 16.sp,
+                    titleTextStyle: AppTheme.textStyles['subtitle']!.copyWith(
                       color: AppTheme.colors['primaryText'],
-                      fontWeight: FontWeight.bold,
                     ),
                     leftChevronIcon: Icon(
                       Icons.chevron_left,
@@ -104,12 +97,10 @@ class CalendarDialog extends ConsumerWidget {
             Padding(
               padding: EdgeInsets.only(bottom: 8.h),
               child: TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
+                onPressed: () => Navigator.pop(context),
                 child: Text(
                   'Cancel',
-                  style: GoogleFonts.roboto(
+                  style: AppTheme.textStyles['body']!.copyWith(
                     fontSize: 16.sp,
                     color: AppTheme.colors['primaryText'],
                   ),
