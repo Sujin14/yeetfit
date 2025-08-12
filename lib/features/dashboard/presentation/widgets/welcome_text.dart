@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/gradient_text.dart';
-
 
 class WelcomeText extends StatelessWidget {
   final String name;

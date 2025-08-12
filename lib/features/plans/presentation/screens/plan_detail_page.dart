@@ -68,8 +68,8 @@ class PlanDetailPage extends ConsumerWidget {
               showFavorite: true,
               isFavorite: updatedPlan.isFavorite,
               favoriteColor: updatedPlan.isFavorite 
-                  ? AppTheme.colors['favorite'] ?? Colors.red 
-                  : AppTheme.colors['secondaryText'] ?? Colors.grey,
+                  ? AppTheme.colors['favorite'] 
+                  : AppTheme.colors['secondaryText'],
               onFavorite: () async {
                 try {
                   await ref

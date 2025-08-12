@@ -1,18 +1,30 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../steps_tracking/presentation/providers/steps_provider.dart';
 import 'progress_card.dart';
 
 class ProgressCardsList extends ConsumerStatefulWidget {
-  final Map<String, dynamic> progress;
+  final Map<String, dynamic>? progress;
   final String userId;
+  final bool isLoading;
 
-  const ProgressCardsList({super.key, required this.progress, required this.userId});
+  const ProgressCardsList({
+    super.key,
+    required this.progress,
+    required this.userId,
+    this.isLoading = false,
+  });
+
+  const ProgressCardsList.loading({
+    super.key,
+    this.progress,
+    required this.userId,
+  }) : isLoading = true;
 
   @override
   _ProgressCardsListState createState() => _ProgressCardsListState();
@@ -64,6 +76,48 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.isLoading) {
+      return Column(
+        children: [
+          ProgressCard.loading(userId: widget.userId),
+          SizedBox(height: 8.h),
+          SmoothPageIndicator(
+            controller: _pageController,
+            count: 4,
+            effect: ExpandingDotsEffect(
+              dotWidth: 8.w,
+              dotHeight: 8.h,
+              activeDotColor: AppTheme.colors['gradientTextStart']!,
+              dotColor: AppTheme.colors['secondaryText']!.withOpacity(0.5),
+              spacing: 4.w,
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (!(widget.progress?['hasData'] ?? false)) {
+      return GestureDetector(
+        onTap: () => context.push('/modal/steps', extra: widget.userId),
+        child: Container(
+          width: double.infinity,
+          padding: EdgeInsets.all(16.w),
+          decoration: BoxDecoration(
+            color: AppTheme.colors['secondaryText']!.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(16.r),
+          ),
+          child: Text(
+            'No data added for this day. Tap to add data.',
+            style: AppTheme.textStyles['body']!.copyWith(
+              fontSize: 16.sp,
+              color: AppTheme.colors['primaryText'],
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+
     final steps = ref.watch(stepsCountProvider(widget.userId)).value ?? 0;
     final stepsGoal = ref.watch(stepsGoalProvider(widget.userId)).value ?? 10000;
 
@@ -73,43 +127,34 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
         percent: (steps / stepsGoal).clamp(0.0, 1.0),
         value: '$steps/$stepsGoal',
         icon: Icons.directions_walk,
-        description: widget.progress['stepsDescription'] ?? 'Steps improve heart health',
+        description: widget.progress?['stepsDescription'] ?? 'Steps improve heart health',
         route: '/modal/steps',
         userId: widget.userId,
       ),
       ProgressCard(
         title: 'Water',
-        percent: (widget.progress['water'] / widget.progress['waterGoal']).toDouble().clamp(0.0, 1.0),
-        value: '${widget.progress['water'].toInt()} glasses/${widget.progress['waterGoal'].toInt()} glasses',
+        percent: (widget.progress?['water'] / widget.progress?['waterGoal']).toDouble().clamp(0.0, 1.0),
+        value: '${widget.progress?['water'].toInt()}/${widget.progress?['waterGoal'].toInt()} glasses',
         icon: Icons.water_drop,
-        description: widget.progress['waterDescription'],
+        description: widget.progress?['waterDescription'] ?? 'Hydration supports metabolism',
         route: '/modal/water',
         userId: widget.userId,
       ),
       ProgressCard(
-        title: 'Calories',
-        percent: (widget.progress['calories'] / widget.progress['caloriesGoal']).toDouble().clamp(0.0, 1.0),
-        value: '${widget.progress['calories'].toInt()}/${widget.progress['caloriesGoal'].toInt()} kcal',
-        icon: Icons.local_fire_department,
-        description: widget.progress['caloriesDescription'],
-        route: null,
-        userId: widget.userId,
-      ),
-      ProgressCard(
         title: 'Sleep',
-        percent: (widget.progress['sleep'] / widget.progress['sleepGoal']).toDouble().clamp(0.0, 1.0),
-        value: '${widget.progress['sleep']}h/${widget.progress['sleepGoal']}h',
+        percent: (widget.progress?['sleep'] / widget.progress?['sleepGoal']).toDouble().clamp(0.0, 1.0),
+        value: '${widget.progress?['sleep']}h/${widget.progress?['sleepGoal']}h',
         icon: Icons.bedtime,
-        description: widget.progress['sleepDescription'],
+        description: widget.progress?['sleepDescription'] ?? 'Sleep enhances recovery',
         route: '/modal/sleep',
         userId: widget.userId,
       ),
       ProgressCard(
         title: 'Weight',
-        percent: (widget.progress['currentWeight'] / widget.progress['weightGoal']).toDouble().clamp(0.0, 1.0),
-        value: '${widget.progress['currentWeight']}kg/${widget.progress['weightGoal']}kg',
+        percent: (widget.progress?['currentWeight'] / widget.progress?['weightGoal']).toDouble().clamp(0.0, 1.0),
+        value: '${widget.progress?['currentWeight']}kg/${widget.progress?['weightGoal']}kg',
         icon: Icons.scale,
-        description: widget.progress['weightDescription'],
+        description: widget.progress?['weightDescription'] ?? 'Track your weight',
         route: '/modal/weight',
         userId: widget.userId,
       ),

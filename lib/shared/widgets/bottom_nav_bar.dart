@@ -27,8 +27,8 @@ class _BottomNavBarState extends State<BottomNavBar> {
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-        barrierColor: Colors.transparent,
+        backgroundColor: AppTheme.colors['transparent'],
+        barrierColor: AppTheme.colors['transparent'],
         builder: (context) => const TrackOptionsModal(),
       );
     } else {
