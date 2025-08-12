@@ -27,12 +27,10 @@ class DashboardBody extends ConsumerWidget {
           const DragHandle(),
           progressAsync.when(
             data: (progress) {
-              print(
-                'DashboardBody: Progress data for userId=$userId: $progress',
-              );
+              print('DashboardBody: Progress data for userId=$userId: $progress');
               if (!(progress['hasData'] ?? false)) {
                 return GestureDetector(
-                  onTap: () => context.push('/modal/meal', extra: userId),
+                  onTap: () => context.push('/modal/food', extra: userId),
                   child: Container(
                     width: double.infinity,
                     padding: EdgeInsets.all(16.w),
@@ -56,7 +54,7 @@ class DashboardBody extends ConsumerWidget {
                 children: [
                   MealTrackingCard(progress: progress, userId: userId),
                   SizedBox(height: 16.h),
-                  ProgressCardsList(progress: progress, userId: userId),
+                  ProgressCardsList(userId: userId),
                 ],
               );
             },
@@ -64,13 +62,10 @@ class DashboardBody extends ConsumerWidget {
               children: [
                 MealTrackingCard.loading(userId: userId),
                 SizedBox(height: 16.h),
-                ProgressCardsList.loading(userId: userId),
               ],
             ),
             error: (error, _) {
-              print(
-                'DashboardBody: Error loading progress for userId=$userId: $error',
-              );
+              print('DashboardBody: Error loading progress for userId=$userId: $error');
               return Center(child: Text('Error: $error'));
             },
           ),

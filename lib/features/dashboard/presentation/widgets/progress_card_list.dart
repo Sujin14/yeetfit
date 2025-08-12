@@ -5,26 +5,17 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../shared/theme/theme.dart';
-import '../../../steps_tracking/presentation/providers/steps_provider.dart';
+import '../providers/dashboard_provider.dart';
 import 'progress_card.dart';
+import 'meal_tracking_card.dart';
 
 class ProgressCardsList extends ConsumerStatefulWidget {
-  final Map<String, dynamic>? progress;
   final String userId;
-  final bool isLoading;
 
   const ProgressCardsList({
     super.key,
-    required this.progress,
     required this.userId,
-    this.isLoading = false,
   });
-
-  const ProgressCardsList.loading({
-    super.key,
-    this.progress,
-    required this.userId,
-  }) : isLoading = true;
 
   @override
   _ProgressCardsListState createState() => _ProgressCardsListState();
@@ -39,22 +30,23 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
   void initState() {
     super.initState();
     print('ProgressCardsList: Initializing for userId=${widget.userId}');
-    _startAutoSwipe();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _startAutoSwipe();
+    });
   }
 
   void _startAutoSwipe() {
     _autoSwipeTimer?.cancel();
     _autoSwipeTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      if (_currentPage < 4) {
-        _currentPage++;
-      } else {
-        _currentPage = 0;
-      }
-      _pageController.animateToPage(
-        _currentPage,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+      if (!mounted || !_pageController.hasClients) return;
+      setState(() {
+        _currentPage = (_currentPage + 1) % 5; // Updated to 5 for meal card
+        _pageController.animateToPage(
+          _currentPage,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      });
     });
   }
 
@@ -76,14 +68,107 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.isLoading) {
-      return Column(
+    final progressAsync = ref.watch(dailyProgressStreamProvider(widget.userId));
+
+    return progressAsync.when(
+      data: (progress) {
+        if (!(progress['hasData'] ?? false)) {
+          return GestureDetector(
+            onTap: () => context.push('/modal/steps', extra: widget.userId),
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(16.w),
+              decoration: BoxDecoration(
+                color: AppTheme.colors['secondaryText']!.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(16.r),
+              ),
+              child: Text(
+                'No data added for this day. Tap to add data.',
+                style: AppTheme.textStyles['body']!.copyWith(
+                  fontSize: 16.sp,
+                  color: AppTheme.colors['primaryText'],
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          );
+        }
+
+        final cards = [
+          MealTrackingCard(
+            progress: progress,
+            userId: widget.userId,
+          ),
+          ProgressCard(
+            title: 'Steps',
+            percent: (progress['steps'] / progress['stepsGoal']).clamp(0.0, 1.0),
+            value: '${progress['steps'].toInt()}/${progress['stepsGoal'].toInt()} steps',
+            icon: Icons.directions_walk,
+            description: progress['stepsDescription'],
+            route: '/modal/steps',
+            userId: widget.userId,
+          ),
+          ProgressCard(
+            title: 'Water',
+            percent: (progress['water'] / progress['waterGoal']).clamp(0.0, 1.0),
+            value: '${progress['water'].toInt()}/${progress['waterGoal'].toInt()} glasses',
+            icon: Icons.water_drop,
+            description: progress['waterDescription'],
+            route: '/modal/water',
+            userId: widget.userId,
+          ),
+          ProgressCard(
+            title: 'Sleep',
+            percent: (progress['sleep'] / progress['sleepGoal']).clamp(0.0, 1.0),
+            value: '${progress['sleep'].toStringAsFixed(1)}/${progress['sleepGoal'].toStringAsFixed(1)} h',
+            icon: Icons.bedtime,
+            description: progress['sleepDescription'],
+            route: '/modal/sleep',
+            userId: widget.userId,
+          ),
+          ProgressCard(
+            title: 'Weight',
+            percent: (progress['currentWeight'] / progress['weightGoal']).clamp(0.0, 1.0),
+            value: '${progress['currentWeight'].toStringAsFixed(1)}/${progress['weightGoal'].toStringAsFixed(1)} kg',
+            icon: Icons.scale,
+            description: progress['weightDescription'],
+            route: '/modal/weight',
+            userId: widget.userId,
+          ),
+        ];
+
+        return Column(
+          children: [
+            SizedBox(
+              height: 300.h,
+              child: PageView(
+                controller: _pageController,
+                onPageChanged: _onPageChanged,
+                children: cards,
+              ),
+            ),
+            SizedBox(height: 8.h),
+            SmoothPageIndicator(
+              controller: _pageController,
+              count: cards.length,
+              effect: ExpandingDotsEffect(
+                dotWidth: 8.w,
+                dotHeight: 8.h,
+                activeDotColor: AppTheme.colors['gradientTextStart']!,
+                dotColor: AppTheme.colors['secondaryText']!.withOpacity(0.5),
+                spacing: 4.w,
+              ),
+            ),
+          ],
+        );
+      },
+      loading: () => Column(
         children: [
-          ProgressCard.loading(userId: widget.userId),
+          MealTrackingCard.loading(userId: widget.userId),
           SizedBox(height: 8.h),
           SmoothPageIndicator(
             controller: _pageController,
-            count: 4,
+            count: 5,
             effect: ExpandingDotsEffect(
               dotWidth: 8.w,
               dotHeight: 8.h,
@@ -93,96 +178,8 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
             ),
           ),
         ],
-      );
-    }
-
-    if (!(widget.progress?['hasData'] ?? false)) {
-      return GestureDetector(
-        onTap: () => context.push('/modal/steps', extra: widget.userId),
-        child: Container(
-          width: double.infinity,
-          padding: EdgeInsets.all(16.w),
-          decoration: BoxDecoration(
-            color: AppTheme.colors['secondaryText']!.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(16.r),
-          ),
-          child: Text(
-            'No data added for this day. Tap to add data.',
-            style: AppTheme.textStyles['body']!.copyWith(
-              fontSize: 16.sp,
-              color: AppTheme.colors['primaryText'],
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ),
-      );
-    }
-
-    final steps = ref.watch(stepsCountProvider(widget.userId)).value ?? 0;
-    final stepsGoal = ref.watch(stepsGoalProvider(widget.userId)).value ?? 10000;
-
-    final cards = [
-      ProgressCard(
-        title: 'Steps',
-        percent: (steps / stepsGoal).clamp(0.0, 1.0),
-        value: '$steps/$stepsGoal',
-        icon: Icons.directions_walk,
-        description: widget.progress?['stepsDescription'] ?? 'Steps improve heart health',
-        route: '/modal/steps',
-        userId: widget.userId,
       ),
-      ProgressCard(
-        title: 'Water',
-        percent: (widget.progress?['water'] / widget.progress?['waterGoal']).toDouble().clamp(0.0, 1.0),
-        value: '${widget.progress?['water'].toInt()}/${widget.progress?['waterGoal'].toInt()} glasses',
-        icon: Icons.water_drop,
-        description: widget.progress?['waterDescription'] ?? 'Hydration supports metabolism',
-        route: '/modal/water',
-        userId: widget.userId,
-      ),
-      ProgressCard(
-        title: 'Sleep',
-        percent: (widget.progress?['sleep'] / widget.progress?['sleepGoal']).toDouble().clamp(0.0, 1.0),
-        value: '${widget.progress?['sleep']}h/${widget.progress?['sleepGoal']}h',
-        icon: Icons.bedtime,
-        description: widget.progress?['sleepDescription'] ?? 'Sleep enhances recovery',
-        route: '/modal/sleep',
-        userId: widget.userId,
-      ),
-      ProgressCard(
-        title: 'Weight',
-        percent: (widget.progress?['currentWeight'] / widget.progress?['weightGoal']).toDouble().clamp(0.0, 1.0),
-        value: '${widget.progress?['currentWeight']}kg/${widget.progress?['weightGoal']}kg',
-        icon: Icons.scale,
-        description: widget.progress?['weightDescription'] ?? 'Track your weight',
-        route: '/modal/weight',
-        userId: widget.userId,
-      ),
-    ];
-
-    return Column(
-      children: [
-        SizedBox(
-          height: 180.h,
-          child: PageView(
-            controller: _pageController,
-            onPageChanged: _onPageChanged,
-            children: cards,
-          ),
-        ),
-        SizedBox(height: 8.h),
-        SmoothPageIndicator(
-          controller: _pageController,
-          count: cards.length,
-          effect: ExpandingDotsEffect(
-            dotWidth: 8.w,
-            dotHeight: 8.h,
-            activeDotColor: AppTheme.colors['gradientTextStart']!,
-            dotColor: AppTheme.colors['secondaryText']!.withOpacity(0.5),
-            spacing: 4.w,
-          ),
-        ),
-      ],
+      error: (error, _) => Center(child: Text('Error: $error')),
     );
   }
 }

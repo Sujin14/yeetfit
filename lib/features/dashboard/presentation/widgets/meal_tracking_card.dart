@@ -42,10 +42,20 @@ class MealTrackingCard extends ConsumerWidget {
     return progressAsync.when(
       data: (data) {
         final hasData = data['hasData'] ?? false;
+        final calories = data['calories']?.toDouble() ?? 0.0;
+        final caloriesGoal = data['calorieGoal']?.toDouble() ?? 1750.0;
+        final protein = data['protein']?.toDouble() ?? 0.0;
+        final proteinGoal = data['proteinGoal']?.toDouble() ?? 50.0;
+        final carbs = data['carbs']?.toDouble() ?? 0.0;
+        final carbsGoal = data['carbsGoal']?.toDouble() ?? 250.0;
+        final fat = data['fat']?.toDouble() ?? 0.0;
+        final fatGoal = data['fatGoal']?.toDouble() ?? 70.0;
+
+        print('MealTrackingCard: Building for userId=$userId, calories=$calories/$caloriesGoal');
 
         if (!hasData) {
           return GestureDetector(
-            onTap: () => context.push('/modal/meal', extra: userId),
+            onTap: () => context.push('/modal/food', extra: userId),
             child: GlassmorphicContainer(
               width: double.infinity,
               height: 220.h,
@@ -82,19 +92,8 @@ class MealTrackingCard extends ConsumerWidget {
           );
         }
 
-        final calories = data['calories']?.toDouble() ?? 0.0;
-        final caloriesGoal = data['caloriesGoal']?.toDouble() ?? 2000.0;
-        final protein = data['protein']?.toDouble() ?? 0.0;
-        final proteinGoal = data['proteinGoal']?.toDouble() ?? 50.0;
-        final carbs = data['carbs']?.toDouble() ?? 0.0;
-        final carbsGoal = data['carbsGoal']?.toDouble() ?? 200.0;
-        final fat = data['fat']?.toDouble() ?? 0.0;
-        final fatGoal = data['fatGoal']?.toDouble() ?? 70.0;
-
-        print('MealTrackingCard: Building for userId=$userId, calories=$calories/$caloriesGoal');
-
         return GestureDetector(
-          onTap: () => context.push('/modal/meal', extra: userId),
+          onTap: () => context.push('/modal/food', extra: userId),
           child: GlassmorphicContainer(
             width: double.infinity,
             height: 300.h,

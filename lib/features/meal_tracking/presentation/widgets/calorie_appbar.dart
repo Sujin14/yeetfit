@@ -11,7 +11,7 @@ class CalorieAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: AppTheme.colors['transparent'] ?? Colors.transparent,
+      backgroundColor: AppTheme.colors['transparent'],
       elevation: 0,
       title: Text(
           "Meal Tracking",

@@ -1,41 +1,254 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../data/datasources/user_datasource.dart';
-import '../../data/datasources/progress_datasource.dart';
-import '../../data/datasources/weight_datasource.dart';
-import '../../data/repositories/user_repository_impl.dart';
-import '../../domain/usecases/get_user_data.dart';
-import '../../domain/usecases/get_daily_progress.dart';
-import '../../domain/usecases/get_bmi.dart';
-
-final userDataSourceProvider = Provider((ref) => UserDataSource());
-final progressDataSourceProvider = Provider((ref) => ProgressDataSource());
-final weightDataSourceProvider = Provider((ref) => WeightDataSource());
-
-final userRepositoryProvider = Provider((ref) => UserRepositoryImpl(
-      userDataSource: ref.read(userDataSourceProvider),
-      progressDataSource: ref.read(progressDataSourceProvider),
-      weightDataSource: ref.read(weightDataSourceProvider),
-    ));
-
-final getUserDataProvider = Provider((ref) => GetUserData(ref.read(userRepositoryProvider)));
-final getDailyProgressProvider = Provider((ref) => GetDailyProgress(ref.read(userRepositoryProvider)));
-final getBMIProvider = Provider((ref) => GetBMI(ref.read(userRepositoryProvider)));
+import 'package:rxdart/rxdart.dart';
+import '../../../meal_tracking/data/model/food_model.dart';
 
 final selectedDateProvider = StateProvider<DateTime>((ref) => DateTime.now());
 
-final userDataFutureProvider = FutureProvider.family<Map<String, dynamic>?, String>((ref, userId) async {
-  print('userDataFutureProvider: Fetching for userId=$userId');
-  return await ref.read(getUserDataProvider).call(userId);
+final bmiFutureProvider = FutureProvider.family<double, String>((
+  ref,
+  userId,
+) async {
+  final date = ref.watch(selectedDateProvider).toIso8601String().split('T')[0];
+  final userDoc = await FirebaseFirestore.instance
+      .collection('users')
+      .doc(userId)
+      .get();
+  final weightDoc = await FirebaseFirestore.instance
+      .collection('users')
+      .doc(userId)
+      .collection('progress')
+      .doc('weight')
+      .collection('weight')
+      .doc(date)
+      .get();
+
+  final height = (userDoc.data()?['height'] as num?)?.toDouble() ?? 181.0;
+  final weight = weightDoc.exists
+      ? (weightDoc.data()?['currentWeight'] as num?)?.toDouble() ?? 77.0
+      : (userDoc.data()?['weight'] as num?)?.toDouble() ?? 77.0;
+
+  if (height <= 0) return 0.0;
+  return weight / ((height / 100) * (height / 100));
 });
 
-final dailyProgressStreamProvider = StreamProvider.family<Map<String, dynamic>, String>((ref, userId) async* {
-  final date = ref.watch(selectedDateProvider).toIso8601String().split('T')[0];
-  print('dailyProgressStreamProvider: Streaming for userId=$userId, date=$date');
-  yield* ref.read(getDailyProgressProvider).stream(userId, date);
-});
+final userDataFutureProvider =
+    FutureProvider.family<Map<String, dynamic>?, String>((ref, userId) async {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+      return doc.data();
+    });
 
-final bmiFutureProvider = FutureProvider.family<double, String>((ref, userId) async {
-  final date = ref.watch(selectedDateProvider).toIso8601String().split('T')[0];
-  print('bmiFutureProvider: Fetching for userId=$userId, date=$date');
-  return await ref.read(getBMIProvider).call(userId, date);
-});
+final dailyProgressStreamProvider =
+    StreamProvider.family<Map<String, dynamic>, String>((ref, userId) async* {
+      final date = ref
+          .watch(selectedDateProvider)
+          .toIso8601String()
+          .split('T')[0];
+      print(
+        'dailyProgressStreamProvider: Streaming for userId=$userId, date=$date',
+      );
+
+      // Stream for user data
+      final userStream = FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .snapshots();
+
+      // Streams for progress data
+      final stepsStream = FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('progress')
+          .doc('steps')
+          .collection('steps')
+          .doc(date)
+          .snapshots();
+
+      final waterStream = FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('progress')
+          .doc('water')
+          .collection('water')
+          .doc(date)
+          .snapshots();
+
+      final sleepStream = FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('progress')
+          .doc('sleep')
+          .collection('sleep')
+          .doc(date)
+          .snapshots();
+
+      final foodStream = FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('progress')
+          .doc('food')
+          .collection('food')
+          .where('date', isEqualTo: date)
+          .snapshots();
+
+      final weightStream = FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('progress')
+          .doc('weight')
+          .collection('weight')
+          .doc(date)
+          .snapshots();
+
+      await for (final snapshots in CombineLatestStream.list([
+        userStream,
+        stepsStream,
+        waterStream,
+        sleepStream,
+        foodStream,
+        weightStream,
+      ])) {
+        final userDoc = snapshots[0] as DocumentSnapshot<Map<String, dynamic>>;
+        final stepsDoc = snapshots[1] as DocumentSnapshot<Map<String, dynamic>>;
+        final waterDoc = snapshots[2] as DocumentSnapshot<Map<String, dynamic>>;
+        final sleepDoc = snapshots[3] as DocumentSnapshot<Map<String, dynamic>>;
+        final foodSnapshot =
+            snapshots[4] as QuerySnapshot<Map<String, dynamic>>;
+        final weightDoc =
+            snapshots[5] as DocumentSnapshot<Map<String, dynamic>>;
+
+        // Process meal data
+        double calories = 0.0;
+        double protein = 0.0;
+        double carbs = 0.0;
+        double fat = 0.0;
+        bool hasData = foodSnapshot.docs.isNotEmpty;
+
+        for (final doc in foodSnapshot.docs) {
+          final foodItem = FoodItem.fromMap(doc.data());
+          calories += foodItem.calories;
+          protein += foodItem.protein;
+          carbs += foodItem.carbs;
+          fat += foodItem.fat;
+        }
+
+        // Fetch goals
+        final foodGoalDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .collection('progress')
+            .doc('food')
+            .collection('food')
+            .doc('$date-goal')
+            .get();
+
+        final waterGoalDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .collection('progress')
+            .doc('water')
+            .collection('water')
+            .doc('$date-goal')
+            .get();
+
+        final sleepGoalDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .collection('progress')
+            .doc('sleep')
+            .collection('sleep')
+            .doc('$date-goal')
+            .get();
+
+        final stepsGoalDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .collection('progress')
+            .doc('steps')
+            .collection('steps')
+            .doc('$date-goal')
+            .get();
+
+        // Build progress map
+        final progress = {
+          'steps': stepsDoc.exists
+              ? (stepsDoc.data()?['steps'] as num?)?.toDouble() ?? 0.0
+              : 0.0,
+          'stepsGoal': stepsGoalDoc.exists
+              ? (stepsGoalDoc.data()?['goalSteps'] as num?)?.toDouble() ??
+                    10000.0
+              : 10000.0,
+          'stepsDescription': stepsDoc.exists && stepsDoc.data() != null
+              ? stepsDoc.data()!['description'] as String? ??
+                    'Steps improve heart health and boost stamina.'
+              : 'Steps improve heart health and boost stamina.',
+          'water': waterDoc.exists
+              ? (waterDoc.data()?['glassesConsumed'] as num?)?.toDouble() ?? 0.0
+              : 0.0,
+          'waterGoal': waterGoalDoc.exists
+              ? (waterGoalDoc.data()?['goalGlasses'] as num?)?.toDouble() ?? 8.0
+              : 8.0,
+          'waterDescription': waterDoc.exists && waterDoc.data() != null
+              ? waterDoc.data()!['description'] as String? ??
+                    'Hydration supports metabolism and energy levels.'
+              : 'Hydration supports metabolism and energy levels.',
+          'calories': calories,
+          'caloriesGoal': foodGoalDoc.exists
+              ? (foodGoalDoc.data()?['caloriesGoal'] as num?)?.toDouble() ??
+                    1750.0
+              : 1750.0,
+          'protein': protein,
+          'proteinGoal': foodGoalDoc.exists
+              ? (foodGoalDoc.data()?['proteinGoal'] as num?)?.toDouble() ?? 50.0
+              : 50.0,
+          'carbs': carbs,
+          'carbsGoal': foodGoalDoc.exists
+              ? (foodGoalDoc.data()?['carbsGoal'] as num?)?.toDouble() ?? 250.0
+              : 250.0,
+          'fat': fat,
+          'fatGoal': foodGoalDoc.exists
+              ? (foodGoalDoc.data()?['fatGoal'] as num?)?.toDouble() ?? 70.0
+              : 70.0,
+          'caloriesDescription':
+              foodGoalDoc.exists && foodGoalDoc.data() != null
+              ? foodGoalDoc.data()!['description'] as String? ??
+                    'Track your daily nutrition to meet your goals.'
+              : 'Track your daily nutrition to meet your goals.',
+          'sleep': sleepDoc.exists
+              ? (sleepDoc.data()?['duration'] as num?)?.toDouble() ?? 0.0
+              : 0.0,
+          'sleepGoal': sleepGoalDoc.exists
+              ? (sleepGoalDoc.data()?['goalHours'] as num?)?.toDouble() ?? 8.0
+              : 8.0,
+          'sleepDescription': sleepDoc.exists && sleepDoc.data() != null
+              ? sleepDoc.data()!['description'] as String? ??
+                    'Sleep enhances recovery and mental focus.'
+              : 'Sleep enhances recovery and mental focus.',
+          'currentWeight': weightDoc.exists
+              ? (weightDoc.data()?['currentWeight'] as num?)?.toDouble() ??
+                    (userDoc.data()?['currentWeight'] as num?)?.toDouble() ??
+                    77.0
+              : (userDoc.data()?['currentWeight'] as num?)?.toDouble() ?? 77.0,
+          'weightGoal': weightDoc.exists
+              ? (weightDoc.data()?['goalWeight'] as num?)?.toDouble() ??
+                    (userDoc.data()?['goalWeight'] as num?)?.toDouble() ??
+                    70.0
+              : (userDoc.data()?['goalWeight'] as num?)?.toDouble() ?? 70.0,
+          'weightDescription': 'Track your weight to monitor progress.',
+          'hasData':
+              stepsDoc.exists ||
+              waterDoc.exists ||
+              sleepDoc.exists ||
+              foodSnapshot.docs.isNotEmpty ||
+              weightDoc.exists,
+        };
+
+        print(
+          'dailyProgressStreamProvider: Yielding progress for userId=$userId, date=$date, hasData=${progress['hasData']}',
+        );
+        yield progress;
+      }
+    });

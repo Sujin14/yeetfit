@@ -69,7 +69,7 @@ class ProgressCard extends StatelessWidget {
   Widget _buildCard(BuildContext context, {required bool isLoading}) {
     return GlassmorphicContainer(
       width: 340.w,
-      height: 180.h,
+      height: 300.h, // Match MealTrackingCard
       borderRadius: 16.r,
       blur: 10,
       alignment: Alignment.center,
@@ -97,7 +97,7 @@ class ProgressCard extends StatelessWidget {
               child: isLoading
                   ? _buildShimmerIndicator()
                   : CircularPercentIndicator(
-                      radius: 40.r,
+                      radius: 60.r, // Match MealTrackingCard
                       lineWidth: 10.w,
                       percent: percent.clamp(0.0, 1.0),
                       center: Icon(
@@ -157,8 +157,8 @@ class ProgressCard extends StatelessWidget {
 
   Widget _buildShimmerIndicator() {
     return Container(
-      width: 80.w,
-      height: 80.h,
+      width: 120.w,
+      height: 120.h,
       decoration: const BoxDecoration(
         shape: BoxShape.circle,
         color: Colors.white,
