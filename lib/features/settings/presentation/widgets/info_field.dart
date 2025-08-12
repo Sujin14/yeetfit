@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../../shared/theme/theme.dart';
+import '../../../../shared/theme/theme.dart';
+import '../../../user_info/domain/validators/user_info_validators.dart';
 
 class InfoField extends StatelessWidget {
   final TextEditingController controller;
@@ -20,7 +21,7 @@ class InfoField extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: Icon(icon, color: AppTheme.colors['primaryText']),
-      title: TextField(
+      title: TextFormField(
         controller: controller,
         decoration: InputDecoration(
           labelText: label,
@@ -33,6 +34,13 @@ class InfoField extends StatelessWidget {
         style: AppTheme.textStyles['body']!.copyWith(
           color: AppTheme.colors['primaryText'],
         ),
+        validator: (value) {
+          if (label == 'Name') return UserInfoValidators.validateName(value);
+          if (label == 'Age') return UserInfoValidators.validateAge(value);
+          if (label == 'Height (cm)') return UserInfoValidators.validateHeight(value);
+          if (label.contains('Weight')) return UserInfoValidators.validateWeight(value);
+          return null;
+        },
       ),
     );
   }

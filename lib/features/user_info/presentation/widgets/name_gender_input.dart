@@ -1,15 +1,24 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../providers/user_info_controller.dart';
 import '../../domain/validators/user_info_validators.dart';
-import 'dart:io';
 
 class NameGenderInput extends ConsumerStatefulWidget {
   final GlobalKey<FormState> formKey;
+  final void Function(String) onNameChanged;
+  final void Function(String) onGenderChanged;
+  final void Function(XFile) onImageSelected;
 
-  const NameGenderInput({super.key, required this.formKey});
+  const NameGenderInput({
+    super.key,
+    required this.formKey,
+    required this.onNameChanged,
+    required this.onGenderChanged,
+    required this.onImageSelected,
+  });
 
   @override
   _NameGenderInputState createState() => _NameGenderInputState();
@@ -23,11 +32,8 @@ class _NameGenderInputState extends ConsumerState<NameGenderInput> {
   @override
   void initState() {
     super.initState();
-    // Initialize gender from userInfo to persist selection when navigating back
     final userInfo = ref.read(userInfoControllerProvider);
-    gender = userInfo.value?.gender != null && userInfo.value!.gender.isNotEmpty
-        ? userInfo.value!.gender
-        : null;
+    gender = userInfo.value?.gender.isNotEmpty ?? false ? userInfo.value!.gender : null;
   }
 
   Future<void> _pickImage() async {
@@ -37,25 +43,18 @@ class _NameGenderInputState extends ConsumerState<NameGenderInput> {
       setState(() {
         _image = pickedFile;
       });
-      ref.read(userInfoControllerProvider.notifier).updateProfileImageUrl(
-            pickedFile.path,
-            context,
-          );
+      widget.onImageSelected(pickedFile);
     }
   }
 
-  Widget _buildGenderOption(
-    String genderType,
-    IconData icon,
-    Color color,
-  ) {
+  Widget _buildGenderOption(String genderType, IconData icon, Color color) {
     return GestureDetector(
       onTap: () {
         setState(() {
           gender = genderType;
           _genderError = null;
         });
-        ref.read(userInfoControllerProvider.notifier).updateGender(genderType, context);
+        widget.onGenderChanged(genderType);
       },
       child: Container(
         width: 80,
@@ -86,7 +85,6 @@ class _NameGenderInputState extends ConsumerState<NameGenderInput> {
   @override
   Widget build(BuildContext context) {
     final userInfo = ref.watch(userInfoControllerProvider);
-    final notifier = ref.read(userInfoControllerProvider.notifier);
     final screenWidth = MediaQuery.of(context).size.width;
 
     return SingleChildScrollView(
@@ -124,8 +122,12 @@ class _NameGenderInputState extends ConsumerState<NameGenderInput> {
                 child: CircleAvatar(
                   radius: 50,
                   backgroundColor: Colors.grey[200],
-                  backgroundImage: _image != null ? FileImage(File(_image!.path)) : null,
-                  child: _image == null
+                  backgroundImage: _image != null
+                      ? FileImage(File(_image!.path))
+                      : userInfo.value?.profileImageUrl != null
+                          ? NetworkImage(userInfo.value!.profileImageUrl!)
+                          : null,
+                  child: _image == null && userInfo.value?.profileImageUrl == null
                       ? Icon(Icons.add_a_photo, size: 35, color: Colors.grey[600])
                       : null,
                 ),
@@ -153,7 +155,7 @@ class _NameGenderInputState extends ConsumerState<NameGenderInput> {
                 fillColor: Colors.grey[100],
               ),
               validator: UserInfoValidators.validateName,
-              onChanged: (val) => notifier.updateName(val.trim(), context),
+              onChanged: widget.onNameChanged,
             ),
             const SizedBox(height: 20),
             Text(
@@ -189,8 +191,6 @@ class _NameGenderInputState extends ConsumerState<NameGenderInput> {
               child: TextFormField(
                 enabled: false,
                 initialValue: gender ?? userInfo.value?.gender ?? '',
-                decoration: const InputDecoration(
-                ),
                 validator: (value) {
                   final error = UserInfoValidators.validateGender(gender ?? userInfo.value?.gender);
                   setState(() {

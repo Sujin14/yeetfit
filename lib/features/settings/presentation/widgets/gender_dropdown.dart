@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../../shared/theme/theme.dart';
+import '../../../../shared/theme/theme.dart';
+import '../../../user_info/domain/validators/user_info_validators.dart';
 
 class GenderDropdown extends StatelessWidget {
   final String? value;
@@ -26,14 +27,13 @@ class GenderDropdown extends StatelessWidget {
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r)),
         ),
         items: ['Male', 'Female']
-            .map(
-              (gender) => DropdownMenuItem(value: gender, child: Text(gender)),
-            )
+            .map((gender) => DropdownMenuItem(value: gender, child: Text(gender)))
             .toList(),
         onChanged: onChanged,
         style: AppTheme.textStyles['body']!.copyWith(
           color: AppTheme.colors['primaryText'],
         ),
+        validator: UserInfoValidators.validateGender,
       ),
     );
   }

@@ -2,47 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:glassmorphism/glassmorphism.dart';
 import '../../../../shared/theme/theme.dart';
-import '../../../user_info/presentation/providers/user_info_controller.dart';
+import '../providers/settings_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
-  void _deleteAccount(BuildContext context, WidgetRef ref) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.colors['lightBackground'],
-        title: Text(
-          'Delete Account',
-          style: AppTheme.textStyles['title']!.copyWith(color: AppTheme.colors['primaryText']),
-        ),
-        content: Text(
-          'Are you sure you want to permanently delete your account? This action cannot be undone.',
-          style: AppTheme.textStyles['body']!.copyWith(color: AppTheme.colors['secondaryText']),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text('Cancel', style: AppTheme.textStyles['body']!.copyWith(color: AppTheme.colors['primaryText'])),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text('Delete', style: AppTheme.textStyles['body']!.copyWith(color: AppTheme.colors['error'])),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      await ref.read(userInfoControllerProvider.notifier).deleteUserData(context);
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isSaving = ref.watch(settingsControllerProvider.notifier).isSaving;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -61,7 +31,6 @@ class SettingsScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // About Card
             GlassmorphicContainer(
               width: double.infinity,
               height: 350.h,
@@ -128,7 +97,6 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
             SizedBox(height: 16.h),
-            // Account Card
             GlassmorphicContainer(
               width: double.infinity,
               height: 200.h,
@@ -166,7 +134,24 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                     ),
                     TextButton(
-                      onPressed: () => _deleteAccount(context, ref),
+                      onPressed: isSaving
+                          ? null
+                          : () async {
+                              final success = await ref.read(settingsControllerProvider.notifier).deleteAccount(context);
+                              if (success && context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Account deleted successfully',
+                                      style: AppTheme.textStyles['body']!.copyWith(
+                                        color: AppTheme.colors['onSurfaceDark'],
+                                      ),
+                                    ),
+                                    backgroundColor: AppTheme.colors['primaryButton'] ?? Colors.green,
+                                  ),
+                                );
+                              }
+                            },
                       child: Text(
                         'Delete Account',
                         style: AppTheme.textStyles['body']!.copyWith(color: AppTheme.colors['error']),
@@ -177,24 +162,45 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
             SizedBox(height: 24.h),
-            // Logout Button
             Center(
               child: ElevatedButton(
-                onPressed: () async {
-                  await FirebaseAuth.instance.signOut();
-                  if (context.mounted) context.go('/login');
-                },
+                onPressed: isSaving
+                    ? null
+                    : () async {
+                        final success = await ref.read(settingsControllerProvider.notifier).logout(context);
+                        if (success && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Logged out successfully',
+                                style: AppTheme.textStyles['body']!.copyWith(
+                                  color: AppTheme.colors['onSurfaceDark'],
+                                ),
+                              ),
+                              backgroundColor: AppTheme.colors['primaryButton'] ?? Colors.green,
+                            ),
+                          );
+                        }
+                      },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.colors['error'],
                   minimumSize: Size(double.infinity, 48.h),
                 ),
-                child: Text(
-                  'Logout',
-                  style: AppTheme.textStyles['body']!.copyWith(
-                    color: AppTheme.colors['onSurfaceDark'],
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                child: isSaving
+                    ? SizedBox(
+                        width: 24.w,
+                        height: 24.h,
+                        child: CircularProgressIndicator(
+                          color: AppTheme.colors['onSurfaceDark'],
+                        ),
+                      )
+                    : Text(
+                        'Logout',
+                        style: AppTheme.textStyles['body']!.copyWith(
+                          color: AppTheme.colors['onSurfaceDark'],
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
               ),
             ),
           ],

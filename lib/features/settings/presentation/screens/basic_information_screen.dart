@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../user_info/presentation/providers/user_info_controller.dart';
+import '../providers/settings_provider.dart';
+import '../widgets/activity_dropdown.dart';
+import '../widgets/gender_dropdown.dart';
+import '../widgets/info_field.dart';
 
 class BasicInformationScreen extends ConsumerStatefulWidget {
   const BasicInformationScreen({super.key});
@@ -12,13 +17,27 @@ class BasicInformationScreen extends ConsumerStatefulWidget {
 }
 
 class _BasicInformationScreenState extends ConsumerState<BasicInformationScreen> {
-  final _nameController = TextEditingController();
-  final _ageController = TextEditingController();
-  final _heightController = TextEditingController();
-  final _currentWeightController = TextEditingController();
-  final _targetWeightController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  late TextEditingController _nameController;
+  late TextEditingController _ageController;
+  late TextEditingController _heightController;
+  late TextEditingController _currentWeightController;
+  late TextEditingController _targetWeightController;
   String? _dailyActivity;
   String? _gender;
+
+  @override
+  void initState() {
+    super.initState();
+    final userInfo = ref.read(userInfoControllerProvider).value;
+    _nameController = TextEditingController(text: userInfo?.name ?? '');
+    _ageController = TextEditingController(text: userInfo?.age.toString() ?? '');
+    _heightController = TextEditingController(text: userInfo?.height.toString() ?? '');
+    _currentWeightController = TextEditingController(text: userInfo?.currentWeight.toString() ?? '');
+    _targetWeightController = TextEditingController(text: userInfo?.goalWeight.toString() ?? '');
+    _dailyActivity = userInfo?.activityLevel.isNotEmpty ?? false ? userInfo!.activityLevel : null;
+    _gender = userInfo?.gender.isNotEmpty ?? false ? userInfo!.gender : null;
+  }
 
   @override
   void dispose() {
@@ -32,147 +51,75 @@ class _BasicInformationScreenState extends ConsumerState<BasicInformationScreen>
 
   @override
   Widget build(BuildContext context) {
-    final userDataAsync = ref.watch(userInfoControllerProvider);
+    final settingsState = ref.watch(settingsControllerProvider);
+    final isSaving = ref.watch(settingsControllerProvider.notifier).isSaving;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
           'Basic Information',
-          style: AppTheme.textStyles['title']!.copyWith(color: AppTheme.colors['primaryText']),
+          style: AppTheme.textStyles['title']!.copyWith(
+            color: AppTheme.colors['primaryText'],
+          ),
         ),
         backgroundColor: AppTheme.colors['lightBackground'],
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: AppTheme.colors['primaryText']),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
         ),
       ),
-      body: userDataAsync.when(
-        data: (userInfo) {
-          _nameController.text = userInfo.name;
-          _ageController.text = userInfo.age.toString();
-          _heightController.text = userInfo.height.toString();
-          _currentWeightController.text = userInfo.currentWeight.toString();
-          _targetWeightController.text = userInfo.goalWeight.toString();
-          _dailyActivity = userInfo.activityLevel.isNotEmpty ? userInfo.activityLevel : 'Moderate';
-          _gender = userInfo.gender.isNotEmpty ? userInfo.gender : 'Male';
-
-          return SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
+      body: settingsState.when(
+        data: (_) => SingleChildScrollView(
+          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
+          child: Form(
+            key: _formKey,
             child: Column(
               children: [
-                ListTile(
-                  leading: Icon(Icons.person, color: AppTheme.colors['primaryText']),
-                  title: TextField(
-                    controller: _nameController,
-                    decoration: InputDecoration(
-                      labelText: 'Name',
-                      labelStyle: AppTheme.textStyles['body']!.copyWith(color: AppTheme.colors['secondaryText']),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r)),
-                    ),
-                    style: AppTheme.textStyles['body']!.copyWith(color: AppTheme.colors['primaryText']),
-                  ),
+                InfoField(
+                  controller: _nameController,
+                  label: 'Name',
+                  icon: Icons.person,
+                  keyboardType: TextInputType.text,
                 ),
-                ListTile(
-                  leading: Icon(Icons.transgender, color: AppTheme.colors['primaryText']),
-                  title: DropdownButtonFormField<String>(
-                    value: _gender,
-                    decoration: InputDecoration(
-                      labelText: 'Gender',
-                      labelStyle: AppTheme.textStyles['body']!.copyWith(color: AppTheme.colors['secondaryText']),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r)),
-                    ),
-                    items: ['Male', 'Female', 'Other']
-                        .map((gender) => DropdownMenuItem(value: gender, child: Text(gender)))
-                        .toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _gender = value;
-                      });
-                      ref.read(userInfoControllerProvider.notifier).updateGender(value ?? 'Male', context);
-                    },
-                    style: AppTheme.textStyles['body']!.copyWith(color: AppTheme.colors['primaryText']),
-                  ),
+                GenderDropdown(
+                  value: _gender,
+                  onChanged: (value) => setState(() => _gender = value),
                 ),
-                ListTile(
-                  leading: Icon(Icons.cake, color: AppTheme.colors['primaryText']),
-                  title: TextField(
-                    controller: _ageController,
-                    decoration: InputDecoration(
-                      labelText: 'Age',
-                      labelStyle: AppTheme.textStyles['body']!.copyWith(color: AppTheme.colors['secondaryText']),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r)),
-                    ),
-                    keyboardType: TextInputType.number,
-                    style: AppTheme.textStyles['body']!.copyWith(color: AppTheme.colors['primaryText']),
-                  ),
+                InfoField(
+                  controller: _ageController,
+                  label: 'Age',
+                  icon: Icons.cake,
+                  keyboardType: TextInputType.number,
                 ),
-                ListTile(
-                  leading: Icon(Icons.directions_run, color: AppTheme.colors['primaryText']),
-                  title: DropdownButtonFormField<String>(
-                    value: _dailyActivity,
-                    decoration: InputDecoration(
-                      labelText: 'Daily Activity',
-                      labelStyle: AppTheme.textStyles['body']!.copyWith(color: AppTheme.colors['secondaryText']),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r)),
-                    ),
-                    items: ['Sedentary', 'Light', 'Moderate', 'Active', 'Very Active']
-                        .map((activity) => DropdownMenuItem(value: activity, child: Text(activity)))
-                        .toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _dailyActivity = value;
-                      });
-                      ref.read(userInfoControllerProvider.notifier).updateActivityLevel(value ?? 'Moderate', context);
-                    },
-                    style: AppTheme.textStyles['body']!.copyWith(color: AppTheme.colors['primaryText']),
-                  ),
+                ActivityDropdown(
+                  value: _dailyActivity,
+                  onChanged: (value) => setState(() => _dailyActivity = value),
                 ),
-                ListTile(
-                  leading: Icon(Icons.height, color: AppTheme.colors['primaryText']),
-                  title: TextField(
-                    controller: _heightController,
-                    decoration: InputDecoration(
-                      labelText: 'Height (cm)',
-                      labelStyle: AppTheme.textStyles['body']!.copyWith(color: AppTheme.colors['secondaryText']),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r)),
-                    ),
-                    keyboardType: TextInputType.number,
-                    style: AppTheme.textStyles['body']!.copyWith(color: AppTheme.colors['primaryText']),
-                  ),
+                InfoField(
+                  controller: _heightController,
+                  label: 'Height (cm)',
+                  icon: Icons.height,
+                  keyboardType: TextInputType.number,
                 ),
-                ListTile(
-                  leading: Icon(Icons.scale, color: AppTheme.colors['primaryText']),
-                  title: TextField(
-                    controller: _currentWeightController,
-                    decoration: InputDecoration(
-                      labelText: 'Current Weight (kg)',
-                      labelStyle: AppTheme.textStyles['body']!.copyWith(color: AppTheme.colors['secondaryText']),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r)),
-                    ),
-                    keyboardType: TextInputType.number,
-                    style: AppTheme.textStyles['body']!.copyWith(color: AppTheme.colors['primaryText']),
-                  ),
+                InfoField(
+                  controller: _currentWeightController,
+                  label: 'Current Weight (kg)',
+                  icon: Icons.scale,
+                  keyboardType: TextInputType.number,
                 ),
-                ListTile(
-                  leading: Icon(Icons.fitness_center, color: AppTheme.colors['primaryText']),
-                  title: TextField(
-                    controller: _targetWeightController,
-                    decoration: InputDecoration(
-                      labelText: 'Target Weight (kg)',
-                      labelStyle: AppTheme.textStyles['body']!.copyWith(color: AppTheme.colors['secondaryText']),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r)),
-                    ),
-                    keyboardType: TextInputType.number,
-                    style: AppTheme.textStyles['body']!.copyWith(color: AppTheme.colors['primaryText']),
-                  ),
+                InfoField(
+                  controller: _targetWeightController,
+                  label: 'Target Weight (kg)',
+                  icon: Icons.fitness_center,
+                  keyboardType: TextInputType.number,
                 ),
                 SizedBox(height: 24.h),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: isSaving ? null : () => context.pop(),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.colors['error'],
                         minimumSize: Size(150.w, 48.h),
@@ -186,46 +133,68 @@ class _BasicInformationScreenState extends ConsumerState<BasicInformationScreen>
                       ),
                     ),
                     ElevatedButton(
-                      onPressed: () async {
-                        ref.read(userInfoControllerProvider.notifier).updateName(_nameController.text, context);
-                        ref.read(userInfoControllerProvider.notifier).updateAge(
-                              int.tryParse(_ageController.text) ?? 30,
-                              context,
-                            );
-                        ref.read(userInfoControllerProvider.notifier).updateHeight(
-                              double.tryParse(_heightController.text) ?? 181.0,
-                              context,
-                            );
-                        ref.read(userInfoControllerProvider.notifier).updateWeights(
-                              current: double.tryParse(_currentWeightController.text),
-                              goal: double.tryParse(_targetWeightController.text),
-                              context: context,
-                            );
-                        await ref.read(userInfoControllerProvider.notifier).saveUserData(context);
-                        if (context.mounted) Navigator.pop(context);
-                      },
+                      onPressed: isSaving
+                          ? null
+                          : () async {
+                              final success = await ref
+                                  .read(settingsControllerProvider.notifier)
+                                  .saveBasicInformation(
+                                    context: context,
+                                    name: _nameController.text,
+                                    gender: _gender ?? '',
+                                    age: int.tryParse(_ageController.text) ?? 0,
+                                    height: double.tryParse(_heightController.text) ?? 0,
+                                    currentWeight: double.tryParse(_currentWeightController.text) ?? 0,
+                                    goalWeight: double.tryParse(_targetWeightController.text) ?? 0,
+                                    activityLevel: _dailyActivity ?? '',
+                                    formKey: _formKey,
+                                  );
+                              if (success && context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Information saved successfully',
+                                      style: AppTheme.textStyles['body']!.copyWith(
+                                        color: AppTheme.colors['onSurfaceDark'],
+                                      ),
+                                    ),
+                                    backgroundColor: AppTheme.colors['primaryButton'] ?? Colors.green,
+                                  ),
+                                );
+                              }
+                            },
                       style: ElevatedButton.styleFrom(
                         minimumSize: Size(150.w, 48.h),
                       ),
-                      child: Text(
-                        'Save',
-                        style: AppTheme.textStyles['body']!.copyWith(
-                          color: AppTheme.colors['onSurfaceDark'],
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      child: isSaving
+                          ? SizedBox(
+                              width: 24.w,
+                              height: 24.h,
+                              child: CircularProgressIndicator(
+                                color: AppTheme.colors['onSurfaceDark'],
+                              ),
+                            )
+                          : Text(
+                              'Save',
+                              style: AppTheme.textStyles['body']!.copyWith(
+                                color: AppTheme.colors['onSurfaceDark'],
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                     ),
                   ],
                 ),
               ],
             ),
-          );
-        },
+          ),
+        ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(
           child: Text(
             'Error: $error',
-            style: AppTheme.textStyles['body']!.copyWith(color: AppTheme.colors['primaryText']),
+            style: AppTheme.textStyles['body']!.copyWith(
+              color: AppTheme.colors['primaryText'],
+            ),
           ),
         ),
       ),

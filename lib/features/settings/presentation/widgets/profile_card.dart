@@ -1,10 +1,10 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../../shared/theme/theme.dart';
+import '../../../../shared/theme/theme.dart';
+import '../../../user_info/data/models/user_info_model.dart';
 
 class ProfileCard extends StatelessWidget {
-  final UserInfo userInfo;
+  final UserInfoModel userInfo;
 
   const ProfileCard({super.key, required this.userInfo});
 
@@ -14,13 +14,13 @@ class ProfileCard extends StatelessWidget {
       children: [
         CircleAvatar(
           radius: 50.r,
-          backgroundImage: userInfo.photoURL != null
-              ? NetworkImage(userInfo.photoURL!)
-              : const AssetImage('assets/images/profile_placeholder.png') as ImageProvider,
+          backgroundImage: userInfo.profileImageUrl != null
+              ? NetworkImage(userInfo.profileImageUrl!)
+              : const AssetImage('assets/images/profile_image_placeholder.png') as ImageProvider,
         ),
         SizedBox(height: 8.h),
         Text(
-          (userInfo.displayName != null && userInfo.displayName!.isNotEmpty) ? userInfo.displayName! : 'User',
+          userInfo.name.isNotEmpty ? userInfo.name : 'User',
           style: AppTheme.textStyles['heading']!.copyWith(color: AppTheme.colors['primaryText']),
         ),
       ],

@@ -5,8 +5,13 @@ import '../../domain/validators/user_info_validators.dart';
 
 class TimeDurationInput extends ConsumerStatefulWidget {
   final GlobalKey<FormState> formKey;
+  final void Function(int) onDurationChanged;
 
-  const TimeDurationInput({super.key, required this.formKey});
+  const TimeDurationInput({
+    super.key,
+    required this.formKey,
+    required this.onDurationChanged,
+  });
 
   @override
   _TimeDurationInputState createState() => _TimeDurationInputState();
@@ -32,8 +37,6 @@ class _TimeDurationInputState extends ConsumerState<TimeDurationInput> {
 
   @override
   Widget build(BuildContext context) {
-    final notifier = ref.read(userInfoControllerProvider.notifier);
-
     return Form(
       key: widget.formKey,
       child: Column(
@@ -51,7 +54,7 @@ class _TimeDurationInputState extends ConsumerState<TimeDurationInput> {
             validator: UserInfoValidators.validateTimeDuration,
             onChanged: (val) {
               final duration = int.tryParse(val) ?? 0;
-              notifier.updateTimeDuration(duration, context);
+              widget.onDurationChanged(duration);
             },
           ),
         ],

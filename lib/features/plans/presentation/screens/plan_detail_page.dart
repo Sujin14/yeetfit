@@ -121,16 +121,6 @@ class PlanDetailPage extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (updatedPlan.assignedBy != null) ...[
-                      Text(
-                        'Assigned by: ${updatedPlan.assignedBy}',
-                        style: AppTheme.textStyles['body']?.copyWith(
-                          color: AppTheme.colors['secondaryText'] ?? Colors.grey,
-                          fontSize: 14.sp,
-                        ) ?? TextStyle(fontSize: 14.sp, color: Colors.grey),
-                      ),
-                      SizedBox(height: 8.h),
-                    ],
                     Expanded(
                       child: PlanDetailsDisplay(
                         plan: updatedPlan,

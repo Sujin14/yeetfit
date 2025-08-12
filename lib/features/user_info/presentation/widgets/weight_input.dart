@@ -5,8 +5,13 @@ import '../../domain/validators/user_info_validators.dart';
 
 class WeightInput extends ConsumerStatefulWidget {
   final GlobalKey<FormState> formKey;
+  final void Function({double? current, double? goal}) onWeightChanged;
 
-  const WeightInput({super.key, required this.formKey});
+  const WeightInput({
+    super.key,
+    required this.formKey,
+    required this.onWeightChanged,
+  });
 
   @override
   _WeightInputState createState() => _WeightInputState();
@@ -21,9 +26,7 @@ class _WeightInputState extends ConsumerState<WeightInput> {
     super.initState();
     final userInfo = ref.read(userInfoControllerProvider);
     _currentWeightController = TextEditingController(
-      text: userInfo.value?.currentWeight == 0
-          ? ''
-          : userInfo.value?.currentWeight.toString(),
+      text: userInfo.value?.currentWeight == 0 ? '' : userInfo.value?.currentWeight.toString(),
     );
     _goalWeightController = TextEditingController(
       text: userInfo.value?.goalWeight == 0 ? '' : userInfo.value?.goalWeight.toString(),
@@ -39,8 +42,6 @@ class _WeightInputState extends ConsumerState<WeightInput> {
 
   @override
   Widget build(BuildContext context) {
-    final notifier = ref.read(userInfoControllerProvider.notifier);
-
     return Form(
       key: widget.formKey,
       child: Column(
@@ -57,7 +58,7 @@ class _WeightInputState extends ConsumerState<WeightInput> {
             validator: UserInfoValidators.validateWeight,
             onChanged: (val) {
               final weight = double.tryParse(val) ?? 0;
-              notifier.updateWeights(current: weight, context: context);
+              widget.onWeightChanged(current: weight);
             },
           ),
           const SizedBox(height: 24),
@@ -72,7 +73,7 @@ class _WeightInputState extends ConsumerState<WeightInput> {
             validator: UserInfoValidators.validateWeight,
             onChanged: (val) {
               final weight = double.tryParse(val) ?? 0;
-              notifier.updateWeights(goal: weight, context: context);
+              widget.onWeightChanged(goal: weight);
             },
           ),
         ],

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../../../../../shared/theme/theme.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../shared/theme/theme.dart';
 import '../../../user_info/presentation/providers/user_info_controller.dart';
+import '../providers/settings_provider.dart';
 
 class FoodPreferencesScreen extends ConsumerStatefulWidget {
   const FoodPreferencesScreen({super.key});
@@ -12,6 +14,7 @@ class FoodPreferencesScreen extends ConsumerStatefulWidget {
 }
 
 class _FoodPreferencesScreenState extends ConsumerState<FoodPreferencesScreen> {
+  final _formKey = GlobalKey<FormState>();
   String? _dietPreference;
   final Map<String, bool> _allergies = {
     'Dairy': false,
@@ -27,7 +30,18 @@ class _FoodPreferencesScreenState extends ConsumerState<FoodPreferencesScreen> {
     'Continental': false,
     'Chinese': false,
   };
-  final _otherAllergyController = TextEditingController();
+  late TextEditingController _otherAllergyController;
+
+  @override
+  void initState() {
+    super.initState();
+    final userInfo = ref.read(userInfoControllerProvider).value;
+    _dietPreference = userInfo?.dietPreference ?? 'Vegetarian';
+    _allergies.addAll(userInfo?.allergies ?? _allergies);
+    _otherAllergy = userInfo?.otherAllergy ?? '';
+    _otherAllergyController = TextEditingController(text: _otherAllergy);
+    _cuisines.addAll(userInfo?.cuisines ?? _cuisines);
+  }
 
   @override
   void dispose() {
@@ -37,42 +51,29 @@ class _FoodPreferencesScreenState extends ConsumerState<FoodPreferencesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final userDataAsync = ref.watch(userInfoControllerProvider);
+    final settingsState = ref.watch(settingsControllerProvider);
+    final isSaving = ref.watch(settingsControllerProvider.notifier).isSaving;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
           'Food Preferences',
-          style: AppTheme.textStyles['title']!.copyWith(color: AppTheme.colors['primaryText']),
+          style: AppTheme.textStyles['title']!.copyWith(
+            color: AppTheme.colors['primaryText'],
+          ),
         ),
         backgroundColor: AppTheme.colors['lightBackground'],
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: AppTheme.colors['primaryText']),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
         ),
       ),
-      body: userDataAsync.when(
-        data: (userInfo) {
-          _dietPreference = userInfo.dietPreference ?? 'Vegetarian';
-          _allergies.addAll(userInfo.allergies ?? {
-            'Dairy': false,
-            'Seafood': false,
-            'Nuts': false,
-            'Lamb/Mutton': false,
-            'Others': false,
-          });
-          _otherAllergy = userInfo.otherAllergy ?? '';
-          _otherAllergyController.text = _otherAllergy ?? '';
-          _cuisines.addAll(userInfo.cuisines ?? {
-            'North Indian': false,
-            'South Indian': false,
-            'Continental': false,
-            'Chinese': false,
-          });
-
-          return SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
+      body: settingsState.when(
+        data: (_) => SingleChildScrollView(
+          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
+          child: Form(
+            key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -96,19 +97,20 @@ class _FoodPreferencesScreenState extends ConsumerState<FoodPreferencesScreen> {
                   value: _dietPreference,
                   decoration: InputDecoration(
                     labelText: 'Diet Preference',
-                    labelStyle: AppTheme.textStyles['body']!.copyWith(color: AppTheme.colors['secondaryText']),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r)),
+                    labelStyle: AppTheme.textStyles['body']!.copyWith(
+                      color: AppTheme.colors['secondaryText'],
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
                   ),
                   items: ['Vegetarian', 'Non-Vegetarian', 'Vegan']
                       .map((diet) => DropdownMenuItem(value: diet, child: Text(diet)))
                       .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _dietPreference = value;
-                    });
-                    ref.read(userInfoControllerProvider.notifier).updateDietPreference(value, context);
-                  },
-                  style: AppTheme.textStyles['body']!.copyWith(color: AppTheme.colors['primaryText']),
+                  onChanged: (value) => setState(() => _dietPreference = value),
+                  style: AppTheme.textStyles['body']!.copyWith(
+                    color: AppTheme.colors['primaryText'],
+                  ),
                 ),
                 SizedBox(height: 16.h),
                 Text(
@@ -118,36 +120,40 @@ class _FoodPreferencesScreenState extends ConsumerState<FoodPreferencesScreen> {
                     color: AppTheme.colors['primaryText'],
                   ),
                 ),
-                ..._allergies.keys.map((allergy) => CheckboxListTile(
-                      title: Text(
-                        allergy,
-                        style: AppTheme.textStyles['body']!.copyWith(color: AppTheme.colors['primaryText']),
+                ..._allergies.keys.map(
+                  (allergy) => CheckboxListTile(
+                    title: Text(
+                      allergy,
+                      style: AppTheme.textStyles['body']!.copyWith(
+                        color: AppTheme.colors['primaryText'],
                       ),
-                      value: _allergies[allergy],
-                      onChanged: (value) {
-                        setState(() {
-                          _allergies[allergy] = value ?? false;
-                          if (allergy == 'Others' && !value!) {
-                            _otherAllergy = '';
-                            _otherAllergyController.clear();
-                          }
-                        });
-                        ref.read(userInfoControllerProvider.notifier).updateAllergies(_allergies, context);
-                      },
-                    )),
+                    ),
+                    value: _allergies[allergy],
+                    onChanged: (value) => setState(() {
+                      _allergies[allergy] = value ?? false;
+                      if (allergy == 'Others' && !value!) {
+                        _otherAllergy = '';
+                        _otherAllergyController.clear();
+                      }
+                    }),
+                  ),
+                ),
                 if (_allergies['Others']!)
-                  TextField(
+                  TextFormField(
                     controller: _otherAllergyController,
                     decoration: InputDecoration(
                       labelText: 'Specify Other Allergy',
-                      labelStyle: AppTheme.textStyles['body']!.copyWith(color: AppTheme.colors['secondaryText']),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r)),
+                      labelStyle: AppTheme.textStyles['body']!.copyWith(
+                        color: AppTheme.colors['secondaryText'],
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
                     ),
-                    style: AppTheme.textStyles['body']!.copyWith(color: AppTheme.colors['primaryText']),
-                    onChanged: (value) {
-                      _otherAllergy = value;
-                      ref.read(userInfoControllerProvider.notifier).updateOtherAllergy(value, context);
-                    },
+                    style: AppTheme.textStyles['body']!.copyWith(
+                      color: AppTheme.colors['primaryText'],
+                    ),
+                    onChanged: (value) => setState(() => _otherAllergy = value),
                   ),
                 SizedBox(height: 16.h),
                 Divider(color: AppTheme.colors['borderGradientStart']),
@@ -159,25 +165,24 @@ class _FoodPreferencesScreenState extends ConsumerState<FoodPreferencesScreen> {
                     color: AppTheme.colors['primaryText'],
                   ),
                 ),
-                ..._cuisines.keys.map((cuisine) => CheckboxListTile(
-                      title: Text(
-                        cuisine,
-                        style: AppTheme.textStyles['body']!.copyWith(color: AppTheme.colors['primaryText']),
+                ..._cuisines.keys.map(
+                  (cuisine) => CheckboxListTile(
+                    title: Text(
+                      cuisine,
+                      style: AppTheme.textStyles['body']!.copyWith(
+                        color: AppTheme.colors['primaryText'],
                       ),
-                      value: _cuisines[cuisine],
-                      onChanged: (value) {
-                        setState(() {
-                          _cuisines[cuisine] = value ?? false;
-                        });
-                        ref.read(userInfoControllerProvider.notifier).updateCuisines(_cuisines, context);
-                      },
-                    )),
+                    ),
+                    value: _cuisines[cuisine],
+                    onChanged: (value) => setState(() => _cuisines[cuisine] = value ?? false),
+                  ),
+                ),
                 SizedBox(height: 24.h),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: isSaving ? null : () => context.pop(),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.colors['error'],
                         minimumSize: Size(150.w, 48.h),
@@ -191,32 +196,65 @@ class _FoodPreferencesScreenState extends ConsumerState<FoodPreferencesScreen> {
                       ),
                     ),
                     ElevatedButton(
-                      onPressed: () async {
-                        await ref.read(userInfoControllerProvider.notifier).saveUserData(context);
-                        if (context.mounted) Navigator.pop(context);
-                      },
+                      onPressed: isSaving
+                          ? null
+                          : () async {
+                              final success = await ref
+                                  .read(settingsControllerProvider.notifier)
+                                  .saveFoodPreferences(
+                                    context: context,
+                                    dietPreference: _dietPreference,
+                                    allergies: _allergies,
+                                    otherAllergy: _otherAllergy,
+                                    cuisines: _cuisines,
+                                    formKey: _formKey,
+                                  );
+                              if (success && context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Food preferences saved successfully',
+                                      style: AppTheme.textStyles['body']!.copyWith(
+                                        color: AppTheme.colors['onSurfaceDark'],
+                                      ),
+                                    ),
+                                    backgroundColor: AppTheme.colors['primaryButton'] ?? Colors.green,
+                                  ),
+                                );
+                              }
+                            },
                       style: ElevatedButton.styleFrom(
                         minimumSize: Size(150.w, 48.h),
                       ),
-                      child: Text(
-                        'Save',
-                        style: AppTheme.textStyles['body']!.copyWith(
-                          color: AppTheme.colors['onSurfaceDark'],
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      child: isSaving
+                          ? SizedBox(
+                              width: 24.w,
+                              height: 24.h,
+                              child: CircularProgressIndicator(
+                                color: AppTheme.colors['onSurfaceDark'],
+                              ),
+                            )
+                          : Text(
+                              'Save',
+                              style: AppTheme.textStyles['body']!.copyWith(
+                                color: AppTheme.colors['onSurfaceDark'],
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                     ),
                   ],
                 ),
               ],
             ),
-          );
-        },
+          ),
+        ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(
           child: Text(
             'Error: $error',
-            style: AppTheme.textStyles['body']!.copyWith(color: AppTheme.colors['primaryText']),
+            style: AppTheme.textStyles['body']!.copyWith(
+              color: AppTheme.colors['primaryText'],
+            ),
           ),
         ),
       ),

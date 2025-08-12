@@ -5,13 +5,17 @@ import '../../domain/validators/user_info_validators.dart';
 
 class GoalInput extends ConsumerWidget {
   final GlobalKey<FormState> formKey;
+  final void Function(String) onGoalChanged;
 
-  const GoalInput({super.key, required this.formKey});
+  const GoalInput({
+    super.key,
+    required this.formKey,
+    required this.onGoalChanged,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userInfo = ref.watch(userInfoControllerProvider);
-    final notifier = ref.read(userInfoControllerProvider.notifier);
     const goals = ['Weight Loss', 'Weight Gain', 'Muscle Building'];
 
     return Form(
@@ -22,9 +26,7 @@ class GoalInput extends ConsumerWidget {
           const Text("What is your fitness goal?"),
           const SizedBox(height: 8),
           DropdownButtonFormField<String>(
-            value: userInfo.value?.goal == null || userInfo.value!.goal.isEmpty
-                ? null
-                : userInfo.value!.goal,
+            value: userInfo.value?.goal.isEmpty ?? true ? null : userInfo.value!.goal,
             decoration: const InputDecoration(
               hintText: "Select your goal",
               border: OutlineInputBorder(),
@@ -35,7 +37,7 @@ class GoalInput extends ConsumerWidget {
             validator: UserInfoValidators.validateGoal,
             onChanged: (value) {
               if (value != null) {
-                notifier.updateGoal(value, context);
+                onGoalChanged(value);
               }
             },
           ),

@@ -18,6 +18,7 @@ class UserInfoModel {
   final double? waterGoal;
   final double? stepsGoal;
   final double? sleepGoal;
+  final String? email;
 
   UserInfoModel({
     this.uid = '',
@@ -39,6 +40,7 @@ class UserInfoModel {
     this.waterGoal,
     this.stepsGoal,
     this.sleepGoal,
+    this.email,
   });
 
   Map<String, dynamic> toMap() {
@@ -62,9 +64,8 @@ class UserInfoModel {
       'waterGoal': waterGoal,
       'stepsGoal': stepsGoal,
       'sleepGoal': sleepGoal,
-    }..removeWhere(
-      (key, value) => value == null,
-    ); // Remove null fields to avoid Firestore issues
+      'email': email,
+    }..removeWhere((key, value) => value == null);
   }
 
   factory UserInfoModel.fromMap(Map<String, dynamic> map) {
@@ -82,16 +83,13 @@ class UserInfoModel {
       profileImageUrl: map['profileImageUrl'],
       hasPaid: map['hasPaid'] ?? false,
       dietPreference: map['dietPreference'],
-      allergies: map['allergies'] != null
-          ? Map<String, bool>.from(map['allergies'])
-          : null,
+      allergies: map['allergies'] != null ? Map<String, bool>.from(map['allergies']) : null,
       otherAllergy: map['otherAllergy'],
-      cuisines: map['cuisines'] != null
-          ? Map<String, bool>.from(map['cuisines'])
-          : null,
+      cuisines: map['cuisines'] != null ? Map<String, bool>.from(map['cuisines']) : null,
       waterGoal: (map['waterGoal'] as num?)?.toDouble(),
       stepsGoal: (map['stepsGoal'] as num?)?.toDouble(),
       sleepGoal: (map['sleepGoal'] as num?)?.toDouble(),
+      email: map['email'],
     );
   }
 
@@ -115,6 +113,7 @@ class UserInfoModel {
     double? waterGoal,
     double? stepsGoal,
     double? sleepGoal,
+    String? email,
   }) {
     return UserInfoModel(
       uid: uid ?? this.uid,
@@ -136,6 +135,7 @@ class UserInfoModel {
       waterGoal: waterGoal ?? this.waterGoal,
       stepsGoal: stepsGoal ?? this.stepsGoal,
       sleepGoal: sleepGoal ?? this.sleepGoal,
+      email: email ?? this.email,
     );
   }
 }

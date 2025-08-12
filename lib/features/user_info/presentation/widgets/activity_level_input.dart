@@ -5,13 +5,17 @@ import '../../domain/validators/user_info_validators.dart';
 
 class ActivityLevelDropdown extends ConsumerWidget {
   final GlobalKey<FormState> formKey;
+  final void Function(String) onActivityLevelChanged;
 
-  const ActivityLevelDropdown({super.key, required this.formKey});
+  const ActivityLevelDropdown({
+    super.key,
+    required this.formKey,
+    required this.onActivityLevelChanged,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userInfo = ref.watch(userInfoControllerProvider);
-    final notifier = ref.read(userInfoControllerProvider.notifier);
     final activityLevels = [
       'Sedentary',
       'Lightly Active',
@@ -27,7 +31,7 @@ class ActivityLevelDropdown extends ConsumerWidget {
           const Text("What is your activity level?"),
           const SizedBox(height: 8),
           DropdownButtonFormField<String>(
-            value: userInfo.value?.activityLevel == null || userInfo.value!.activityLevel.isEmpty
+            value: userInfo.value?.activityLevel.isEmpty ?? true
                 ? null
                 : userInfo.value!.activityLevel,
             decoration: const InputDecoration(
@@ -40,7 +44,7 @@ class ActivityLevelDropdown extends ConsumerWidget {
             validator: UserInfoValidators.validateActivityLevel,
             onChanged: (value) {
               if (value != null) {
-                notifier.updateActivityLevel(value, context);
+                onActivityLevelChanged(value);
               }
             },
           ),
