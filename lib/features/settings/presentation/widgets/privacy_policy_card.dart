@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../shared/theme/theme.dart';
 
-class HelpCard extends StatelessWidget {
+class PrivacyPolicyCard extends StatelessWidget {
   final VoidCallback onTap;
 
-  const HelpCard({super.key, required this.onTap});
+  const PrivacyPolicyCard({super.key, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +23,7 @@ class HelpCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Help',
+                        'Privacy Policy',
                         style: AppTheme.textStyles['subtitle']!.copyWith(
                           fontSize: 18.sp,
                           color: AppTheme.colors['primaryText'],
@@ -31,7 +31,7 @@ class HelpCard extends StatelessWidget {
                       ),
                       SizedBox(height: 8.h),
                       Text(
-                        'Get assistance and FAQs',
+                        'Review our privacy policy',
                         style: AppTheme.textStyles['body']!.copyWith(
                           fontSize: 14.sp,
                           color: AppTheme.colors['secondaryText'],

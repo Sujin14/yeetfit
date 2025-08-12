@@ -1,28 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../shared/theme/theme.dart';
-import '../widgets/settings_body.dart';
+import '../widgets/contact_us_body.dart';
 
-class SettingsScreen extends ConsumerWidget {
-  const SettingsScreen({super.key});
+class ContactUsScreen extends StatelessWidget {
+  const ContactUsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Settings',
+          'Contact Us',
           style: AppTheme.textStyles['title']!.copyWith(color: AppTheme.colors['primaryText']),
         ),
         backgroundColor: AppTheme.colors['lightBackground'],
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: AppTheme.colors['primaryText']),
-          onPressed: () => context.go('/user-dashboard'),
+          onPressed: () => context.pop(),
         ),
       ),
-      body: SettingsBody(),
+      body: ContactUsBody(),
     );
   }
 }

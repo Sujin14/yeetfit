@@ -1,8 +1,10 @@
+import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../user_info/data/datasources/firestore_user_service.dart';
 import '../../../user_info/data/models/user_info_model.dart';
@@ -10,8 +12,7 @@ import '../../../user_info/data/repositories/user_repository_impl.dart';
 import '../../../user_info/domain/usecases/save_user_info.dart';
 import '../../../user_info/domain/validators/user_info_validators.dart';
 import '../../../user_info/presentation/providers/user_info_controller.dart';
-import '../../../water_tracking/presentation/providers/water_provider.dart';
-import '../../../weight_tracking/presentation/providers/weight_provider.dart';
+
 
 final settingsControllerProvider = StateNotifierProvider<SettingsController, AsyncValue<void>>((ref) {
   final repository = UserRepositoryImpl(userService: FirestoreUserService());
@@ -34,7 +35,6 @@ class SettingsController extends StateNotifier<AsyncValue<void>> {
     required String age,
     required String height,
     required String currentWeight,
-    required String goalWeight,
     required String activityLevel,
     required GlobalKey<FormState> formKey,
   }) async {
@@ -47,31 +47,32 @@ class SettingsController extends StateNotifier<AsyncValue<void>> {
         throw Exception('Invalid input');
       }
 
-      // Parse inputs
       final parsedAge = int.tryParse(age);
       final parsedHeight = double.tryParse(height);
       final parsedCurrentWeight = double.tryParse(currentWeight);
-      final parsedGoalWeight = double.tryParse(goalWeight);
 
-      // Validate inputs
       final nameError = UserInfoValidators.validateName(name);
       final genderError = UserInfoValidators.validateGender(gender);
       final ageError = UserInfoValidators.validateAge(age);
       final heightError = UserInfoValidators.validateHeight(height);
       final currentWeightError = UserInfoValidators.validateWeight(currentWeight);
-      final goalWeightError = UserInfoValidators.validateWeight(goalWeight);
       final activityLevelError = UserInfoValidators.validateActivityLevel(activityLevel);
 
-      if (nameError != null || genderError != null || ageError != null || heightError != null ||
-          currentWeightError != null || goalWeightError != null || activityLevelError != null ||
-          parsedAge == null || parsedHeight == null || parsedCurrentWeight == null || parsedGoalWeight == null) {
+      if (nameError != null ||
+          genderError != null ||
+          ageError != null ||
+          heightError != null ||
+          currentWeightError != null ||
+          activityLevelError != null ||
+          parsedAge == null ||
+          parsedHeight == null ||
+          parsedCurrentWeight == null) {
         throw Exception('Invalid input: ${[
           nameError,
           genderError,
           ageError,
           heightError,
           currentWeightError,
-          goalWeightError,
           activityLevelError
         ].where((e) => e != null).join(', ')}');
       }
@@ -81,7 +82,6 @@ class SettingsController extends StateNotifier<AsyncValue<void>> {
         throw Exception('User not authenticated');
       }
 
-      // Update UserInfoModel and save to Firebase
       final userInfoController = ref.read(userInfoControllerProvider.notifier);
       final currentUserInfo = ref.read(userInfoControllerProvider).value ?? UserInfoModel(uid: uid);
       final updatedUserInfo = currentUserInfo.copyWith(
@@ -90,7 +90,6 @@ class SettingsController extends StateNotifier<AsyncValue<void>> {
         age: parsedAge,
         height: parsedHeight,
         currentWeight: parsedCurrentWeight,
-        goalWeight: parsedGoalWeight,
         activityLevel: activityLevel,
         email: FirebaseAuth.instance.currentUser?.email,
       );
@@ -107,7 +106,7 @@ class SettingsController extends StateNotifier<AsyncValue<void>> {
                 color: AppTheme.colors['onSurfaceDark'],
               ),
             ),
-            backgroundColor: AppTheme.colors['primaryButton'] ?? Colors.green,
+            backgroundColor: AppTheme.colors['primaryButton'],
           ),
         );
         context.go('/account');
@@ -120,7 +119,7 @@ class SettingsController extends StateNotifier<AsyncValue<void>> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error saving basic information: $e'),
-            backgroundColor: AppTheme.colors['error'] ?? Colors.red,
+            backgroundColor: AppTheme.colors['error'],
           ),
         );
       }
@@ -152,7 +151,6 @@ class SettingsController extends StateNotifier<AsyncValue<void>> {
         throw Exception('User not authenticated');
       }
 
-      // Update UserInfoModel and save to Firebase
       final userInfoController = ref.read(userInfoControllerProvider.notifier);
       final currentUserInfo = ref.read(userInfoControllerProvider).value ?? UserInfoModel(uid: uid);
       final updatedUserInfo = currentUserInfo.copyWith(
@@ -175,7 +173,7 @@ class SettingsController extends StateNotifier<AsyncValue<void>> {
                 color: AppTheme.colors['onSurfaceDark'],
               ),
             ),
-            backgroundColor: AppTheme.colors['primaryButton'] ?? Colors.green,
+            backgroundColor: AppTheme.colors['primaryButton'],
           ),
         );
         context.go('/account');
@@ -188,7 +186,7 @@ class SettingsController extends StateNotifier<AsyncValue<void>> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error saving food preferences: $e'),
-            backgroundColor: AppTheme.colors['error'] ?? Colors.red,
+            backgroundColor: AppTheme.colors['error'],
           ),
         );
       }
@@ -198,10 +196,9 @@ class SettingsController extends StateNotifier<AsyncValue<void>> {
     }
   }
 
-  Future<bool> saveGoal({
+  Future<bool> updateFitnessGoal({
     required BuildContext context,
-    required String? value,
-    required String type,
+    required String goal,
   }) async {
     if (_isSaving) return false;
     _isSaving = true;
@@ -212,57 +209,79 @@ class SettingsController extends StateNotifier<AsyncValue<void>> {
         throw Exception('User not authenticated');
       }
 
-      // Validate input
-      final parsedValue = double.tryParse(value ?? '');
-      if (parsedValue == null || parsedValue <= 0) {
-        throw Exception('Invalid $type goal');
-      }
-      if (type == 'Water' && (parsedValue <= 0 || parsedValue > 20)) {
-        throw Exception('Water goal must be between 1 and 20 glasses');
-      }
-      if (type == 'Steps' && (parsedValue <= 0 || parsedValue > 100000)) {
-        throw Exception('Steps goal must be between 1 and 100,000 steps');
-      }
-      if (type == 'Sleep' && (parsedValue <= 0 || parsedValue > 24)) {
-        throw Exception('Sleep goal must be between 1 and 24 hours');
-      }
-      if (type == 'Weight' && UserInfoValidators.validateWeight(value!) != null) {
-        throw Exception('Invalid weight goal');
-      }
-
-      // Update UserInfoModel and save to Firebase
       final userInfoController = ref.read(userInfoControllerProvider.notifier);
       final currentUserInfo = ref.read(userInfoControllerProvider).value ?? UserInfoModel(uid: uid);
       final updatedUserInfo = currentUserInfo.copyWith(
-        goalWeight: type == 'Weight' ? parsedValue : currentUserInfo.goalWeight,
-        waterGoal: type == 'Water' ? parsedValue : currentUserInfo.waterGoal,
-        stepsGoal: type == 'Steps' ? parsedValue : currentUserInfo.stepsGoal,
-        sleepGoal: type == 'Sleep' ? parsedValue : currentUserInfo.sleepGoal,
+        goal: goal,
         email: FirebaseAuth.instance.currentUser?.email,
       );
 
-      // Save to Firebase
       await saveUserInfo(updatedUserInfo);
       userInfoController.state = AsyncValue.data(updatedUserInfo);
-
-      // Update specific providers
-      if (type == 'Weight') {
-        await ref.read(setWeightGoalProvider).call(
-              uid,
-              parsedValue,
-              currentUserInfo.currentWeight,
-              null,
-            );
-      }
-      if (type == 'Water') {
-        await ref.read(setWaterGoalProvider).call(uid, parsedValue.toInt());
-      }
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '$type goal saved',
+              'Fitness goal updated',
+              style: AppTheme.textStyles['body']!.copyWith(
+                color: AppTheme.colors['onSurfaceDark'],
+              ),
+            ),
+            backgroundColor: AppTheme.colors['primaryButton'],
+          ),
+        );
+      }
+      state = const AsyncValue.data(null);
+      _isSaving = false;
+      return true;
+    } catch (e, stackTrace) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error updating fitness goal: $e'),
+            backgroundColor: AppTheme.colors['error'],
+          ),
+        );
+      }
+      state = AsyncValue.error(e, stackTrace);
+      _isSaving = false;
+      return false;
+    }
+  }
+
+  Future<bool> updateProfileImage({
+    required BuildContext context,
+    required XFile image,
+  }) async {
+    if (_isSaving) return false;
+    _isSaving = true;
+    state = const AsyncValue.loading();
+    try {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid == null) {
+        throw Exception('User not authenticated');
+      }
+
+      print('Uploading to: users/$uid/profile.jpg');
+      final storageRef = FirebaseStorage.instance.ref().child('users/$uid/profile.jpg');
+      final uploadTask = await storageRef.putFile(File(image.path));
+      final imageUrl = await uploadTask.ref.getDownloadURL();
+      final userInfoController = ref.read(userInfoControllerProvider.notifier);
+      final currentUserInfo = ref.read(userInfoControllerProvider).value ?? UserInfoModel(uid: uid);
+      final updatedUserInfo = currentUserInfo.copyWith(
+        profileImageUrl: imageUrl,
+        email: FirebaseAuth.instance.currentUser?.email,
+      );
+
+      await saveUserInfo(updatedUserInfo);
+      userInfoController.state = AsyncValue.data(updatedUserInfo);
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Profile image updated',
               style: AppTheme.textStyles['body']!.copyWith(
                 color: AppTheme.colors['onSurfaceDark'],
               ),
@@ -275,11 +294,19 @@ class SettingsController extends StateNotifier<AsyncValue<void>> {
       _isSaving = false;
       return true;
     } catch (e, stackTrace) {
+      String errorMessage = 'Error updating profile image';
+      if (e is FirebaseException) {
+        if (e.code == 'permission-denied') {
+          errorMessage = 'Permission denied: Unable to upload profile image. Please check your account permissions.';
+        } else {
+          errorMessage = 'Firebase error: ${e.message}';
+        }
+      }
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error saving $type goal: $e'),
-            backgroundColor: AppTheme.colors['error'] ?? Colors.red,
+            content: Text(errorMessage),
+            backgroundColor: AppTheme.colors['error'],
           ),
         );
       }
@@ -287,79 +314,6 @@ class SettingsController extends StateNotifier<AsyncValue<void>> {
       _isSaving = false;
       return false;
     }
-  }
-
-  Future<bool> showEditGoalDialog({
-    required BuildContext context,
-    required String label,
-    required String initialValue,
-    required String type,
-  }) async {
-    final controller = TextEditingController(text: initialValue);
-    final formKey = GlobalKey<FormState>();
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.colors['lightBackground'],
-        title: Text(
-          'Edit $label',
-          style: AppTheme.textStyles['title']!.copyWith(color: AppTheme.colors['primaryText']),
-        ),
-        content: Form(
-          key: formKey,
-          child: TextFormField(
-            controller: controller,
-            decoration: InputDecoration(
-              labelText: label,
-              labelStyle: AppTheme.textStyles['body']!.copyWith(color: AppTheme.colors['secondaryText']),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r)),
-            ),
-            keyboardType: TextInputType.number,
-            style: AppTheme.textStyles['body']!.copyWith(color: AppTheme.colors['primaryText']),
-            validator: (value) {
-              if (value == null || value.isEmpty) return '$label is required';
-              final numValue = double.tryParse(value);
-              if (numValue == null || numValue <= 0) return 'Enter a valid $label';
-              return null;
-            },
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text('Cancel', style: AppTheme.textStyles['body']!.copyWith(color: AppTheme.colors['primaryText'])),
-          ),
-          TextButton(
-            onPressed: _isSaving
-                ? null
-                : () {
-                    if (formKey.currentState!.validate()) {
-                      Navigator.pop(context, true);
-                    }
-                  },
-            child: _isSaving
-                ? SizedBox(
-                    width: 24.w,
-                    height: 24.h,
-                    child: CircularProgressIndicator(
-                      color: AppTheme.colors['primaryText'],
-                    ),
-                  )
-                : Text(
-                    'Save',
-                    style: AppTheme.textStyles['body']!.copyWith(color: AppTheme.colors['primaryText']),
-                  ),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true) return false;
-    return await saveGoal(
-      context: context,
-      value: controller.text,
-      type: type,
-    );
   }
 
   Future<bool> deleteAccount(BuildContext context) async {
@@ -420,7 +374,7 @@ class SettingsController extends StateNotifier<AsyncValue<void>> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error deleting account: $e'),
-            backgroundColor: AppTheme.colors['error'] ?? Colors.red,
+            backgroundColor: AppTheme.colors['error'] ,
           ),
         );
       }
@@ -488,7 +442,7 @@ class SettingsController extends StateNotifier<AsyncValue<void>> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error logging out: $e'),
-            backgroundColor: AppTheme.colors['error'] ?? Colors.red,
+            backgroundColor: AppTheme.colors['error'],
           ),
         );
       }

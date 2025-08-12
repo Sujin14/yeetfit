@@ -13,6 +13,8 @@ import 'package:yeetfit/features/plans/presentation/screens/favorites_page.dart'
 import 'package:yeetfit/features/plans/presentation/screens/plan_detail_page.dart';
 import 'package:yeetfit/features/plans/presentation/screens/plan_list_screen.dart';
 import 'package:yeetfit/features/progress/presentation/screens/progress_screen.dart';
+import 'package:yeetfit/features/settings/presentation/screens/contact_us_screen.dart';
+import 'package:yeetfit/features/settings/presentation/screens/privacy_policy_screen.dart';
 import 'package:yeetfit/features/settings/presentation/screens/settings_screen.dart';
 import 'package:yeetfit/features/settings/presentation/screens/account_screen.dart';
 import 'package:yeetfit/features/settings/presentation/screens/basic_information_screen.dart';
@@ -223,6 +225,14 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/terms-and-conditions',
       builder: (context, state) => const TermsAndConditionsScreen(),
+    ),
+    GoRoute(
+      path: '/contact_us',
+      builder: (context, state) => const ContactUsScreen(),
+    ),
+    GoRoute(
+      path: '/privacy_policy',
+      builder: (context, state) => const PrivacyPolicyScreen(),
     ),
   ],
 );
