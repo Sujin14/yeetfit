@@ -26,28 +26,35 @@ class BasicInfoCard extends StatelessWidget {
           ],
         ),
         borderGradient: LinearGradient(
-          colors: [AppTheme.colors['gradientTextStart']!, AppTheme.colors['gradientTextEnd']!],
+          colors: [
+            AppTheme.colors['gradientTextStart']!,
+            AppTheme.colors['gradientTextEnd']!,
+          ],
         ),
         child: Padding(
           padding: EdgeInsets.all(16.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Row(
             children: [
-              Text(
-                'Basic Information',
-                style: AppTheme.textStyles['subtitle']!.copyWith(
-                  fontSize: 18.sp,
-                  color: AppTheme.colors['primaryText'],
-                ),
-              ),
-              SizedBox(height: 8.h),
-              Text(
-                'Height, Weight, Age, Gender, Activity',
-                style: AppTheme.textStyles['body']!.copyWith(
-                  fontSize: 14.sp,
-                  color: AppTheme.colors['secondaryText'],
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Basic Information',
+                    style: AppTheme.textStyles['subtitle']!.copyWith(
+                      fontSize: 18.sp,
+                      color: AppTheme.colors['primaryText'],
+                    ),
+                  ),
+                  SizedBox(height: 8.h),
+                  Text(
+                    'Height, Weight, Age, Gender, Activity',
+                    style: AppTheme.textStyles['body']!.copyWith(
+                      fontSize: 14.sp,
+                      color: AppTheme.colors['secondaryText'],
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

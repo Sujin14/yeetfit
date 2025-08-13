@@ -30,12 +30,13 @@ class AccountBody extends ConsumerWidget {
                 userInfo: userInfo,
                 onEdit: () async {
                   final picker = ImagePicker();
-                  final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+                  final XFile? image = await picker.pickImage(
+                    source: ImageSource.gallery,
+                  );
                   if (image != null && context.mounted) {
-                    await ref.read(settingsControllerProvider.notifier).updateProfileImage(
-                          context: context,
-                          image: image,
-                        );
+                    await ref
+                        .read(settingsControllerProvider.notifier)
+                        .updateProfileImage(context: context, image: image);
                   }
                 },
               ),
@@ -45,18 +46,19 @@ class AccountBody extends ConsumerWidget {
             SizedBox(height: 16.h),
             GoalCard(
               title: 'Fitness Goal',
-              selectedGoal: userInfo.goal.isNotEmpty ? userInfo.goal : 'Weight Loss',
+              selectedGoal: userInfo.goal.isNotEmpty
+                  ? userInfo.goal
+                  : 'Weight Loss',
               onGoalSelected: (newGoal) {
                 if (newGoal != null) {
-                  ref.read(settingsControllerProvider.notifier).updateFitnessGoal(
-                        context: context,
-                        goal: newGoal,
-                      );
+                  ref
+                      .read(settingsControllerProvider.notifier)
+                      .updateFitnessGoal(context: context, goal: newGoal);
                 }
               },
             ),
             SizedBox(height: 16.h),
-            FoodPreferencesCard(onTap: () => context.push('/food-preferences'))
+            FoodPreferencesCard(onTap: () => context.push('/food-preferences')),
           ],
         ),
       ),

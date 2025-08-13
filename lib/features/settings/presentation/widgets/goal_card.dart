@@ -21,7 +21,7 @@ class GoalCard extends StatelessWidget {
 
     return GlassmorphicContainer(
       width: double.infinity,
-      height: 150.h,
+      height: 120.h,
       borderRadius: 16.r,
       blur: 10,
       alignment: Alignment.center,
@@ -42,6 +42,7 @@ class GoalCard extends StatelessWidget {
         padding: EdgeInsets.all(16.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               title,
