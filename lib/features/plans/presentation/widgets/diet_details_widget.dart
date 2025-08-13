@@ -84,7 +84,7 @@ class DietDetailsWidget extends StatelessWidget {
                 padding: EdgeInsets.only(bottom: 16.h),
                 child: ExpansionTile(
                   title: Text(
-                    '$mealName (${mealCalories} cal)',
+                    '$mealName ($mealCalories cal)',
                     style: AppTheme.textStyles['subheading']?.copyWith(
                           color: AppTheme.colors['primaryText'] ?? Colors.black,
                           fontSize: 18.sp,

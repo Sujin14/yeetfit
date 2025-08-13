@@ -243,7 +243,7 @@ class UserInfoController extends StateNotifier<AsyncValue<UserInfoModel>> {
       if (uid == null) {
         throw Exception('User not authenticated');
       }
-      await state.whenData((userInfo) async {
+      state.whenData((userInfo) async {
         final updatedUserInfo = userInfo.copyWith(uid: uid, email: FirebaseAuth.instance.currentUser?.email);
         await saveUserInfo(updatedUserInfo);
         state = AsyncValue.data(updatedUserInfo);
@@ -296,7 +296,7 @@ class UserInfoController extends StateNotifier<AsyncValue<UserInfoModel>> {
       if (uid == null) {
         throw Exception('User not authenticated');
       }
-      await state.whenData((userInfo) async {
+      state.whenData((userInfo) async {
         final updatedUserInfo = userInfo.copyWith(uid: uid, email: FirebaseAuth.instance.currentUser?.email);
         await saveUserInfo(updatedUserInfo);
         state = AsyncValue.data(updatedUserInfo);
@@ -336,7 +336,7 @@ class UserInfoController extends StateNotifier<AsyncValue<UserInfoModel>> {
       if (uid == null) {
         throw Exception('User not authenticated');
       }
-      await state.whenData((userInfo) async {
+      state.whenData((userInfo) async {
         final updatedUserInfo = userInfo.copyWith(uid: uid, email: FirebaseAuth.instance.currentUser?.email);
         await saveUserInfo(updatedUserInfo);
         state = AsyncValue.data(updatedUserInfo);

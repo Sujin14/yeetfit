@@ -35,16 +35,14 @@ class AppTheme {
     'gray': Colors.grey,
     'transparent': Colors.transparent,
     'aquaBlue': Color.fromARGB(255, 89, 196, 245),
-    // Added colors for MealTrackingCard
-    'caloriesProgress': Color(0xFF2196F3), // Blue for calories
-    'proteinProgress': Color(0xFF4CAF50), // Green for protein
-    'carbsProgress': Color(0xFFFFEB3B), // Yellow for carbs
-    'fatProgress': Color(0xFFF44336), // Red for fat
-    // Added colors for BMI categories
-    'bmiUnderweight': Color(0xFFFF6B6B), // Red for underweight
-    'bmiNormal': Color(0xFF4CAF50), // Green for normal
-    'bmiOverweight': Color(0xFFFFD700), // Yellow for overweight
-    'bmiObese': Color(0xFFFFB347), // Orange for obese
+    'caloriesProgress': Color(0xFF2196F3),
+    'proteinProgress': Color(0xFF4CAF50),
+    'carbsProgress': Color(0xFFFFEB3B),
+    'fatProgress': Color(0xFFF44336),
+    'bmiUnderweight': Color(0xFFFF6B6B),
+    'bmiNormal': Color(0xFF4CAF50),
+    'bmiOverweight': Color(0xFFFFD700),
+    'bmiObese': Color(0xFFFFB347),
   };
 
   static final textStyles = {

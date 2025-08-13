@@ -7,7 +7,6 @@ import '../../../../shared/theme/theme.dart';
 import '../controllers/chat_controller.dart';
 import '../providers/chat_provider.dart';
 
-
 class ChatHeader extends ConsumerWidget {
   final ChatController controller;
 
@@ -25,7 +24,7 @@ class ChatHeader extends ConsumerWidget {
         child: Row(
           children: [
             IconButton(
-              icon: Icon(Icons.arrow_back, color: AppTheme.colors['primaryAccent'],size: 30,),
+              icon: Icon(Icons.arrow_back, color: AppTheme.colors['primaryAccent'], size: 30),
               onPressed: () => context.go('/user-dashboard'),
             ),
             CircleAvatar(
@@ -63,23 +62,9 @@ class ChatHeader extends ConsumerWidget {
                         ),
                         TextButton(
                           onPressed: () async {
-                            try {
-                              await controller.deleteChats(context);
-                              context.go('/user-dashboard');
-                            } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'Failed to delete chat: $e',
-                                    style: AppTheme.textStyles['bodyMedium']!.copyWith(
-                                      color: AppTheme.colors['onSurfaceDark'],
-                                    ),
-                                  ),
-                                  backgroundColor: AppTheme.colors['error'],
-                                  behavior: SnackBarBehavior.floating,
-                                ),
-                              );
-                            }
+                            await controller.deleteChats(context);
+                            Navigator.of(context).pop();
+                            context.go('/user-dashboard');
                           },
                           child: Text(
                             'Delete',

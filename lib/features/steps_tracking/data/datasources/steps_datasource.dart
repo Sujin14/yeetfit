@@ -20,7 +20,6 @@ class StepsDataSource {
     if (doc.exists) {
       return StepsData.fromMap(doc.data()!);
     }
-    // Check local storage if Firestore is empty
     final prefs = await SharedPreferences.getInstance();
     final localData = prefs.getString('$_localStepsKey$userId$date');
     if (localData != null) {

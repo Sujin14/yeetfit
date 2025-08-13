@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../data/model/message_model.dart';
@@ -15,6 +16,7 @@ import '../../domain/use_cases/get_user_profile.dart';
 import '../../domain/use_cases/send_message.dart';
 import '../../domain/use_cases/update_message_status.dart';
 import '../../domain/use_cases/update_typing_status.dart';
+import 'package:go_router/go_router.dart';
 
 class ChatState {
   final List<MessageModel> messages;
@@ -200,7 +202,7 @@ class ChatController extends StateNotifier<ChatState> {
     }
     try {
       await deleteChat(_chatId!);
-      context.go('/user-dashboard');
+      // Navigation handled in widget to avoid duplication
     } catch (e) {
       state = state.copyWith(error: 'Failed to delete chat: $e');
       _showErrorSnack(context, 'Failed to delete chat: $e');
@@ -219,6 +221,35 @@ class ChatController extends StateNotifier<ChatState> {
       state = state.copyWith(error: 'Failed to delete message: $e');
       _showErrorSnack(context, 'Failed to delete message: $e');
     }
+  }
+
+  Widget getMessageStatusIcon(String status) {
+    switch (status) {
+      case 'sent':
+        return Icon(Icons.check, size: 16.sp, color: AppTheme.colors['secondaryText']);
+      case 'delivered':
+        return Icon(Icons.done_all, size: 16.sp, color: AppTheme.colors['secondaryText']);
+      case 'read':
+        return Icon(Icons.done_all, size: 16.sp, color: AppTheme.colors['primaryAccent']);
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  void copyMessageToClipboard(BuildContext context, String content) {
+    Clipboard.setData(ClipboardData(text: content));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Message copied to clipboard',
+          style: AppTheme.textStyles['bodyMedium']?.copyWith(
+            color: AppTheme.colors['onSurfaceDark'],
+          ),
+        ),
+        backgroundColor: AppTheme.colors['primaryAccent'],
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   void _showErrorSnack(BuildContext context, String message) {
