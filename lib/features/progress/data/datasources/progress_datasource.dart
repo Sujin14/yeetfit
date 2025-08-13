@@ -1,12 +1,13 @@
-import 'dart:async';
 
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../model/daily_progress_model.dart';
 
-
-abstract class ProgressDataSource { Future<List> getMonthlyProgress(DateTime month, {String? metric}); }
+abstract class ProgressDataSource {
+  Future<List<DailyProgressModel>> getMonthlyProgress(DateTime month, {String? metric});
+}
 
 class ProgressDataSourceImpl implements ProgressDataSource {
   final FirebaseFirestore firestore;
@@ -23,7 +24,6 @@ class ProgressDataSourceImpl implements ProgressDataSource {
 
     final startOfMonth = DateTime(month.year, month.month, 1);
     final endOfMonth = DateTime(month.year, month.month + 1, 0);
-
     final daysInMonth = endOfMonth.day;
     final progressMap = <String, Map<String, Map<String, dynamic>>>{};
 
@@ -34,45 +34,43 @@ class ProgressDataSourceImpl implements ProgressDataSource {
           : ['food', 'sleep', 'steps', 'water', 'weight'];
 
       for (final subcollection in subcollections) {
-        if (subcollection == 'food') {
-          final mealTypes = ['breakfast', 'lunch', 'dinner', 'snacks'];
-          for (final mealType in mealTypes) {
-            final querySnapshot = await firestore
-                .collection('users')
-                .doc(userId)
-                .collection('progress')
-                .doc(subcollection)
-                .collection(mealType)
-                .where(FieldPath.documentId, isGreaterThanOrEqualTo: startOfMonth.toIso8601String().substring(0, 10))
-                .where(FieldPath.documentId, isLessThanOrEqualTo: endOfMonth.toIso8601String().substring(0, 10))
-                .get()
-                .timeout(const Duration(seconds: 10), onTimeout: () {
-                  throw TimeoutException('Failed to fetch $subcollection/$mealType data');
-                });
+        // Query actual progress data
+        final querySnapshot = await firestore
+            .collection('users')
+            .doc(userId)
+            .collection('progress')
+            .doc(subcollection)
+            .collection(subcollection)
+            .where(FieldPath.documentId, isGreaterThanOrEqualTo: startOfMonth.toIso8601String().substring(0, 10))
+            .where(FieldPath.documentId, isLessThanOrEqualTo: endOfMonth.toIso8601String().substring(0, 10))
+            .get()
+            .timeout(const Duration(seconds: 10), onTimeout: () {
+              throw TimeoutException('Failed to fetch $subcollection data');
+            });
 
-            for (var doc in querySnapshot.docs) {
-              progressMap.putIfAbsent(doc.id, () => {});
-              progressMap[doc.id]!['food_$mealType'] = doc.data();
-            }
-          }
-        } else {
-          final querySnapshot = await firestore
-              .collection('users')
-              .doc(userId)
-              .collection('progress')
-              .doc(subcollection)
-              .collection(subcollection)
-              .where(FieldPath.documentId, isGreaterThanOrEqualTo: startOfMonth.toIso8601String().substring(0, 10))
-              .where(FieldPath.documentId, isLessThanOrEqualTo: endOfMonth.toIso8601String().substring(0, 10))
-              .get()
-              .timeout(const Duration(seconds: 10), onTimeout: () {
-                throw TimeoutException('Failed to fetch $subcollection data');
-              });
+        // Query goal data
+        final goalSnapshot = await firestore
+            .collection('users')
+            .doc(userId)
+            .collection('progress')
+            .doc(subcollection)
+            .collection(subcollection)
+            .where(FieldPath.documentId, isGreaterThanOrEqualTo: '${startOfMonth.toIso8601String().substring(0, 10)}-goal')
+            .where(FieldPath.documentId, isLessThanOrEqualTo: '${endOfMonth.toIso8601String().substring(0, 10)}-goal')
+            .get()
+            .timeout(const Duration(seconds: 10), onTimeout: () {
+              throw TimeoutException('Failed to fetch $subcollection goals');
+            });
 
-          for (var doc in querySnapshot.docs) {
-            progressMap.putIfAbsent(doc.id, () => {});
-            progressMap[doc.id]![subcollection] = doc.data();
-          }
+        for (var doc in querySnapshot.docs) {
+          progressMap.putIfAbsent(doc.id, () => {});
+          progressMap[doc.id]![subcollection] = doc.data();
+        }
+
+        for (var doc in goalSnapshot.docs) {
+          final date = doc.id.replaceAll('-goal', '');
+          progressMap.putIfAbsent(date, () => {});
+          progressMap[date]!['${subcollection}_goal'] = doc.data();
         }
       }
 
@@ -87,6 +85,7 @@ class ProgressDataSourceImpl implements ProgressDataSource {
 
       return progressList;
     } catch (e) {
+      print('Error fetching progress: $e');
       rethrow;
     }
   }

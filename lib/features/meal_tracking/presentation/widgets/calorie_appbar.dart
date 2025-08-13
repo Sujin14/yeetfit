@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../shared/theme/theme.dart';
 
@@ -13,14 +14,19 @@ class CalorieAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       backgroundColor: AppTheme.colors['transparent'],
       elevation: 0,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_ios_new_rounded),
+        onPressed: () => context.go('/user-dashboard'),
+      ),
       title: Text(
-          "Meal Tracking",
-          style: GoogleFonts.roboto(
-            color: AppTheme.colors['onSurface'],
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+        "Meal Tracking",
+        style: GoogleFonts.roboto(
+          color: AppTheme.colors['onSurface'],
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
         ),
+      ),
+      centerTitle: true,
     );
   }
 }

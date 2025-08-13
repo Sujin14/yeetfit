@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:yeetfit/shared/theme/theme.dart';
-
+import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
 
 class ProgressHeader extends StatelessWidget {
@@ -21,46 +19,66 @@ class ProgressHeader extends StatelessWidget {
         children: [
           Text(
             'Progress Heatmap',
-            style: GoogleFonts.roboto(
+            style: AppTheme.textStyles['title']!.copyWith(
               fontSize: 20.sp,
-              fontWeight: FontWeight.bold,
               color: AppTheme.colors['primaryText'],
             ),
           ),
           DropdownButton<String>(
             value: 'All Metrics',
             dropdownColor: AppTheme.colors['indigo']!.withOpacity(0.5),
-            style: GoogleFonts.roboto(
+            style: AppTheme.textStyles['body']!.copyWith(
               color: AppTheme.colors['primaryText'],
               fontSize: isDesktop ? 16.sp : 14.sp,
             ),
-            icon: Icon(Icons.arrow_drop_down, color: AppTheme.colors['primaryText'],),
+            icon: Icon(
+              Icons.arrow_drop_down,
+              color: AppTheme.colors['primaryText'],
+            ),
             underline: const SizedBox(),
             onChanged: onMetricChanged,
             items: [
               DropdownMenuItem(
                 value: 'All Metrics',
-                child: Text('All Metrics', style: TextStyle(color: AppTheme.colors['primaryText'],)),
+                child: Text(
+                  'All Metrics',
+                  style: TextStyle(color: AppTheme.colors['primaryText']),
+                ),
               ),
               DropdownMenuItem(
-                value: 'Meal Tracking',
-                child: Text('Meal Tracking', style: TextStyle(color: AppTheme.colors['primaryText'],)),
+                value: 'food',
+                child: Text(
+                  'Meal Tracking',
+                  style: TextStyle(color: AppTheme.colors['primaryText']),
+                ),
               ),
               DropdownMenuItem(
-                value: 'Sleep',
-                child: Text('Sleep', style: TextStyle(color: AppTheme.colors['primaryText'],)),
+                value: 'sleep',
+                child: Text(
+                  'Sleep',
+                  style: TextStyle(color: AppTheme.colors['primaryText']),
+                ),
               ),
               DropdownMenuItem(
-                value: 'Steps',
-                child: Text('Steps', style: TextStyle(color: AppTheme.colors['primaryText'],)),
+                value: 'steps',
+                child: Text(
+                  'Steps',
+                  style: TextStyle(color: AppTheme.colors['primaryText']),
+                ),
               ),
               DropdownMenuItem(
-                value: 'Water',
-                child: Text('Water', style: TextStyle(color: AppTheme.colors['primaryText'],)),
+                value: 'water',
+                child: Text(
+                  'Water',
+                  style: TextStyle(color: AppTheme.colors['primaryText']),
+                ),
               ),
               DropdownMenuItem(
-                value: 'Weight',
-                child: Text('Weight', style: TextStyle(color: AppTheme.colors['primaryText'],)),
+                value: 'weight',
+                child: Text(
+                  'Weight',
+                  style: TextStyle(color: AppTheme.colors['primaryText']),
+                ),
               ),
             ],
           ),

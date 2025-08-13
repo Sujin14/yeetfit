@@ -1,12 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import '../../../../shared/theme/theme.dart';
 import '../../data/datasources/progress_datasource.dart';
 import '../../data/repositories/daily_progress_repository_impl.dart';
 import '../../domain/usecases/daily_progress.dart';
 import '../../domain/usecases/get_monthly_progress.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-
 
 // Repository provider
 final progressRepositoryProvider = Provider<ProgressRepositoryImpl>(
@@ -37,18 +37,14 @@ final monthlyProgressProvider = StateNotifierProvider.autoDispose
       ),
     );
 
-// Provider for daily progress color for a specific date
-final dailyProgressColorProvider = Provider.autoDispose.family<Color, String>((
-  ref,
-  userIdAndDate,
-) {
+// Provider for daily progress color
+final dailyProgressColorProvider = Provider.autoDispose.family<Color, String>((ref, userIdAndDate) {
   final parts = userIdAndDate.split('|');
   final userId = parts[0];
   final date = parts[1];
   final month = DateTime.parse(date).copyWith(day: 1);
   final metric = ref.watch(selectedMetricProvider);
   final monthlyData = ref.watch(monthlyProgressProvider(month)).value ?? [];
-  final today = DateTime.now().toIso8601String().split('T')[0];
 
   final progressEntry = monthlyData.firstWhere(
     (entry) => entry.date == date,
@@ -56,15 +52,14 @@ final dailyProgressColorProvider = Provider.autoDispose.family<Color, String>((
   );
   final progress = progressEntry.completionRate;
 
-  if (progress >= 0.8) return const Color(0xFF4CAF50);
-  if (progress >= 0.5) return const Color(0xFF81C784);
-  if (progress >= 0.2) return const Color(0xFFC8E6C9);
-  return const Color(0xFFE0E0E0);
+  if (progress >= 0.8) return AppTheme.colors['fullProgress']!;
+  if (progress >= 0.5) return AppTheme.colors['threeQuarterProgress']!;
+  if (progress >= 0.2) return AppTheme.colors['halfProgress']!;
+  return AppTheme.colors['noProgress']!;
 });
 
 // Notifier for monthly progress
-class MonthlyProgressNotifier
-    extends StateNotifier<AsyncValue<List<DailyProgress>>> {
+class MonthlyProgressNotifier extends StateNotifier<AsyncValue<List<DailyProgress>>> {
   final Ref _ref;
   final GetMonthlyProgress _getMonthlyProgress;
   final DateTime _month;
@@ -81,9 +76,7 @@ class MonthlyProgressNotifier
 
   Future<void> _fetchProgress() async {
     try {
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
       state = const AsyncValue.loading();
       final progress = await _getMonthlyProgress.call(_month, metric: _metric);
       if (mounted) {
@@ -99,6 +92,7 @@ class MonthlyProgressNotifier
         );
       }
     } catch (e, stackTrace) {
+      print('MonthlyProgressNotifier error: $e');
       if (mounted) {
         state = AsyncValue.error(e, stackTrace);
       }
@@ -106,9 +100,7 @@ class MonthlyProgressNotifier
   }
 
   Future<void> refresh() async {
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
     await _fetchProgress();
   }
 }
