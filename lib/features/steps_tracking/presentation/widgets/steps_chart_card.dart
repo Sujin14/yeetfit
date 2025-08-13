@@ -42,16 +42,13 @@ class StepsChartSection extends ConsumerWidget {
                   minY: 0,
                   barGroups: List.generate(7, (index) {
                     final data = chartData[index];
-                    final progressColor = ref.watch(
-                      dailyStepsProgressColorProvider('$userId|${data.date}'),
-                    );
+                    final progressColor =
+                        ref.watch(dailyStepsProgressColorProvider('$userId|${data.date}'));
                     return BarChartGroupData(
                       x: index,
                       barRods: [
                         BarChartRodData(
-                          toY: data.steps > data.goalSteps
-                              ? data.goalSteps.toDouble()
-                              : data.steps.toDouble(),
+                          toY: data.steps > data.goalSteps ? data.goalSteps.toDouble() : data.steps.toDouble(),
                           width: 18,
                           color: progressColor,
                           borderRadius: BorderRadius.circular(6),
@@ -73,34 +70,17 @@ class StepsChartSection extends ConsumerWidget {
                         showTitles: true,
                         reservedSize: 32,
                         getTitlesWidget: (value, _) {
-                          final date = startOfWeek.add(
-                            Duration(days: value.toInt()),
-                          );
-                          final isToday =
-                              date.year == now.year &&
-                              date.month == now.month &&
-                              date.day == now.day;
-                          final dayName = [
-                            'Mon',
-                            'Tue',
-                            'Wed',
-                            'Thu',
-                            'Fri',
-                            'Sat',
-                            'Sun',
-                          ][date.weekday - 1];
+                          final date = startOfWeek.add(Duration(days: value.toInt()));
+                          final isToday = date.year == now.year && date.month == now.month && date.day == now.day;
+                          final dayName = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][date.weekday - 1];
                           return Padding(
                             padding: const EdgeInsets.only(top: 8),
                             child: Text(
                               isToday ? 'Today' : dayName,
                               style: GoogleFonts.roboto(
                                 fontSize: 12,
-                                fontWeight: isToday
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                                color: isToday
-                                    ? AppTheme.colors['white']
-                                    : AppTheme.colors['white']!.withOpacity(0.6),
+                                fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
+                                color: isToday ? AppTheme.colors['white'] : AppTheme.colors['white']!.withOpacity(0.6),
                               ),
                             ),
                           );
@@ -128,12 +108,8 @@ class StepsChartSection extends ConsumerWidget {
                         },
                       ),
                     ),
-                    rightTitles: AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                    topTitles: AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
+                    rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
                   ),
                   barTouchData: BarTouchData(
                     enabled: true,
@@ -142,10 +118,7 @@ class StepsChartSection extends ConsumerWidget {
                         final data = chartData[group.x.toInt()];
                         return BarTooltipItem(
                           '${data.steps} 👟',
-                          GoogleFonts.roboto(
-                            color: Colors.white,
-                            fontSize: 12,
-                          ),
+                          GoogleFonts.roboto(color: Colors.white, fontSize: 12),
                         );
                       },
                     ),
@@ -155,7 +128,7 @@ class StepsChartSection extends ConsumerWidget {
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, _) => Text(
                 'Error: $error',
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: AppTheme.colors['white']),
               ),
             ),
           ),

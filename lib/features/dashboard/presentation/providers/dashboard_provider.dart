@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:rxdart/rxdart.dart';
 import '../../../meal_tracking/data/model/food_model.dart';
+import '../../../steps_tracking/presentation/providers/steps_provider.dart';
 import '../../../../shared/theme/theme.dart';
 
 final selectedDateProvider = StateProvider<DateTime>((ref) => DateTime.now());
@@ -69,7 +71,10 @@ final userDataFutureProvider = FutureProvider.family<Map<String, dynamic>?, Stri
 
 final dailyProgressStreamProvider = StreamProvider.family<Map<String, dynamic>, String>((ref, userId) async* {
   final date = ref.watch(selectedDateProvider).toIso8601String().split('T')[0];
-  print('dailyProgressStreamProvider: Streaming for userId=$userId, date=$date');
+  final today = DateTime.now().toIso8601String().split('T')[0];
+  if (kDebugMode) {
+    print('dailyProgressStreamProvider: Streaming for userId=$userId, date=$date');
+  }
 
   // Stream for user data
   final userStream = FirebaseFirestore.instance.collection('users').doc(userId).snapshots();
@@ -120,6 +125,10 @@ final dailyProgressStreamProvider = StreamProvider.family<Map<String, dynamic>, 
       .doc(date)
       .snapshots();
 
+  final stepsProviderStream = date == today
+      ? ref.watch(stepsCountStreamProvider(userId).stream)
+      : Stream.value(0.0);
+
   await for (final snapshots in CombineLatestStream.list([
     userStream,
     stepsStream,
@@ -127,13 +136,15 @@ final dailyProgressStreamProvider = StreamProvider.family<Map<String, dynamic>, 
     sleepStream,
     foodStream,
     weightStream,
-  ])) {
+    stepsProviderStream,
+  ] as Iterable<Stream>)) {
     final userDoc = snapshots[0] as DocumentSnapshot<Map<String, dynamic>>;
     final stepsDoc = snapshots[1] as DocumentSnapshot<Map<String, dynamic>>;
     final waterDoc = snapshots[2] as DocumentSnapshot<Map<String, dynamic>>;
     final sleepDoc = snapshots[3] as DocumentSnapshot<Map<String, dynamic>>;
     final foodSnapshot = snapshots[4] as QuerySnapshot<Map<String, dynamic>>;
     final weightDoc = snapshots[5] as DocumentSnapshot<Map<String, dynamic>>;
+    final liveSteps = snapshots[6] as double;
 
     // Process meal data
     double calories = 0.0;
@@ -187,45 +198,80 @@ final dailyProgressStreamProvider = StreamProvider.family<Map<String, dynamic>, 
         .doc('$date-goal')
         .get();
 
+    // Use live steps for today, otherwise fall back to Firestore
+    final steps = date == today && liveSteps > 0
+        ? liveSteps
+        : (stepsDoc.exists ? (stepsDoc.data()?['steps'] as num?)?.toDouble() ?? 0.0 : 0.0);
+    hasData = hasData || steps > 0 || stepsDoc.exists || waterDoc.exists || sleepDoc.exists || weightDoc.exists;
+
     // Build progress map
     final progress = {
-      'steps': stepsDoc.exists ? (stepsDoc.data()?['steps'] as num?)?.toDouble() ?? 0.0 : 0.0,
-      'stepsGoal': stepsGoalDoc.exists ? (stepsGoalDoc.data()?['goalSteps'] as num?)?.toDouble() ?? 10000.0 : 10000.0,
+      'steps': steps,
+      'stepsGoal': stepsGoalDoc.exists
+          ? (stepsGoalDoc.data()?['goalSteps'] as num?)?.toDouble() ?? 10000.0
+          : 10000.0,
       'stepsDescription': stepsDoc.exists && stepsDoc.data() != null
-          ? stepsDoc.data()!['description'] as String? ?? 'Steps improve heart health and boost stamina.'
+          ? stepsDoc.data()!['description'] as String? ??
+              'Steps improve heart health and boost stamina.'
           : 'Steps improve heart health and boost stamina.',
-      'water': waterDoc.exists ? (waterDoc.data()?['glassesConsumed'] as num?)?.toDouble() ?? 0.0 : 0.0,
-      'waterGoal': waterGoalDoc.exists ? (waterGoalDoc.data()?['goalGlasses'] as num?)?.toDouble() ?? 8.0 : 8.0,
+      'water': waterDoc.exists
+          ? (waterDoc.data()?['glassesConsumed'] as num?)?.toDouble() ?? 0.0
+          : 0.0,
+      'waterGoal': waterGoalDoc.exists
+          ? (waterGoalDoc.data()?['goalGlasses'] as num?)?.toDouble() ?? 8.0
+          : 8.0,
       'waterDescription': waterDoc.exists && waterDoc.data() != null
-          ? waterDoc.data()!['description'] as String? ?? 'Hydration supports metabolism and energy levels.'
+          ? waterDoc.data()!['description'] as String? ??
+              'Hydration supports metabolism and energy levels.'
           : 'Hydration supports metabolism and energy levels.',
       'calories': calories,
-      'caloriesGoal': foodGoalDoc.exists ? (foodGoalDoc.data()?['caloriesGoal'] as num?)?.toDouble() ?? 1750.0 : 1750.0,
+      'caloriesGoal': foodGoalDoc.exists
+          ? (foodGoalDoc.data()?['caloriesGoal'] as num?)?.toDouble() ?? 1750.0
+          : 1750.0,
       'protein': protein,
-      'proteinGoal': foodGoalDoc.exists ? (foodGoalDoc.data()?['proteinGoal'] as num?)?.toDouble() ?? 50.0 : 50.0,
+      'proteinGoal': foodGoalDoc.exists
+          ? (foodGoalDoc.data()?['proteinGoal'] as num?)?.toDouble() ?? 50.0
+          : 50.0,
       'carbs': carbs,
-      'carbsGoal': foodGoalDoc.exists ? (foodGoalDoc.data()?['carbsGoal'] as num?)?.toDouble() ?? 250.0 : 250.0,
+      'carbsGoal': foodGoalDoc.exists
+          ? (foodGoalDoc.data()?['carbsGoal'] as num?)?.toDouble() ?? 250.0
+          : 250.0,
       'fat': fat,
-      'fatGoal': foodGoalDoc.exists ? (foodGoalDoc.data()?['fatGoal'] as num?)?.toDouble() ?? 70.0 : 70.0,
+      'fatGoal': foodGoalDoc.exists
+          ? (foodGoalDoc.data()?['fatGoal'] as num?)?.toDouble() ?? 70.0
+          : 70.0,
       'caloriesDescription': foodGoalDoc.exists && foodGoalDoc.data() != null
-          ? foodGoalDoc.data()!['description'] as String? ?? 'Track your daily nutrition to meet your goals.'
+          ? foodGoalDoc.data()!['description'] as String? ??
+              'Track your daily nutrition to meet your goals.'
           : 'Track your daily nutrition to meet your goals.',
-      'sleep': sleepDoc.exists ? (sleepDoc.data()?['duration'] as num?)?.toDouble() ?? 0.0 : 0.0,
-      'sleepGoal': sleepGoalDoc.exists ? (sleepGoalDoc.data()?['goalHours'] as num?)?.toDouble() ?? 8.0 : 8.0,
+      'sleep': sleepDoc.exists
+          ? (sleepDoc.data()?['duration'] as num?)?.toDouble() ?? 0.0
+          : 0.0,
+      'sleepGoal': sleepGoalDoc.exists
+          ? (sleepGoalDoc.data()?['goalHours'] as num?)?.toDouble() ?? 8.0
+          : 8.0,
       'sleepDescription': sleepDoc.exists && sleepDoc.data() != null
-          ? sleepDoc.data()!['description'] as String? ?? 'Sleep enhances recovery and mental focus.'
+          ? sleepDoc.data()!['description'] as String? ??
+              'Sleep enhances recovery and mental focus.'
           : 'Sleep enhances recovery and mental focus.',
       'currentWeight': weightDoc.exists
-          ? (weightDoc.data()?['currentWeight'] as num?)?.toDouble() ?? (userDoc.data()?['currentWeight'] as num?)?.toDouble() ?? 77.0
+          ? (weightDoc.data()?['currentWeight'] as num?)?.toDouble() ??
+              (userDoc.data()?['currentWeight'] as num?)?.toDouble() ??
+              77.0
           : (userDoc.data()?['currentWeight'] as num?)?.toDouble() ?? 77.0,
       'weightGoal': weightDoc.exists
-          ? (weightDoc.data()?['goalWeight'] as num?)?.toDouble() ?? (userDoc.data()?['goalWeight'] as num?)?.toDouble() ?? 70.0
+          ? (weightDoc.data()?['goalWeight'] as num?)?.toDouble() ??
+              (userDoc.data()?['goalWeight'] as num?)?.toDouble() ??
+              70.0
           : (userDoc.data()?['goalWeight'] as num?)?.toDouble() ?? 70.0,
       'weightDescription': 'Track your weight to monitor progress.',
-      'hasData': stepsDoc.exists || waterDoc.exists || sleepDoc.exists || foodSnapshot.docs.isNotEmpty || weightDoc.exists,
+      'hasData': hasData,
     };
 
-    print('dailyProgressStreamProvider: Yielding progress for userId=$userId, date=$date, hasData=${progress['hasData']}');
+    if (kDebugMode) {
+      print(
+          'dailyProgressStreamProvider: Yielding progress for userId=$userId, date=$date, steps=$steps, hasData=${progress['hasData']}');
+    }
     yield progress;
   }
 });

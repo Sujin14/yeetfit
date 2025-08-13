@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../providers/steps_provider.dart';
-import '../widgets/steps_progress_card.dart';
+import 'steps_progress_card.dart';
 
 class StepsProgressCardContainer extends ConsumerWidget {
   final String userId;
@@ -16,12 +16,8 @@ class StepsProgressCardContainer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final stepsAsync = ref.watch(stepsCountProvider(userId));
-    final goalSteps = ref.watch(
-      stepsGoalProvider(userId).select((value) => value.value ?? 10000),
-    );
-    final progressColor = ref.watch(
-      dailyStepsProgressColorProvider('$userId|$today'),
-    );
+    final goalSteps = ref.watch(stepsGoalProvider(userId).select((value) => value.value ?? 10000));
+    final progressColor = ref.watch(dailyStepsProgressColorProvider('$userId|$today'));
 
     return stepsAsync.when(
       data: (steps) => StepsProgressCard(

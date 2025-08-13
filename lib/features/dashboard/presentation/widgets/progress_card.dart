@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:glassmorphism/glassmorphism.dart';
@@ -43,7 +44,9 @@ class ProgressCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    print('ProgressCard: Building $title with percent=$percent for userId=$userId, isLoading=$isLoading');
+    if (kDebugMode) {
+      print('ProgressCard: Building $title with percent=$percent for userId=$userId, isLoading=$isLoading');
+    }
     final progressColor = ref.watch(progressColorProvider(percent));
 
     return isLoading
@@ -55,7 +58,7 @@ class ProgressCard extends ConsumerWidget {
         : GestureDetector(
             onTap: route != null
                 ? () {
-                    print('ProgressCard: Navigating to $route for userId=$userId');
+                    if (kDebugMode) print('ProgressCard: Navigating to $route for userId=$userId');
                     context.push(route!, extra: userId);
                   }
                 : null,
@@ -66,7 +69,7 @@ class ProgressCard extends ConsumerWidget {
   Widget _buildCard(BuildContext context, {required Color progressColor}) {
     return GlassmorphicContainer(
       width: 340.w,
-      height: 200.h, // Reduced height
+      height: 200.h,
       borderRadius: 16.r,
       blur: 10,
       alignment: Alignment.center,
@@ -94,7 +97,7 @@ class ProgressCard extends ConsumerWidget {
               child: isLoading
                   ? _buildShimmerIndicator()
                   : CircularPercentIndicator(
-                      radius: 50.r, // Adjusted for smaller card
+                      radius: 50.r,
                       lineWidth: 8.w,
                       percent: percent.clamp(0.0, 1.0),
                       center: Icon(

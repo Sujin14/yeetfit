@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../steps_tracking/presentation/providers/steps_provider.dart';
 import '../providers/dashboard_provider.dart';
 import 'progress_card.dart';
 
@@ -28,7 +30,7 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
   @override
   void initState() {
     super.initState();
-    print('ProgressCardsList: Initializing for userId=${widget.userId}');
+    if (kDebugMode) print('ProgressCardsList: Initializing for userId=${widget.userId}');
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startAutoSwipe();
     });
@@ -39,7 +41,7 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
     _autoSwipeTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
       if (!mounted || !_pageController.hasClients) return;
       setState(() {
-        _currentPage = (_currentPage + 1) % 4; // Updated to 4 cards (steps, water, sleep, weight)
+        _currentPage = (_currentPage + 1) % 4; // 4 cards: steps, water, sleep, weight
         _pageController.animateToPage(
           _currentPage,
           duration: const Duration(milliseconds: 300),
@@ -52,14 +54,14 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
   void _onPageChanged(int index) {
     setState(() {
       _currentPage = index;
-      print('ProgressCardsList: Page changed to $index for userId=${widget.userId}');
+      if (kDebugMode) print('ProgressCardsList: Page changed to $index for userId=${widget.userId}');
     });
     _startAutoSwipe();
   }
 
   @override
   void dispose() {
-    print('ProgressCardsList: Disposing for userId=${widget.userId}');
+    if (kDebugMode) print('ProgressCardsList: Disposing for userId=${widget.userId}');
     _autoSwipeTimer?.cancel();
     _pageController.dispose();
     super.dispose();
@@ -68,10 +70,21 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
   @override
   Widget build(BuildContext context) {
     final progressAsync = ref.watch(dailyProgressStreamProvider(widget.userId));
+    final stepsAsync = ref.watch(stepsCountProvider(widget.userId));
 
     return progressAsync.when(
       data: (progress) {
-        if (!(progress['hasData'] ?? false)) {
+        // Combine Firestore data with real-time step count
+        final steps = stepsAsync.when(
+          data: (steps) => steps.toDouble(),
+          loading: () => progress['steps'] as double,
+          error: (_, __) => progress['steps'] as double,
+        );
+
+        final stepsGoal = progress['stepsGoal'] as double;
+        final stepsPercent = stepsGoal > 0 ? (steps / stepsGoal).clamp(0.0, 1.0) : 0.0;
+
+        if (!(progress['hasData'] ?? false) && steps == 0.0) {
           return GestureDetector(
             onTap: () => context.push('/modal/steps', extra: widget.userId),
             child: Container(
@@ -96,8 +109,8 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
         final cards = [
           ProgressCard(
             title: 'Steps',
-            percent: (progress['steps'] / progress['stepsGoal']).clamp(0.0, 1.0),
-            value: '${progress['steps'].toInt()}/${progress['stepsGoal'].toInt()} steps',
+            percent: stepsPercent,
+            value: '${steps.toInt()}/${stepsGoal.toInt()} steps',
             icon: Icons.directions_walk,
             description: progress['stepsDescription'],
             route: '/modal/steps',
@@ -135,7 +148,7 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
         return Column(
           children: [
             SizedBox(
-              height: 200.h, // Reduced height for smaller cards
+              height: 200.h,
               child: PageView(
                 controller: _pageController,
                 onPageChanged: _onPageChanged,

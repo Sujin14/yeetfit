@@ -41,9 +41,7 @@ class StepsGoalDialog extends ConsumerWidget {
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10.r),
-              borderSide: BorderSide(
-                color: AppTheme.colors['primaryText']!.withOpacity(0.8),
-              ),
+              borderSide: BorderSide(color: AppTheme.colors['primaryText']!.withOpacity(0.8)),
             ),
           ),
           keyboardType: TextInputType.number,

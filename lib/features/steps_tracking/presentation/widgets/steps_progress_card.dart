@@ -5,7 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../providers/steps_provider.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
-import 'steps_app_bar.dart';
+import '../screens/step_counter_screen.dart';
 import 'steps_goal_dialogue.dart';
 
 class StepsProgressCard extends ConsumerWidget {

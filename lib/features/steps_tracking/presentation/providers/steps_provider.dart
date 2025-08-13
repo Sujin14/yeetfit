@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:pedometer/pedometer.dart';
@@ -11,6 +12,7 @@ import '../../data/repositories/steps_repository_impl.dart';
 import '../../domain/usecases/get_steps_data.dart';
 import '../../domain/usecases/get_weekly_steps.dart';
 import '../../domain/usecases/set_steps_goal.dart';
+import '../../../../shared/theme/theme.dart';
 
 // Workmanager task identifier
 const String midnightResetTask = 'midnight_steps_reset_task';
@@ -33,97 +35,121 @@ final getWeeklyStepsDataProvider = Provider<GetWeeklyStepsData>(
   (ref) => GetWeeklyStepsData(ref.read(stepsRepositoryProvider)),
 );
 
-// Provider for steps count
-final stepsCountProvider = StateNotifierProvider.autoDispose
-    .family<StepsCountNotifier, AsyncValue<int>, String>(
-      (ref, userId) =>
-          StepsCountNotifier(ref, ref.read(getStepsDataProvider), userId),
-    );
+// StepsInitializer for handling initialization and Workmanager scheduling
+final stepsInitializerProvider = Provider<StepsInitializer>(
+  (ref) => StepsInitializer(ref),
+);
 
-// Provider for steps goal
-final stepsGoalProvider = StateNotifierProvider.autoDispose
-    .family<StepsGoalNotifier, AsyncValue<int>, String>(
-      (ref, userId) => StepsGoalNotifier(
-        ref,
-        ref.read(stepsRepositoryProvider),
-        ref.read(setStepsGoalProvider),
-        userId,
-      ),
+class StepsInitializer {
+  final Ref _ref;
+
+  StepsInitializer(this._ref);
+
+  Future<void> initStepCounter() async {
+    final status = await Permission.activityRecognition.request();
+    if (!status.isGranted) {
+      if (kDebugMode) print('Step tracking permission not granted.');
+      return;
+    }
+
+    try {
+      // Initialize pedometer with a simple check to ensure it's accessible
+      final stepCount = await Pedometer.stepCountStream.first.timeout(
+        const Duration(seconds: 5),
+        onTimeout: () => throw TimeoutException('Pedometer initialization timeout'),
+      );
+      if (kDebugMode) print('Steps detected: ${stepCount.steps}');
+    } catch (e) {
+      if (kDebugMode) print('Error initializing step counter: $e');
+    }
+  }
+
+  void scheduleWorkmanagerTask(String userId) {
+    Workmanager().registerPeriodicTask(
+      midnightResetTask,
+      midnightResetTask,
+      inputData: {'userId': userId},
+      frequency: const Duration(hours: 24),
+      initialDelay: _calculateInitialDelay(),
+      constraints: Constraints(networkType: NetworkType.connected),
     );
+  }
+
+  Duration _calculateInitialDelay() {
+    final now = DateTime.now();
+    final midnight = DateTime(now.year, now.month, now.day + 1);
+    return midnight.difference(now);
+  }
+}
+
+// Provider for steps count
+final stepsCountProvider =
+    StateNotifierProvider.autoDispose.family<StepsCountNotifier, AsyncValue<int>, String>(
+  (ref, userId) => StepsCountNotifier(ref, ref.read(getStepsDataProvider), userId),
+);
+
+final stepsCountStreamProvider = StreamProvider.family<double, String>((ref, userId) {
+  return ref.watch(stepsCountProvider(userId).notifier).stream.map(
+        (asyncValue) => asyncValue.value?.toDouble() ?? 0.0,
+      );
+});
+// Provider for steps goal
+final stepsGoalProvider =
+    StateNotifierProvider.autoDispose.family<StepsGoalNotifier, AsyncValue<int>, String>(
+  (ref, userId) => StepsGoalNotifier(
+    ref,
+    ref.read(stepsRepositoryProvider),
+    ref.read(setStepsGoalProvider),
+    userId,
+  ),
+);
 
 // Provider for calories burned
-final caloriesBurnedProvider = Provider.autoDispose.family<double, String>((
-  ref,
-  userId,
-) {
-  final steps = ref.watch(
-    stepsCountProvider(userId).select((value) => value.value ?? 0),
-  );
+final caloriesBurnedProvider = Provider.autoDispose.family<double, String>((ref, userId) {
+  final steps = ref.watch(stepsCountProvider(userId).select((value) => value.value ?? 0));
   return steps * 0.04; // 0.04 calories per step
 });
 
 // Provider for goal calories
-final goalCaloriesProvider = Provider.autoDispose.family<double, String>((
-  ref,
-  userId,
-) {
-  final goalSteps = ref.watch(
-    stepsGoalProvider(userId).select((value) => value.value ?? 10000),
-  );
+final goalCaloriesProvider = Provider.autoDispose.family<double, String>((ref, userId) {
+  final goalSteps = ref.watch(stepsGoalProvider(userId).select((value) => value.value ?? 10000));
   return goalSteps * 0.04; // 0.04 calories per step
 });
 
 // Provider for daily progress color
-final dailyStepsProgressColorProvider = Provider.autoDispose
-    .family<Color, String>((ref, userIdAndDate) {
-      final parts = userIdAndDate.split('|');
-      final userId = parts[0];
-      final date = parts[1];
-      final weeklyData = ref.watch(weeklyStepsDataProvider(userId)).value ?? [];
-      final today = DateTime.now().toIso8601String().split('T')[0];
-      final steps = date == today
-          ? ref.watch(
-              stepsCountProvider(userId).select((value) => value.value ?? 0),
-            )
-          : (weeklyData
-                .firstWhere(
-                  (entry) => entry.date == date,
-                  orElse: () => StepsData(
-                    date: date,
-                    steps: 0,
-                    goalSteps: 10000,
-                    caloriesBurned: 0.0,
-                  ),
-                )
-                .steps);
-      final goalSteps = date == today
-          ? ref.watch(
-              stepsGoalProvider(userId).select((value) => value.value ?? 10000),
-            )
-          : (weeklyData
-                .firstWhere(
-                  (entry) => entry.date == date,
-                  orElse: () => StepsData(
-                    date: date,
-                    steps: 0,
-                    goalSteps: 10000,
-                    caloriesBurned: 0.0,
-                  ),
-                )
-                .goalSteps);
-      final progress = goalSteps > 0 ? steps / goalSteps : 0.0;
+final dailyStepsProgressColorProvider =
+    Provider.autoDispose.family<Color, String>((ref, userIdAndDate) {
+  final parts = userIdAndDate.split('|');
+  final userId = parts[0];
+  final date = parts[1];
+  final weeklyData = ref.watch(weeklyStepsDataProvider(userId)).value ?? [];
+  final today = DateTime.now().toIso8601String().split('T')[0];
+  final steps = date == today
+      ? ref.watch(stepsCountProvider(userId).select((value) => value.value ?? 0))
+      : (weeklyData
+              .firstWhere(
+                (entry) => entry.date == date,
+                orElse: () => StepsData(date: date, steps: 0, goalSteps: 10000, caloriesBurned: 0.0),
+              )
+              .steps);
+  final goalSteps = date == today
+      ? ref.watch(stepsGoalProvider(userId).select((value) => value.value ?? 10000))
+      : (weeklyData
+              .firstWhere(
+                (entry) => entry.date == date,
+                orElse: () => StepsData(date: date, steps: 0, goalSteps: 10000, caloriesBurned: 0.0),
+              )
+              .goalSteps);
+  final progress = goalSteps > 0 ? steps / goalSteps : 0.0;
 
-      if (progress >= 1.0) return const Color(0xFF4CAF50); // Green for 100%
-      if (progress > 0.5) return const Color(0xFFFFEB3B); // Yellow for >50%
-      if (progress >= 0.25) return const Color(0xFFFF9800); // Orange for ~50%
-      return const Color(0xFFF44336); // Red for <25%
-    });
+  if (progress >= 1.0) return AppTheme.colors['fullProgress']!;
+  if (progress > 0.5) return AppTheme.colors['halfProgress']!;
+  if (progress >= 0.25) return AppTheme.colors['quarterProgress']!;
+  return AppTheme.colors['noProgress']!;
+});
 
 // Weekly Steps Data Provider
-final weeklyStepsDataProvider = FutureProvider.family<List<StepsData>, String>((
-  ref,
-  userId,
-) async {
+final weeklyStepsDataProvider = FutureProvider.family<List<StepsData>, String>((ref, userId) async {
   final asyncResult = await ref.read(getWeeklyStepsDataProvider).call(userId);
   return asyncResult.when(
     data: (data) => data,
@@ -133,10 +159,7 @@ final weeklyStepsDataProvider = FutureProvider.family<List<StepsData>, String>((
 });
 
 // Chart Data Provider
-final chartDataProvider = Provider.family<List<StepsData>, String>((
-  ref,
-  userId,
-) {
+final chartDataProvider = Provider.family<List<StepsData>, String>((ref, userId) {
   final weeklyData = ref.watch(weeklyStepsDataProvider(userId)).value ?? [];
   final today = DateTime.now().toIso8601String().split('T')[0];
   final todaySteps = ref.watch(stepsCountProvider(userId)).value ?? 0;
@@ -156,25 +179,15 @@ final chartDataProvider = Provider.family<List<StepsData>, String>((
     }
     return weeklyData.firstWhere(
       (entry) => entry.date == dateString,
-      orElse: () => StepsData(
-        date: dateString,
-        steps: 0,
-        goalSteps: 10000,
-        caloriesBurned: 0.0,
-      ),
+      orElse: () => StepsData(date: dateString, steps: 0, goalSteps: 10000, caloriesBurned: 0.0),
     );
   });
 });
 
 // Chart Configuration Provider
-final chartConfigProvider = Provider.family<Map<String, dynamic>, String>((
-  ref,
-  userId,
-) {
+final chartConfigProvider = Provider.family<Map<String, dynamic>, String>((ref, userId) {
   final chartData = ref.watch(chartDataProvider(userId));
-  final maxGoal = chartData
-      .map((e) => e.goalSteps.toDouble())
-      .reduce((a, b) => a > b ? a : b);
+  final maxGoal = chartData.map((e) => e.goalSteps.toDouble()).reduce((a, b) => a > b ? a : b);
   final maxY = (maxGoal * 1.2).ceilToDouble();
   final interval = _calculateInterval(maxGoal);
   return {'maxY': maxY, 'interval': interval};
@@ -198,30 +211,24 @@ String formatStepCount(double value) {
 }
 
 // Provider for StepsGoalDialog initial value
-final stepsGoalInitialValueProvider = Provider.family<String, String>((
-  ref,
-  userId,
-) {
+final stepsGoalInitialValueProvider = Provider.family<String, String>((ref, userId) {
   final goalSteps = ref.watch(stepsGoalProvider(userId)).value ?? 10000;
   return goalSteps.toString();
 });
 
 // Provider for StepsSuccessPage message
-final stepsSuccessMessageProvider = Provider.family<String, String>((
-  ref,
-  goal,
-) {
+final stepsSuccessMessageProvider = Provider.family<String, String>((ref, goal) {
   return 'You reached your step goal of $goal steps — keep moving! 🚶';
 });
 
-class StepsCountNotifier extends StateNotifier<AsyncValue<int>> {
+class StepsCountNotifier extends StateNotifier<AsyncValue<int>> with WidgetsBindingObserver {
   final Ref _ref;
   final GetStepsData _getStepsData;
   final String _userId;
 
   StreamSubscription<StepCount>? _stepCountStream;
-  int _initialStepCount = 0; // Pedometer's cumulative steps at app start
-  int _currentStepCount = 0; // Steps for the current day
+  int _initialStepCount = 0;
+  int _currentStepCount = 0;
   DateTime _lastResetTime = DateTime.now();
   static const String _lastStepCountKey = 'last_step_count';
   static const String _lastStepDateKey = 'last_step_date';
@@ -229,19 +236,15 @@ class StepsCountNotifier extends StateNotifier<AsyncValue<int>> {
   bool _isPedometerActive = true;
 
   StepsCountNotifier(this._ref, this._getStepsData, this._userId)
-    : super(const AsyncValue.loading()) {
+      : super(const AsyncValue.loading()) {
+    WidgetsBinding.instance.addObserver(this);
     _init();
   }
 
   Future<void> _init() async {
     try {
-      // Request permissions
       await _requestPermissions();
-
-      // Register Workmanager task
       await _initializeWorkmanager();
-
-      // Load last reset time and step data
       final now = DateTime.now();
       final prefs = await SharedPreferences.getInstance();
       final lastStepDate = prefs.getString('$_lastStepDateKey$_userId');
@@ -250,50 +253,47 @@ class StepsCountNotifier extends StateNotifier<AsyncValue<int>> {
       _lastResetTime = lastResetTimeString != null
           ? DateTime.parse(lastResetTimeString)
           : DateTime.now();
-
       final today = DateTime.now().toIso8601String().split('T')[0];
 
-      // Check if it's a new day
       if (lastStepDate != today && lastStepDate != null && lastStepCount > 0) {
         final goalSteps = await _getUserStepsGoal();
         await _saveSteps(lastStepDate, lastStepCount, goalSteps);
         await prefs.setInt('$_lastStepCountKey$_userId', 0);
         await prefs.setString('$_lastStepDateKey$_userId', today);
         _lastResetTime = DateTime(now.year, now.month, now.day);
-        await prefs.setString(
-          '$_lastResetTimeKey$_userId',
-          _lastResetTime.toIso8601String(),
-        );
+        await prefs.setString('$_lastResetTimeKey$_userId', _lastResetTime.toIso8601String());
       }
 
-      // Fetch initial step count from pedometer
       final initialStepCount = await _getInitialStepCount();
       if (initialStepCount != null) {
         _initialStepCount = initialStepCount;
       } else {
         _isPedometerActive = false;
-        state = AsyncValue.error(
-          'Failed to initialize pedometer',
-          StackTrace.current,
-        );
+        state = AsyncValue.error('Failed to initialize pedometer', StackTrace.current);
         return;
       }
 
-      // Fetch today's steps from Firestore or local storage
       final todayStepsData = await _getStepsData.call(_userId);
       _currentStepCount = todayStepsData?.steps ?? lastStepCount;
 
-      // Start pedometer stream
-      if (_isPedometerActive) {
-        _startListening();
-      }
-
-      // Sync local data to Firestore
+      if (_isPedometerActive) _startListening();
       await _ref.read(stepsRepositoryProvider).syncLocalData(_userId);
-
       state = AsyncValue.data(_currentStepCount);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      _stepCountStream?.cancel();
+      if (kDebugMode) print('StepsCountNotifier: App paused, pausing pedometer stream for userId=$_userId');
+    } else if (state == AppLifecycleState.resumed) {
+      if (_isPedometerActive) {
+        _startListening();
+        if (kDebugMode) print('StepsCountNotifier: App resumed, restarting pedometer stream for userId=$_userId');
+      }
     }
   }
 
@@ -308,12 +308,9 @@ class StepsCountNotifier extends StateNotifier<AsyncValue<int>> {
   Future<void> _requestPermissions() async {
     final status = await Permission.activityRecognition.request();
     if (!status.isGranted) {
-      print('StepsCountNotifier: Activity recognition permission not granted');
+      if (kDebugMode) print('StepsCountNotifier: Activity recognition permission not granted');
       _isPedometerActive = false;
-      state = AsyncValue.error(
-        'Permission denied for step tracking',
-        StackTrace.current,
-      );
+      state = AsyncValue.error('Permission denied for step tracking', StackTrace.current);
     }
   }
 
@@ -321,19 +318,15 @@ class StepsCountNotifier extends StateNotifier<AsyncValue<int>> {
     try {
       final completer = Completer<int>();
       final subscription = Pedometer.stepCountStream.listen(
-        (event) {
-          completer.complete(event.steps);
-        },
-        onError: (error) {
-          completer.completeError(error);
-        },
+        (event) => completer.complete(event.steps),
+        onError: (error) => completer.completeError(error),
         cancelOnError: true,
       );
       final steps = await completer.future.timeout(const Duration(seconds: 5));
       await subscription.cancel();
       return steps;
     } catch (e) {
-      print('StepsCountNotifier: Failed to get initial step count: $e');
+      if (kDebugMode) print('StepsCountNotifier: Failed to get initial step count: $e');
       return null;
     }
   }
@@ -373,7 +366,6 @@ class StepsCountNotifier extends StateNotifier<AsyncValue<int>> {
     final today = now.toIso8601String().split('T')[0];
     final prefs = await SharedPreferences.getInstance();
 
-    // Check for new day
     if (!_isSameDay(now, _lastResetTime)) {
       final prevSteps = _currentStepCount;
       final prevDate = _lastResetTime.toIso8601String().split('T')[0];
@@ -384,33 +376,24 @@ class StepsCountNotifier extends StateNotifier<AsyncValue<int>> {
       _initialStepCount = event.steps;
       _currentStepCount = 0;
       _lastResetTime = DateTime(now.year, now.month, now.day);
-      await prefs.setString(
-        '$_lastResetTimeKey$_userId',
-        _lastResetTime.toIso8601String(),
-      );
+      await prefs.setString('$_lastResetTimeKey$_userId', _lastResetTime.toIso8601String());
       await prefs.setInt('$_lastStepCountKey$_userId', 0);
       await prefs.setString('$_lastStepDateKey$_userId', today);
     } else {
-      // Calculate daily steps
       final newSteps = event.steps - _initialStepCount;
       if (newSteps >= 0) {
         _currentStepCount = newSteps;
       } else {
-        // Handle device reboot or pedometer reset
-        print(
-          'StepsCountNotifier: Reset detected, recalibrating initial step count',
-        );
+        if (kDebugMode) print('StepsCountNotifier: Reset detected, recalibrating initial step count');
         final todayStepsData = await _getStepsData.call(_userId);
         _initialStepCount = event.steps - (todayStepsData?.steps ?? 0);
         _currentStepCount = todayStepsData?.steps ?? 0;
       }
     }
 
-    // Save to local storage
     await prefs.setInt('$_lastStepCountKey$_userId', _currentStepCount);
     await prefs.setString('$_lastStepDateKey$_userId', today);
 
-    // Update Firestore every 100 steps
     if (_currentStepCount % 100 == 0 && _currentStepCount > 0) {
       final goalSteps = await _getUserStepsGoal();
       await _saveSteps(today, _currentStepCount, goalSteps);
@@ -420,10 +403,12 @@ class StepsCountNotifier extends StateNotifier<AsyncValue<int>> {
   }
 
   void _onStepCountError(error) {
-    print('StepsCountNotifier: Pedometer error: $error');
+    if (kDebugMode) print('StepsCountNotifier: Pedometer error: $error');
     _isPedometerActive = false;
     state = AsyncValue.error(error, StackTrace.current);
-    Future.delayed(const Duration(seconds: 5), _startListening);
+    Future.delayed(const Duration(seconds: 5), () {
+      if (_isPedometerActive) _startListening();
+    });
   }
 
   bool _isSameDay(DateTime a, DateTime b) {
@@ -434,11 +419,7 @@ class StepsCountNotifier extends StateNotifier<AsyncValue<int>> {
     try {
       state = const AsyncValue.loading();
       final goalSteps = await _getUserStepsGoal();
-      await _saveSteps(
-        DateTime.now().toIso8601String().split('T')[0],
-        _currentStepCount,
-        goalSteps,
-      );
+      await _saveSteps(DateTime.now().toIso8601String().split('T')[0], _currentStepCount, goalSteps);
       await _ref.read(stepsRepositoryProvider).syncLocalData(_userId);
       state = AsyncValue.data(_currentStepCount);
     } catch (e, st) {
@@ -457,6 +438,7 @@ class StepsCountNotifier extends StateNotifier<AsyncValue<int>> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _stepCountStream?.cancel();
     super.dispose();
   }
@@ -468,12 +450,8 @@ class StepsGoalNotifier extends StateNotifier<AsyncValue<int>> {
   final SetStepsGoal _setStepsGoal;
   final String _userId;
 
-  StepsGoalNotifier(
-    this._ref,
-    this._repository,
-    this._setStepsGoal,
-    this._userId,
-  ) : super(const AsyncValue.loading()) {
+  StepsGoalNotifier(this._ref, this._repository, this._setStepsGoal, this._userId)
+      : super(const AsyncValue.loading()) {
     _fetchGoal();
   }
 
@@ -497,6 +475,7 @@ class StepsGoalNotifier extends StateNotifier<AsyncValue<int>> {
   }
 }
 
+@pragma('vm:entry-point')
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     if (task == midnightResetTask) {
@@ -520,10 +499,7 @@ void callbackDispatcher() {
         );
         await prefs.setInt('last_step_count$userId', 0);
         await prefs.setString('last_step_date$userId', today);
-        await prefs.setString(
-          'last_reset_time$userId',
-          DateTime.now().toIso8601String(),
-        );
+        await prefs.setString('last_reset_time$userId', DateTime.now().toIso8601String());
       }
       return true;
     }

@@ -59,7 +59,10 @@ class StepsSuccessPage extends ConsumerWidget {
             ),
             child: Text(
               'Done',
-              style: GoogleFonts.roboto(fontSize: 16.sp, color: Colors.white),
+              style: GoogleFonts.roboto(
+                fontSize: 16.sp,
+                color: AppTheme.colors['white'],
+              ),
             ),
           ),
         ],

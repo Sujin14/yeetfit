@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../providers/steps_provider.dart';
-import '../widgets/steps_calories_card.dart';
+import 'steps_calories_card.dart';
 
 class StepsCaloriesCardContainer extends ConsumerWidget {
   final String userId;

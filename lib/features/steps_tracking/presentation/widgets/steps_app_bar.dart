@@ -3,8 +3,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-
 import '../../../../shared/theme/theme.dart';
 
 class StepsAppBar extends ConsumerWidget implements PreferredSizeWidget {
@@ -15,13 +13,15 @@ class StepsAppBar extends ConsumerWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userId = ref.watch(firebaseAuthProvider).currentUser?.uid;
     return AppBar(
       backgroundColor: AppTheme.colors['lightBackground'],
       elevation: 0,
       leading: IconButton(
         onPressed: () => context.go('/user-dashboard'),
-        icon: Icon(Icons.arrow_back_ios_new_rounded),
+        icon: Icon(
+          Icons.arrow_back_ios_new_rounded,
+          color: AppTheme.colors['onSurface'],
+        ),
       ),
       centerTitle: true,
       title: Text(
@@ -35,5 +35,3 @@ class StepsAppBar extends ConsumerWidget implements PreferredSizeWidget {
     );
   }
 }
-
-final firebaseAuthProvider = Provider((ref) => FirebaseAuth.instance);
