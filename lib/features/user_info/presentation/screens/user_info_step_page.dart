@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../providers/user_info_controller.dart';
+import '../providers/user_info_provider.dart';
 import '../widgets/user_info_stepper.dart';
 
 class UserInfoStepPage extends ConsumerWidget {

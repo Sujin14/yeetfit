@@ -1,37 +1,68 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../providers/user_info_controller.dart';
 import '../../domain/validators/user_info_validators.dart';
+import '../providers/user_info_provider.dart';
 
-class AgeInput extends ConsumerWidget {
+class AgeInput extends ConsumerStatefulWidget {
   final GlobalKey<FormState> formKey;
-  final void Function(int) onAgeChanged;
 
   const AgeInput({
     super.key,
     required this.formKey,
-    required this.onAgeChanged,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final userInfo = ref.watch(userInfoControllerProvider);
+  _AgeInputState createState() => _AgeInputState();
+}
+
+class _AgeInputState extends ConsumerState<AgeInput> {
+  late TextEditingController _ageController;
+
+  @override
+  void initState() {
+    super.initState();
+    final userInfo = ref.read(userInfoControllerProvider);
+    _ageController = TextEditingController(
+      text: userInfo.value?.age == 0 ? '' : userInfo.value!.age.toString(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _ageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = ref.read(userInfoControllerProvider.notifier);
 
     return Form(
-      key: formKey,
+      key: widget.formKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("What is your age?"),
-          const SizedBox(height: 8),
+          Text(
+            "What is your age?",
+            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
+          ),
+          SizedBox(height: 8.h),
           TextFormField(
-            initialValue: userInfo.value?.age == 0 ? '' : userInfo.value!.age.toString(),
-            decoration: const InputDecoration(hintText: "Enter your age"),
+            controller: _ageController,
+            decoration: InputDecoration(
+              hintText: "Enter your age",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              filled: true,
+              fillColor: Colors.grey[100],
+            ),
             keyboardType: TextInputType.number,
             validator: UserInfoValidators.validateAge,
-            onChanged: (val) {
-              final age = int.tryParse(val) ?? 0;
-              onAgeChanged(age);
+            onSaved: (value) {
+              final age = int.tryParse(value ?? '') ?? 0;
+              controller.setFormValue('age', age);
             },
           ),
         ],

@@ -4,7 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../shared/theme/theme.dart';
-import '../../../user_info/presentation/providers/user_info_controller.dart';
+import '../../../user_info/presentation/providers/user_info_provider.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/basic_info_card.dart';
 import '../widgets/food_preferences_card.dart';

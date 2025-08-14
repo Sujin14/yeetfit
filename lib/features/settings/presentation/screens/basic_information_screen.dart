@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../shared/theme/theme.dart';
-import '../../../user_info/presentation/providers/user_info_controller.dart';
+import '../../../user_info/presentation/providers/user_info_provider.dart';
 import '../widgets/basic_information_body.dart';
 
 class BasicInformationScreen extends ConsumerStatefulWidget {

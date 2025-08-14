@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../shared/widgets/shimmer_widget.dart';
-import '../providers/user_info_controller.dart';
+import '../providers/user_info_provider.dart';
 import '../widgets/activity_level_input.dart';
 import '../widgets/age_input.dart';
 import '../widgets/goal_input.dart';
@@ -27,14 +27,12 @@ class UserInfoStepper extends ConsumerWidget {
         case 0:
           return NameGenderInput(
             formKey: formKey,
-            onNameChanged: controller.updateName,
             onGenderChanged: controller.updateGender,
             onImageSelected: (image) => controller.updateProfileImage(image, context),
           );
         case 1:
           return AgeInput(
             formKey: formKey,
-            onAgeChanged: controller.updateAge,
           );
         case 2:
           return GoalInput(
@@ -44,12 +42,10 @@ class UserInfoStepper extends ConsumerWidget {
         case 3:
           return WeightInput(
             formKey: formKey,
-            onWeightChanged: controller.updateWeights,
           );
         case 4:
           return HeightInput(
             formKey: formKey,
-            onHeightChanged: controller.updateHeight,
           );
         case 5:
           return ActivityLevelDropdown(
@@ -59,7 +55,6 @@ class UserInfoStepper extends ConsumerWidget {
         case 6:
           return TimeDurationInput(
             formKey: formKey,
-            onDurationChanged: controller.updateTimeDuration,
           );
         default:
           return const SizedBox.shrink();
@@ -82,10 +77,21 @@ class UserInfoStepper extends ConsumerWidget {
               SizedBox(
                 width: 100.w,
                 height: 48.h,
-                child: ElevatedButton(
-                  onPressed: isSaving ? null : () => controller.previousStep(context, step),
-                  child: const Text('Previous'),
-                ),
+                child: isSaving
+                    ? ShimmerLoading(width: 100.w, height: 48.h)
+                    : TextButton(
+                        onPressed: () => controller.previousStep(context, step),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).primaryColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                        ),
+                        child: Text(
+                          'Previous',
+                          style: TextStyle(fontSize: 16.sp, color: Colors.white),
+                        ),
+                      ),
               )
             else
               const SizedBox.shrink(),
@@ -98,7 +104,16 @@ class UserInfoStepper extends ConsumerWidget {
                       onPressed: () => step < 6
                           ? controller.saveStepData(context, formKey, step)
                           : controller.submitUserData(context, formKey),
-                      child: Text(step < 6 ? 'Next' : 'Submit'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).primaryColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                      ),
+                      child: Text(
+                        step < 6 ? 'Next' : 'Submit',
+                        style: TextStyle(fontSize: 16.sp, color: Colors.white),
+                      ),
                     ),
             ),
           ],

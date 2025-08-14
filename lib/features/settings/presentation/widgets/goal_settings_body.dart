@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../shared/theme/theme.dart';
-import '../../../user_info/presentation/providers/user_info_controller.dart';
+import '../../../user_info/presentation/providers/user_info_provider.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/goal_card.dart';
 

@@ -11,7 +11,7 @@ import '../../../user_info/data/models/user_info_model.dart';
 import '../../../user_info/data/repositories/user_repository_impl.dart';
 import '../../../user_info/domain/usecases/save_user_info.dart';
 import '../../../user_info/domain/validators/user_info_validators.dart';
-import '../../../user_info/presentation/providers/user_info_controller.dart';
+import '../../../user_info/presentation/providers/user_info_provider.dart';
 
 
 final settingsControllerProvider = StateNotifierProvider<SettingsController, AsyncValue<void>>((ref) {

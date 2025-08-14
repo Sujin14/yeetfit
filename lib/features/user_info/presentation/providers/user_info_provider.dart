@@ -23,6 +23,7 @@ class UserInfoController extends StateNotifier<AsyncValue<UserInfoModel>> {
   final UserRepositoryImpl repository;
   int _currentStep = 0;
   bool _isSaving = false;
+  final Map<String, dynamic> _formValues = {};
 
   UserInfoController(this.saveUserInfo, this.repository)
       : super(const AsyncValue.loading()) {
@@ -31,6 +32,10 @@ class UserInfoController extends StateNotifier<AsyncValue<UserInfoModel>> {
 
   int get currentStep => _currentStep;
   bool get isSaving => _isSaving;
+
+  void setFormValue(String key, dynamic value) {
+    _formValues[key] = value;
+  }
 
   Future<void> fetchUserData() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
@@ -100,7 +105,6 @@ class UserInfoController extends StateNotifier<AsyncValue<UserInfoModel>> {
   Future<void> updateProfileImage(XFile image, BuildContext context) async {
     if (_isSaving) return;
     _isSaving = true;
-    state = const AsyncValue.loading();
     try {
       final uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid == null) {
@@ -109,10 +113,11 @@ class UserInfoController extends StateNotifier<AsyncValue<UserInfoModel>> {
       final storageRef = FirebaseStorage.instance.ref().child('users/$uid/profile.jpg');
       await storageRef.putFile(File(image.path));
       final url = await storageRef.getDownloadURL();
-      final currentUserInfo = state.value ?? UserInfoModel(uid: uid);
-      final updatedUserInfo = currentUserInfo.copyWith(profileImageUrl: url);
-      await saveUserInfo(updatedUserInfo);
-      state = AsyncValue.data(updatedUserInfo);
+      state.whenData((userInfo) {
+        final updatedUserInfo = userInfo.copyWith(profileImageUrl: url);
+        state = AsyncValue.data(updatedUserInfo);
+        saveUserInfo(updatedUserInfo);
+      });
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -139,7 +144,6 @@ class UserInfoController extends StateNotifier<AsyncValue<UserInfoModel>> {
           );
         }
       }
-      state = AsyncValue.data(state.value ?? UserInfoModel(uid: FirebaseAuth.instance.currentUser?.uid ?? ''));
       state = AsyncValue.error(e, stackTrace);
     } finally {
       _isSaving = false;
@@ -196,27 +200,27 @@ class UserInfoController extends StateNotifier<AsyncValue<UserInfoModel>> {
     String? error;
     switch (step) {
       case 0:
-        error = UserInfoValidators.validateName(userInfo.name) ??
-                UserInfoValidators.validateGender(userInfo.gender);
+        error = UserInfoValidators.validateName(_formValues['name'] ?? userInfo.name) ??
+                UserInfoValidators.validateGender(_formValues['gender'] ?? userInfo.gender);
         break;
       case 1:
-        error = UserInfoValidators.validateAge(userInfo.age.toString());
+        error = UserInfoValidators.validateAge(_formValues['age']?.toString() ?? userInfo.age.toString());
         break;
       case 2:
-        error = UserInfoValidators.validateGoal(userInfo.goal);
+        error = UserInfoValidators.validateGoal(_formValues['goal'] ?? userInfo.goal);
         break;
       case 3:
-        error = UserInfoValidators.validateWeight(userInfo.currentWeight.toString()) ??
-                UserInfoValidators.validateWeight(userInfo.goalWeight.toString());
+        error = UserInfoValidators.validateWeight(_formValues['currentWeight']?.toString() ?? userInfo.currentWeight.toString()) ??
+                UserInfoValidators.validateWeight(_formValues['goalWeight']?.toString() ?? userInfo.goalWeight.toString());
         break;
       case 4:
-        error = UserInfoValidators.validateHeight(userInfo.height.toString());
+        error = UserInfoValidators.validateHeight(_formValues['height']?.toString() ?? userInfo.height.toString());
         break;
       case 5:
-        error = UserInfoValidators.validateActivityLevel(userInfo.activityLevel);
+        error = UserInfoValidators.validateActivityLevel(_formValues['activityLevel'] ?? userInfo.activityLevel);
         break;
       case 6:
-        error = UserInfoValidators.validateTimeDuration(userInfo.timeDurationWeeks?.toString() ?? '');
+        error = UserInfoValidators.validateTimeDuration(_formValues['timeDurationWeeks']?.toString() ?? userInfo.timeDurationWeeks?.toString() ?? '');
         break;
     }
     return error == null;
@@ -236,29 +240,33 @@ class UserInfoController extends StateNotifier<AsyncValue<UserInfoModel>> {
       }
       return false;
     }
-    _isSaving = true;
-    state = const AsyncValue.loading();
     try {
+      _isSaving = true;
       final uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid == null) {
         throw Exception('User not authenticated');
       }
       state.whenData((userInfo) async {
-        final updatedUserInfo = userInfo.copyWith(uid: uid, email: FirebaseAuth.instance.currentUser?.email);
+        final updatedUserInfo = userInfo.copyWith(
+          uid: uid,
+          email: FirebaseAuth.instance.currentUser?.email,
+          name: _formValues['name'] ?? userInfo.name,
+          gender: _formValues['gender'] ?? userInfo.gender,
+          age: _formValues['age'] ?? userInfo.age,
+          goal: _formValues['goal'] ?? userInfo.goal,
+          currentWeight: _formValues['currentWeight'] ?? userInfo.currentWeight,
+          goalWeight: _formValues['goalWeight'] ?? userInfo.goalWeight,
+          height: _formValues['height'] ?? userInfo.height,
+          activityLevel: _formValues['activityLevel'] ?? userInfo.activityLevel,
+          timeDurationWeeks: _formValues['timeDurationWeeks'] ?? userInfo.timeDurationWeeks,
+        );
         await saveUserInfo(updatedUserInfo);
         state = AsyncValue.data(updatedUserInfo);
         _currentStep = step + 1;
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Step saved successfully'),
-              backgroundColor: Colors.green,
-            ),
-          );
           context.go('/user-info-step/$_currentStep');
         }
       });
-      _isSaving = false;
       return true;
     } catch (e, stackTrace) {
       if (context.mounted) {
@@ -270,8 +278,9 @@ class UserInfoController extends StateNotifier<AsyncValue<UserInfoModel>> {
         );
       }
       state = AsyncValue.error(e, stackTrace);
-      _isSaving = false;
       return false;
+    } finally {
+      _isSaving = false;
     }
   }
 
@@ -289,28 +298,24 @@ class UserInfoController extends StateNotifier<AsyncValue<UserInfoModel>> {
       }
       return false;
     }
-    _isSaving = true;
-    state = const AsyncValue.loading();
     try {
+      _isSaving = true;
       final uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid == null) {
         throw Exception('User not authenticated');
       }
       state.whenData((userInfo) async {
-        final updatedUserInfo = userInfo.copyWith(uid: uid, email: FirebaseAuth.instance.currentUser?.email);
+        final updatedUserInfo = userInfo.copyWith(
+          uid: uid,
+          email: FirebaseAuth.instance.currentUser?.email,
+          timeDurationWeeks: _formValues['timeDurationWeeks'] ?? userInfo.timeDurationWeeks,
+        );
         await saveUserInfo(updatedUserInfo);
         state = AsyncValue.data(updatedUserInfo);
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Profile created successfully'),
-              backgroundColor: Colors.green,
-            ),
-          );
           context.go('/user-dashboard');
         }
       });
-      _isSaving = false;
       return true;
     } catch (e, stackTrace) {
       if (context.mounted) {
@@ -322,15 +327,15 @@ class UserInfoController extends StateNotifier<AsyncValue<UserInfoModel>> {
         );
       }
       state = AsyncValue.error(e, stackTrace);
-      _isSaving = false;
       return false;
+    } finally {
+      _isSaving = false;
     }
   }
 
   Future<bool> saveUserData(BuildContext context) async {
     if (_isSaving) return false;
     _isSaving = true;
-    state = const AsyncValue.loading();
     try {
       final uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid == null) {
@@ -370,7 +375,6 @@ class UserInfoController extends StateNotifier<AsyncValue<UserInfoModel>> {
   Future<bool> deleteUserData(BuildContext context) async {
     if (_isSaving) return false;
     _isSaving = true;
-    state = const AsyncValue.loading();
     try {
       final uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid == null) {

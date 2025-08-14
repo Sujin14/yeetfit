@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../providers/user_info_controller.dart';
 import '../../domain/validators/user_info_validators.dart';
+import '../providers/user_info_provider.dart';
 
 class WeightInput extends ConsumerStatefulWidget {
   final GlobalKey<FormState> formKey;
-  final void Function({double? current, double? goal}) onWeightChanged;
 
   const WeightInput({
     super.key,
     required this.formKey,
-    required this.onWeightChanged,
   });
 
   @override
@@ -42,38 +41,56 @@ class _WeightInputState extends ConsumerState<WeightInput> {
 
   @override
   Widget build(BuildContext context) {
+    final controller = ref.read(userInfoControllerProvider.notifier);
+
     return Form(
       key: widget.formKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("What is your current weight?"),
-          const SizedBox(height: 8),
+          Text(
+            "What is your current weight?",
+            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
+          ),
+          SizedBox(height: 8.h),
           TextFormField(
             controller: _currentWeightController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               hintText: "Enter current weight (kg)",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              filled: true,
+              fillColor: Colors.grey[100],
             ),
             keyboardType: TextInputType.number,
             validator: UserInfoValidators.validateWeight,
-            onChanged: (val) {
-              final weight = double.tryParse(val) ?? 0;
-              widget.onWeightChanged(current: weight);
+            onSaved: (value) {
+              final weight = double.tryParse(value ?? '') ?? 0;
+              controller.setFormValue('currentWeight', weight);
             },
           ),
-          const SizedBox(height: 24),
-          const Text("What is your goal weight?"),
-          const SizedBox(height: 8),
+          SizedBox(height: 24.h),
+          Text(
+            "What is your goal weight?",
+            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
+          ),
+          SizedBox(height: 8.h),
           TextFormField(
             controller: _goalWeightController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               hintText: "Enter goal weight (kg)",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              filled: true,
+              fillColor: Colors.grey[100],
             ),
             keyboardType: TextInputType.number,
             validator: UserInfoValidators.validateWeight,
-            onChanged: (val) {
-              final weight = double.tryParse(val) ?? 0;
-              widget.onWeightChanged(goal: weight);
+            onSaved: (value) {
+              final weight = double.tryParse(value ?? '') ?? 0;
+              controller.setFormValue('goalWeight', weight);
             },
           ),
         ],

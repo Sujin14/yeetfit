@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../providers/user_info_controller.dart';
 import '../../domain/validators/user_info_validators.dart';
+import '../providers/user_info_provider.dart';
 
 class TimeDurationInput extends ConsumerStatefulWidget {
   final GlobalKey<FormState> formKey;
-  final void Function(int) onDurationChanged;
 
   const TimeDurationInput({
     super.key,
     required this.formKey,
-    required this.onDurationChanged,
   });
 
   @override
@@ -37,24 +36,33 @@ class _TimeDurationInputState extends ConsumerState<TimeDurationInput> {
 
   @override
   Widget build(BuildContext context) {
+    final controller = ref.read(userInfoControllerProvider.notifier);
+
     return Form(
       key: widget.formKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("In how many weeks do you want to achieve your goal?"),
-          const SizedBox(height: 8),
+          Text(
+            "In how many weeks do you want to achieve your goal?",
+            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
+          ),
+          SizedBox(height: 8.h),
           TextFormField(
             controller: _timeDurationController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               hintText: "Enter duration (weeks)",
-              border: OutlineInputBorder(),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              filled: true,
+              fillColor: Colors.grey[100],
             ),
             keyboardType: TextInputType.number,
             validator: UserInfoValidators.validateTimeDuration,
-            onChanged: (val) {
-              final duration = int.tryParse(val) ?? 0;
-              widget.onDurationChanged(duration);
+            onSaved: (value) {
+              final duration = int.tryParse(value ?? '') ?? 0;
+              controller.setFormValue('timeDurationWeeks', duration);
             },
           ),
         ],

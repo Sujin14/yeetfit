@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../providers/user_info_controller.dart';
 import '../../domain/validators/user_info_validators.dart';
+import '../providers/user_info_provider.dart';
 
 class GoalInput extends ConsumerWidget {
   final GlobalKey<FormState> formKey;
@@ -23,13 +24,20 @@ class GoalInput extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("What is your fitness goal?"),
-          const SizedBox(height: 8),
+          Text(
+            "What is your fitness goal?",
+            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
+          ),
+          SizedBox(height: 8.h),
           DropdownButtonFormField<String>(
             value: userInfo.value?.goal.isEmpty ?? true ? null : userInfo.value!.goal,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               hintText: "Select your goal",
-              border: OutlineInputBorder(),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              filled: true,
+              fillColor: Colors.grey[100],
             ),
             items: goals.map((goal) {
               return DropdownMenuItem<String>(value: goal, child: Text(goal));
