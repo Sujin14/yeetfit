@@ -37,7 +37,7 @@ final paymentControllerProvider = StateNotifierProvider<PaymentController, Payme
 
 final adminIdProvider = FutureProvider<String>((ref) async {
   final doc = await FirebaseFirestore.instance.collection('config').doc('app').get();
-  return doc.data()?['adminId'] ?? 'KzWEi9szv2dg9wvEKN6ZEGmZt7L2';
+  return doc.data()?['adminId'] ?? 'sE3BqpyZP4hwVF55fbo26UMZbn22';
 });
 
 final paymentStatusProvider = StreamProvider<bool>((ref) async* {

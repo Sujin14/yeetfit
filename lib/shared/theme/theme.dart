@@ -20,7 +20,7 @@ class AppTheme {
     'gradientTextMiddle': Color.fromRGBO(142, 197, 252, 0.7),
     'gradientTextEnd': Color(0xFFE0C3FC),
     'deepOrange': Color(0xFFFF5722),
-    'teal': Color(0xFF26A69A),
+    'teal': Color(0xFF26A69A), 
     'indigo': Color(0xFF3F51B5),
     'onSurface': Color(0xFF212121),
     'onSurfaceDark': Color.fromRGBO(245, 245, 245, 0.9),

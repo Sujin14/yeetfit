@@ -19,7 +19,7 @@ class PaymentScreen extends ConsumerWidget {
 
     ref.listen<PaymentState>(paymentControllerProvider, (previous, next) {
       if (next.success) {
-        context.go('/chat', extra: 'KzWEi9szv2dg9wvEKN6ZEGmZt7L2');
+        context.go('/admin-list');
       }
     });
 

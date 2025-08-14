@@ -30,6 +30,7 @@ import 'package:yeetfit/shared/widgets/custom_appbar.dart';
 import 'package:yeetfit/shared/widgets/bottom_nav_bar.dart';
 import 'package:yeetfit/features/water_tracking/presentation/widgets/water_success_page.dart';
 import 'package:yeetfit/features/chat/presentation/screens/chat_screen.dart';
+import 'package:yeetfit/features/chat/presentation/screens/admin_list_screen.dart';
 import 'package:yeetfit/features/chatbot/presentation/screens/chatbot_screen.dart';
 import 'package:yeetfit/features/dashboard/presentation/widgets/calendar_dialog.dart';
 import 'package:yeetfit/features/meal_tracking/data/model/food_model.dart';
@@ -37,11 +38,10 @@ import 'package:yeetfit/features/meal_tracking/presentation/screens/nutrition_de
 import 'package:yeetfit/features/payment/presentation/screens/payment_screen.dart';
 import 'package:yeetfit/features/steps_tracking/presentation/widgets/steps_success_page.dart';
 import 'package:yeetfit/features/weight_tracking/presentation/widgets/weight_success_page.dart';
-
-import '../../features/settings/presentation/screens/about_screen.dart';
-import '../../features/settings/presentation/screens/food_preference_screen.dart';
-import '../../features/settings/presentation/screens/help_screen.dart';
-import '../../features/settings/presentation/screens/terms_and_conditions_screen.dart';
+import 'package:yeetfit/features/settings/presentation/screens/about_screen.dart';
+import 'package:yeetfit/features/settings/presentation/screens/food_preference_screen.dart';
+import 'package:yeetfit/features/settings/presentation/screens/help_screen.dart';
+import 'package:yeetfit/features/settings/presentation/screens/terms_and_conditions_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/',
@@ -149,6 +149,14 @@ final GoRouter appRouter = GoRouter(
         return StepsSuccessPage(goal: goal);
       },
     ),
+    GoRoute(
+      path: '/admin-list',
+      builder: (context, state) => const AdminListScreen(),
+    ),
+    GoRoute(
+      path: '/chat',
+      builder: (context, state) => ChatScreen(adminId: state.extra as String),
+    ),
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
         return ShellScaffold(navigationShell: navigationShell);
@@ -213,10 +221,6 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const PaymentScreen(),
     ),
     GoRoute(
-      path: '/chat',
-      builder: (context, state) => ChatScreen(adminId: state.extra as String),
-    ),
-    GoRoute(
       path: '/chatbot',
       builder: (context, state) => const ChatbotScreen(),
     ),
@@ -227,7 +231,7 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const TermsAndConditionsScreen(),
     ),
     GoRoute(
-      path: '/contact_us',
+      path: '/contact-us',
       builder: (context, state) => const ContactUsScreen(),
     ),
     GoRoute(
