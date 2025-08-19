@@ -43,7 +43,7 @@ class AppTheme {
     'bmiNormal': Color(0xFF4CAF50),
     'bmiOverweight': Color(0xFFFFD700),
     'bmiObese': Color(0xFFFFB347),
-    'orangeAccent': Colors.orangeAccent
+    'orangeAccent': Colors.orangeAccent,
   };
 
   static final textStyles = {
