@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../shared/theme/theme.dart';
 
@@ -12,8 +14,9 @@ class SignInRedirect extends StatelessWidget {
       child: Text(
         "Already have an account? Sign in",
         style: AppTheme.textStyles['body']!.copyWith(
+          fontSize: (kIsWeb ? 14.sp : 12.sp).clamp(10.0, 14.0),
           fontWeight: FontWeight.bold,
-          color: Theme.of(context).colorScheme.primary,
+          color: AppTheme.colors['primaryAccent'],
         ),
       ),
     );

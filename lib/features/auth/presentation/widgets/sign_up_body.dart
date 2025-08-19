@@ -17,56 +17,59 @@ class SignUpBody extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           'User Registration',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 22.sp),
+          style: AppTheme.textStyles['titleMedium']!.copyWith(
+            fontSize: (kIsWeb ? 22.sp : 20.sp).clamp(18.0, 22.0),
+            color: AppTheme.colors['primaryText'],
+          ),
         ),
         backgroundColor: AppTheme.colors['transparent']!,
         elevation: 0,
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final maxWidth = kIsWeb ? 600.0 : constraints.maxWidth;
-          return Center(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: maxWidth),
-              child: Column(
-                children: [
-                  const SignUpHeader(),
-                  SizedBox(height: kIsWeb ? 30.h : 40.h),
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).highlightColor,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(30.r),
-                          topRight: Radius.circular(30.r),
-                        ),
+      body: Column(
+        children: [
+          SignUpHeader(),
+          SizedBox(height: kIsWeb ? 30.h : 20.h),
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).highlightColor,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(30.r),
+                  topRight: Radius.circular(30.r),
+                ),
+              ),
+              padding: EdgeInsets.symmetric(
+                horizontal: kIsWeb ? 40.w : 24.w,
+                vertical: kIsWeb ? 24.h : 16.h,
+              ),
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: kIsWeb ? 400.w : 350.w,
                       ),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: kIsWeb ? 32.w : 24.w,
-                        vertical: kIsWeb ? 24.h : 16.h,
-                      ),
-                      child: SingleChildScrollView(
-                        physics: const BouncingScrollPhysics(),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SignUpForm(),
-                            SizedBox(height: 30.h),
-                            const LoginOptionsDivider(),
-                            SizedBox(height: 30.h),
-                            const LoginSocialButtons(),
-                            SizedBox(height: 30.h),
-                            const Center(child: SignInRedirect()),
-                          ],
-                        ),
-                      ),
+                      child: const SignUpForm(),
                     ),
-                  ),
-                ],
+                    SizedBox(height: 30.h),
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: kIsWeb ? 400.w : 350.w,
+                      ),
+                      child: const LoginOptionsDivider(),
+                    ),
+                    SizedBox(height: 30.h),
+                    const LoginSocialButtons(),
+                    SizedBox(height: 30.h),
+                    const Center(child: SignInRedirect()),
+                  ],
+                ),
               ),
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
