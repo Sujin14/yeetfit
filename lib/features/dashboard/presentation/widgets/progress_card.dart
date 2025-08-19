@@ -45,7 +45,9 @@ class ProgressCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (kDebugMode) {
-      print('ProgressCard: Building $title with percent=$percent for userId=$userId, isLoading=$isLoading');
+      print(
+        'ProgressCard: Building $title with percent=$percent for userId=$userId, isLoading=$isLoading',
+      );
     }
     final progressColor = ref.watch(progressColorProvider(percent));
 
@@ -53,12 +55,18 @@ class ProgressCard extends ConsumerWidget {
         ? Shimmer.fromColors(
             baseColor: AppTheme.colors['secondaryText']!.withOpacity(0.2),
             highlightColor: AppTheme.colors['secondaryText']!.withOpacity(0.4),
-            child: _buildCard(context, progressColor: AppTheme.colors['secondaryText']!),
+            child: _buildCard(
+              context,
+              progressColor: AppTheme.colors['secondaryText']!,
+            ),
           )
         : GestureDetector(
             onTap: route != null
                 ? () {
-                    if (kDebugMode) print('ProgressCard: Navigating to $route for userId=$userId');
+                    if (kDebugMode)
+                      print(
+                        'ProgressCard: Navigating to $route for userId=$userId',
+                      );
                     context.push(route!, extra: userId);
                   }
                 : null,
@@ -106,7 +114,8 @@ class ProgressCard extends ConsumerWidget {
                         color: AppTheme.colors['primaryText'],
                       ),
                       progressColor: progressColor,
-                      backgroundColor: AppTheme.colors['secondaryText']!.withOpacity(0.2),
+                      backgroundColor: AppTheme.colors['secondaryText']!
+                          .withOpacity(0.2),
                       circularStrokeCap: CircularStrokeCap.round,
                     ),
             ),
@@ -141,7 +150,8 @@ class ProgressCard extends ConsumerWidget {
                           description,
                           style: AppTheme.textStyles['body']!.copyWith(
                             fontSize: 10.sp,
-                            color: AppTheme.colors['secondaryText']!.withOpacity(0.7),
+                            color: AppTheme.colors['secondaryText']!
+                                .withOpacity(0.7),
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -170,23 +180,11 @@ class ProgressCard extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: 100.w,
-          height: 14.h,
-          color: AppTheme.colors['white'],
-        ),
+        Container(width: 100.w, height: 14.h, color: AppTheme.colors['white']),
         SizedBox(height: 4.h),
-        Container(
-          width: 80.w,
-          height: 12.h,
-          color: AppTheme.colors['white'],
-        ),
+        Container(width: 80.w, height: 12.h, color: AppTheme.colors['white']),
         SizedBox(height: 4.h),
-        Container(
-          width: 150.w,
-          height: 20.h,
-          color: AppTheme.colors['white'],
-        ),
+        Container(width: 150.w, height: 20.h, color: AppTheme.colors['white']),
       ],
     );
   }

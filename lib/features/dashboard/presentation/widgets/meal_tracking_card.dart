@@ -20,8 +20,11 @@ class MealTrackingCard extends ConsumerWidget {
     this.isLoading = false,
   });
 
-  const MealTrackingCard.loading({super.key, this.progress, required this.userId})
-      : isLoading = true;
+  const MealTrackingCard.loading({
+    super.key,
+    this.progress,
+    required this.userId,
+  }) : isLoading = true;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -41,7 +44,6 @@ class MealTrackingCard extends ConsumerWidget {
 
     return progressAsync.when(
       data: (data) {
-        final hasData = data['hasData'] ?? false;
         final calories = data['calories']?.toDouble() ?? 0.0;
         final caloriesGoal = data['caloriesGoal']?.toDouble() ?? 3500.0;
         final protein = data['protein']?.toDouble() ?? 0.0;
@@ -51,46 +53,9 @@ class MealTrackingCard extends ConsumerWidget {
         final fat = data['fat']?.toDouble() ?? 0.0;
         final fatGoal = data['fatGoal']?.toDouble() ?? 70.0;
 
-        print('MealTrackingCard: Building for userId=$userId, calories=$calories/$caloriesGoal');
-
-        if (!hasData) {
-          return GestureDetector(
-            onTap: () => context.push('/modal/food', extra: userId),
-            child: GlassmorphicContainer(
-              width: double.infinity,
-              height: 220.h,
-              borderRadius: 16.r,
-              blur: 10,
-              alignment: Alignment.center,
-              border: 1.5,
-              linearGradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppTheme.colors['navigationAccent']!.withOpacity(0.1),
-                  AppTheme.colors['navigationAccent']!.withOpacity(0.05),
-                ],
-              ),
-              borderGradient: LinearGradient(
-                colors: [
-                  AppTheme.colors['gradientTextStart']!,
-                  AppTheme.colors['gradientTextEnd']!,
-                ],
-              ),
-              child: Padding(
-                padding: EdgeInsets.all(12.w),
-                child: Text(
-                  'No meal data added for this day. Tap to add data.',
-                  style: AppTheme.textStyles['body']!.copyWith(
-                    fontSize: 16.sp,
-                    color: AppTheme.colors['primaryText'],
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-          );
-        }
+        print(
+          'MealTrackingCard: Building for userId=$userId, calories=$calories/$caloriesGoal',
+        );
 
         return GestureDetector(
           onTap: () => context.push('/modal/food', extra: userId),
@@ -142,34 +107,59 @@ class MealTrackingCard extends ConsumerWidget {
                                     CircularPercentIndicator(
                                       radius: 60.r,
                                       lineWidth: 10.w,
-                                      percent: (calories / caloriesGoal).clamp(0.0, 1.0),
-                                      progressColor: AppTheme.colors['caloriesProgress'],
-                                      backgroundColor: AppTheme.colors['secondaryText']!.withOpacity(0.2),
-                                      circularStrokeCap: CircularStrokeCap.round,
+                                      percent: (calories / caloriesGoal).clamp(
+                                        0.0,
+                                        1.0,
+                                      ),
+                                      progressColor:
+                                          AppTheme.colors['caloriesProgress'],
+                                      backgroundColor: AppTheme
+                                          .colors['secondaryText']!
+                                          .withOpacity(0.2),
+                                      circularStrokeCap:
+                                          CircularStrokeCap.round,
                                     ),
                                     CircularPercentIndicator(
                                       radius: 45.r,
                                       lineWidth: 8.w,
-                                      percent: (protein / proteinGoal).clamp(0.0, 1.0),
-                                      progressColor: AppTheme.colors['proteinProgress'],
-                                      backgroundColor: AppTheme.colors['secondaryText']!.withOpacity(0.2),
-                                      circularStrokeCap: CircularStrokeCap.round,
+                                      percent: (protein / proteinGoal).clamp(
+                                        0.0,
+                                        1.0,
+                                      ),
+                                      progressColor:
+                                          AppTheme.colors['proteinProgress'],
+                                      backgroundColor: AppTheme
+                                          .colors['secondaryText']!
+                                          .withOpacity(0.2),
+                                      circularStrokeCap:
+                                          CircularStrokeCap.round,
                                     ),
                                     CircularPercentIndicator(
                                       radius: 30.r,
                                       lineWidth: 6.w,
-                                      percent: (carbs / carbsGoal).clamp(0.0, 1.0),
-                                      progressColor: AppTheme.colors['carbsProgress'],
-                                      backgroundColor: AppTheme.colors['secondaryText']!.withOpacity(0.2),
-                                      circularStrokeCap: CircularStrokeCap.round,
+                                      percent: (carbs / carbsGoal).clamp(
+                                        0.0,
+                                        1.0,
+                                      ),
+                                      progressColor:
+                                          AppTheme.colors['carbsProgress'],
+                                      backgroundColor: AppTheme
+                                          .colors['secondaryText']!
+                                          .withOpacity(0.2),
+                                      circularStrokeCap:
+                                          CircularStrokeCap.round,
                                     ),
                                     CircularPercentIndicator(
                                       radius: 15.r,
                                       lineWidth: 4.w,
                                       percent: (fat / fatGoal).clamp(0.0, 1.0),
-                                      progressColor: AppTheme.colors['fatProgress'],
-                                      backgroundColor: AppTheme.colors['secondaryText']!.withOpacity(0.2),
-                                      circularStrokeCap: CircularStrokeCap.round,
+                                      progressColor:
+                                          AppTheme.colors['fatProgress'],
+                                      backgroundColor: AppTheme
+                                          .colors['secondaryText']!
+                                          .withOpacity(0.2),
+                                      circularStrokeCap:
+                                          CircularStrokeCap.round,
                                       center: Icon(
                                         Icons.local_fire_department,
                                         size: 10.sp,
@@ -199,10 +189,26 @@ class MealTrackingCard extends ConsumerWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
-                            _buildMacroContainer('Calories', '${calories.toInt()}/${caloriesGoal.toInt()} kcal', AppTheme.colors['caloriesProgress']!),
-                            _buildMacroContainer('Protein', '${protein.toInt()}/${proteinGoal.toInt()} g', AppTheme.colors['proteinProgress']!),
-                            _buildMacroContainer('Carbs', '${carbs.toInt()}/${carbsGoal.toInt()} g', AppTheme.colors['carbsProgress']!),
-                            _buildMacroContainer('Fat', '${fat.toInt()}/${fatGoal.toInt()} g', AppTheme.colors['fatProgress']!),
+                            _buildMacroContainer(
+                              'Calories',
+                              '${calories.toInt()}/${caloriesGoal.toInt()} kcal',
+                              AppTheme.colors['caloriesProgress']!,
+                            ),
+                            _buildMacroContainer(
+                              'Protein',
+                              '${protein.toInt()}/${proteinGoal.toInt()} g',
+                              AppTheme.colors['proteinProgress']!,
+                            ),
+                            _buildMacroContainer(
+                              'Carbs',
+                              '${carbs.toInt()}/${carbsGoal.toInt()} g',
+                              AppTheme.colors['carbsProgress']!,
+                            ),
+                            _buildMacroContainer(
+                              'Fat',
+                              '${fat.toInt()}/${fatGoal.toInt()} g',
+                              AppTheme.colors['fatProgress']!,
+                            ),
                           ],
                         ),
                       ],

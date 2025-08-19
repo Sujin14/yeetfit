@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:yeetfit/shared/widgets/drag_handle.dart';
-import '../../../../shared/theme/theme.dart';
 import '../providers/dashboard_provider.dart';
 import 'progress_card_list.dart';
 import 'meal_tracking_card.dart';
@@ -28,27 +26,6 @@ class DashboardBody extends ConsumerWidget {
           progressAsync.when(
             data: (progress) {
               print('DashboardBody: Progress data for userId=$userId: $progress');
-              if (!(progress['hasData'] ?? false)) {
-                return GestureDetector(
-                  onTap: () => context.push('/modal/food', extra: userId),
-                  child: Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.all(16.w),
-                    decoration: BoxDecoration(
-                      color: AppTheme.colors['secondaryText']!.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(16.r),
-                    ),
-                    child: Text(
-                      'No data added for this day. Tap to add data.',
-                      style: AppTheme.textStyles['body']!.copyWith(
-                        fontSize: 16.sp,
-                        color: AppTheme.colors['primaryText'],
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                );
-              }
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

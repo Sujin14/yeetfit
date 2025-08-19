@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-import 'package:go_router/go_router.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../steps_tracking/presentation/providers/steps_provider.dart';
 import '../providers/dashboard_provider.dart';
@@ -13,10 +12,7 @@ import 'progress_card.dart';
 class ProgressCardsList extends ConsumerStatefulWidget {
   final String userId;
 
-  const ProgressCardsList({
-    super.key,
-    required this.userId,
-  });
+  const ProgressCardsList({super.key, required this.userId});
 
   @override
   _ProgressCardsListState createState() => _ProgressCardsListState();
@@ -30,7 +26,8 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
   @override
   void initState() {
     super.initState();
-    if (kDebugMode) print('ProgressCardsList: Initializing for userId=${widget.userId}');
+    if (kDebugMode)
+      print('ProgressCardsList: Initializing for userId=${widget.userId}');
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startAutoSwipe();
     });
@@ -41,7 +38,8 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
     _autoSwipeTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
       if (!mounted || !_pageController.hasClients) return;
       setState(() {
-        _currentPage = (_currentPage + 1) % 4; // 4 cards: steps, water, sleep, weight
+        _currentPage =
+            (_currentPage + 1) % 4; // 4 cards: steps, water, sleep, weight
         _pageController.animateToPage(
           _currentPage,
           duration: const Duration(milliseconds: 300),
@@ -54,14 +52,18 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
   void _onPageChanged(int index) {
     setState(() {
       _currentPage = index;
-      if (kDebugMode) print('ProgressCardsList: Page changed to $index for userId=${widget.userId}');
+      if (kDebugMode)
+        print(
+          'ProgressCardsList: Page changed to $index for userId=${widget.userId}',
+        );
     });
     _startAutoSwipe();
   }
 
   @override
   void dispose() {
-    if (kDebugMode) print('ProgressCardsList: Disposing for userId=${widget.userId}');
+    if (kDebugMode)
+      print('ProgressCardsList: Disposing for userId=${widget.userId}');
     _autoSwipeTimer?.cancel();
     _pageController.dispose();
     super.dispose();
@@ -82,30 +84,9 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
         );
 
         final stepsGoal = progress['stepsGoal'] as double;
-        final stepsPercent = stepsGoal > 0 ? (steps / stepsGoal).clamp(0.0, 1.0) : 0.0;
-
-        if (!(progress['hasData'] ?? false) && steps == 0.0) {
-          return GestureDetector(
-            onTap: () => context.push('/modal/steps', extra: widget.userId),
-            child: Container(
-              width: double.infinity,
-              padding: EdgeInsets.all(16.w),
-              decoration: BoxDecoration(
-                color: AppTheme.colors['secondaryText']!.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(16.r),
-              ),
-              child: Text(
-                'No data added for this day. Tap to add data.',
-                style: AppTheme.textStyles['body']!.copyWith(
-                  fontSize: 16.sp,
-                  color: AppTheme.colors['primaryText'],
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          );
-        }
-
+        final stepsPercent = stepsGoal > 0
+            ? (steps / stepsGoal).clamp(0.0, 1.0)
+            : 0.0;
         final cards = [
           ProgressCard(
             title: 'Steps',
@@ -118,8 +99,12 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
           ),
           ProgressCard(
             title: 'Water',
-            percent: (progress['water'] / progress['waterGoal']).clamp(0.0, 1.0),
-            value: '${progress['water'].toInt()}/${progress['waterGoal'].toInt()} glasses',
+            percent: (progress['water'] / progress['waterGoal']).clamp(
+              0.0,
+              1.0,
+            ),
+            value:
+                '${progress['water'].toInt()}/${progress['waterGoal'].toInt()} glasses',
             icon: Icons.water_drop,
             description: progress['waterDescription'],
             route: '/modal/water',
@@ -127,8 +112,12 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
           ),
           ProgressCard(
             title: 'Sleep',
-            percent: (progress['sleep'] / progress['sleepGoal']).clamp(0.0, 1.0),
-            value: '${progress['sleep'].toStringAsFixed(1)}/${progress['sleepGoal'].toStringAsFixed(1)} h',
+            percent: (progress['sleep'] / progress['sleepGoal']).clamp(
+              0.0,
+              1.0,
+            ),
+            value:
+                '${progress['sleep'].toStringAsFixed(1)}/${progress['sleepGoal'].toStringAsFixed(1)} h',
             icon: Icons.bedtime,
             description: progress['sleepDescription'],
             route: '/modal/sleep',
@@ -136,8 +125,12 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
           ),
           ProgressCard(
             title: 'Weight',
-            percent: (progress['currentWeight'] / progress['weightGoal']).clamp(0.0, 1.0),
-            value: '${progress['currentWeight'].toStringAsFixed(1)}/${progress['weightGoal'].toStringAsFixed(1)} kg',
+            percent: (progress['currentWeight'] / progress['weightGoal']).clamp(
+              0.0,
+              1.0,
+            ),
+            value:
+                '${progress['currentWeight'].toStringAsFixed(1)}/${progress['weightGoal'].toStringAsFixed(1)} kg',
             icon: Icons.scale,
             description: progress['weightDescription'],
             route: '/modal/weight',

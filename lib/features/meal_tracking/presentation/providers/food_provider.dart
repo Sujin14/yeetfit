@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../data/datasources/food_datasource.dart';
 import '../../data/model/food_model.dart';
-import '../../data/repositories/food_repository.dart';
+import '../../domain/repositories/food_repository.dart';
 import '../../domain/usecases/food_usecases.dart';
 
 final foodRepositoryProvider = Provider<FoodRepositoryImpl>(
