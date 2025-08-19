@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yeetfit/shared/theme/theme.dart';
 import '../providers/onboarding_controller.dart';
 import 'onboarding_page.dart';
 
@@ -17,7 +18,6 @@ class _OnboardingBodyState extends ConsumerState<OnboardingBody> {
   @override
   void initState() {
     super.initState();
-    // Preload images when the widget is initialized
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(onboardingControllerProvider.notifier).preloadImages(context);
     });
@@ -80,7 +80,7 @@ class _OnboardingBodyState extends ConsumerState<OnboardingBody> {
                   height: kIsWeb ? 10.h : 8.h,
                   width: isActive ? (kIsWeb ? 24.w : 20.w) : (kIsWeb ? 10.w : 8.w),
                   decoration: BoxDecoration(
-                    color: Colors.orangeAccent,
+                    color: AppTheme.colors['orangeAccent'],
                     borderRadius: BorderRadius.circular(20.r),
                   ),
                 );

@@ -22,13 +22,12 @@ class OnboardingPage extends StatelessWidget {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            // Dynamic sizing based on screen height
             final maxHeight = constraints.maxHeight;
             final maxImageHeight = maxHeight * (kIsWeb ? 0.35 : 0.3);
             final fontSize = (kIsWeb ? 80.sp : 70.sp).clamp(
               30.0,
               60.0,
-            ); // Cap font size
+            );
 
             return Column(
               children: [
@@ -58,7 +57,7 @@ class OnboardingPage extends StatelessWidget {
                             ),
                           ],
                         ),
-                        softWrap: false, // Prevent text wrapping
+                        softWrap: false,
                       ),
                     ),
                   ),
@@ -111,11 +110,11 @@ class OnboardingPage extends StatelessWidget {
                               18.0,
                             ),
                           ),
-                          gradient: const LinearGradient(
+                          gradient: LinearGradient(
                             colors: [
-                              Colors.deepPurple,
-                              Colors.blue,
-                              Colors.yellow,
+                              AppTheme.colors['indigo']!,
+                              AppTheme.colors['caloriesProgress']!,
+                              AppTheme.colors['carbsProgress']!,
                             ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
