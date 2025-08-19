@@ -85,4 +85,5 @@ class EmailAuthController extends StateNotifier<bool> {
       context.go('/user-info-step/0');
     }
   }
+  
 }

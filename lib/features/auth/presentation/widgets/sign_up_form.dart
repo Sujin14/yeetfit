@@ -1,6 +1,9 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../shared/widgets/shimmer_widget.dart';
 import '../providers/email_auth_controller.dart';
 import '../../domain/validators/auth_validators.dart';
 
@@ -25,9 +28,9 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
       if (success) {
         context.go('/user-info-step/0');
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Signup failed')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Signup failed')),
+        );
       }
     }
   }
@@ -46,16 +49,19 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
             validator: AuthValidators.validateEmail,
             onSaved: (val) => _email = val ?? '',
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: kIsWeb ? 20.h : 16.h),
           TextFormField(
             decoration: const InputDecoration(labelText: 'Password'),
             obscureText: true,
             validator: AuthValidators.validatePassword,
             onSaved: (val) => _password = val ?? '',
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: kIsWeb ? 32.h : 24.h),
           isLoading
-              ? const CircularProgressIndicator()
+              ? ShimmerLoading(
+                  width: 100.w,
+                  height: 20.h,
+                )
               : ElevatedButton(
                   onPressed: () => _submit(context),
                   child: const Text("Sign Up"),

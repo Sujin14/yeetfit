@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:yeetfit/shared/theme/theme.dart';
 import 'login_options_divider.dart';
 import 'login_social_buttons.dart';
 import 'sign_in_redirect.dart';
@@ -15,45 +17,56 @@ class SignUpBody extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           'User Registration',
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontSize: 22.sp),
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 22.sp),
         ),
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppTheme.colors['transparent']!,
         elevation: 0,
       ),
-      body: Column(
-        children: [
-          const SignUpHeader(),
-          SizedBox(height: 40.h),
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).highlightColor,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(30.r),
-                  topRight: Radius.circular(30.r),
-                ),
-              ),
-              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SignUpForm(),
-                    SizedBox(height: 30.h),
-                    const LoginOptionsDivider(),
-                    SizedBox(height: 30.h),
-                    const LoginSocialButtons(),
-                    SizedBox(height: 30.h),
-                    const Center(child: SignInRedirect()),
-                  ],
-                ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final maxWidth = kIsWeb ? 600.0 : constraints.maxWidth;
+          return Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxWidth),
+              child: Column(
+                children: [
+                  const SignUpHeader(),
+                  SizedBox(height: kIsWeb ? 30.h : 40.h),
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).highlightColor,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(30.r),
+                          topRight: Radius.circular(30.r),
+                        ),
+                      ),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: kIsWeb ? 32.w : 24.w,
+                        vertical: kIsWeb ? 24.h : 16.h,
+                      ),
+                      child: SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SignUpForm(),
+                            SizedBox(height: 30.h),
+                            const LoginOptionsDivider(),
+                            SizedBox(height: 30.h),
+                            const LoginSocialButtons(),
+                            SizedBox(height: 30.h),
+                            const Center(child: SignInRedirect()),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }

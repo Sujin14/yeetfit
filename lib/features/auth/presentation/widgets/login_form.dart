@@ -1,6 +1,9 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:yeetfit/shared/widgets/shimmer_widget.dart';
 import '../providers/email_auth_controller.dart';
 import '../../domain/validators/auth_validators.dart';
 import 'forgot_password_button.dart';
@@ -55,7 +58,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
             ),
             validator: AuthValidators.validateEmail,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: kIsWeb ? 20.h : 16.h),
           TextFormField(
             controller: passwordController,
             obscureText: true,
@@ -65,18 +68,21 @@ class _LoginFormState extends ConsumerState<LoginForm> {
             ),
             validator: AuthValidators.validatePassword,
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: kIsWeb ? 12.h : 8.h),
           const Align(
             alignment: Alignment.centerRight,
             child: ForgotPasswordButton(),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: kIsWeb ? 32.h : 24.h),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               onPressed: isLoading ? null : _login,
               child: isLoading
-                  ? const CircularProgressIndicator(color: Colors.white)
+                  ? ShimmerLoading(
+                      width: 100.w,
+                      height: 20.h,
+                    )
                   : const Text('Login'),
             ),
           ),
