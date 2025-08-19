@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -15,24 +16,29 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Initialize Workmanager
-  await Workmanager().initialize(callbackDispatcher);
-
   final container = ProviderContainer();
   await container.read(notificationServiceProvider).init();
 
-  // Initialize step counter and Workmanager tasks
-  final stepsInitializer = container.read(stepsInitializerProvider);
-  await stepsInitializer.initStepCounter();
+  if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+    await Workmanager().initialize(callbackDispatcher);
 
-  FirebaseAuth.instance.authStateChanges().listen((User? user) {
-    if (user != null) {
-      if (kDebugMode) print('User signed in: ${user.uid}');
-      stepsInitializer.scheduleWorkmanagerTask(user.uid);
-    } else {
-      if (kDebugMode) print('No user signed in');
+    // Initialize step counter and Workmanager tasks
+    final stepsInitializer = container.read(stepsInitializerProvider);
+    await stepsInitializer.initStepCounter();
+
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      if (user != null) {
+        if (kDebugMode) print('User signed in: ${user.uid}');
+        stepsInitializer.scheduleWorkmanagerTask(user.uid);
+      } else {
+        if (kDebugMode) print('No user signed in');
+      }
+    });
+  } else {
+    if (kDebugMode) {
+      print("Workmanager is not supported on Web/Desktop");
     }
-  });
+  }
 
   runApp(const ProviderScope(child: YeetFitApp()));
 }
