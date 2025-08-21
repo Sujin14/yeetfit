@@ -76,7 +76,7 @@ class ProgressCard extends ConsumerWidget {
 
   Widget _buildCard(BuildContext context, {required Color progressColor}) {
     return GlassmorphicContainer(
-      width: 340.w,
+      width: 360.w,
       height: 200.h,
       borderRadius: 16.r,
       blur: 10,
@@ -96,6 +96,7 @@ class ProgressCard extends ConsumerWidget {
           AppTheme.colors['gradientTextEnd']!,
         ],
       ),
+       padding: EdgeInsets.symmetric(horizontal: 8.w), // Added horizontal padding
       child: Row(
         children: [
           Expanded(

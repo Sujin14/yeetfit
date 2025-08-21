@@ -14,7 +14,9 @@ class CalendarDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedDate = ref.watch(selectedDateProvider);
-    print('CalendarDialog: Building for userId=$userId, selectedDate=$selectedDate');
+    print(
+      'CalendarDialog: Building for userId=$userId, selectedDate=$selectedDate',
+    );
 
     return Dialog(
       backgroundColor: AppTheme.colors['white'],

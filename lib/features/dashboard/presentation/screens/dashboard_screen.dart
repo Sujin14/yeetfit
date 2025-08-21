@@ -15,6 +15,7 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userId = FirebaseAuth.instance.currentUser?.uid;
+
     if (userId == null) {
       return Scaffold(
         backgroundColor: AppTheme.colors['lightBackground'],
@@ -33,15 +34,13 @@ class DashboardScreen extends ConsumerWidget {
             data: (bmi) => BMISuggestions(
               bmi: bmi,
               userData: userDataAsync,
-              userId: userId, 
+              userId: userId,
             ),
             loading: () => Container(
-              height: 280.h,
               color: AppTheme.colors['secondaryText']!.withOpacity(0.2),
               child: const Center(child: CircularProgressIndicator()),
             ),
             error: (error, _) => Container(
-              height: 280.h,
               color: AppTheme.colors['error']!.withOpacity(0.2),
               child: Center(child: Text('Error loading BMI: $error')),
             ),

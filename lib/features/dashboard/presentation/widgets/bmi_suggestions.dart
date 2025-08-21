@@ -27,7 +27,6 @@ class BMISuggestions extends ConsumerWidget {
       height: 280.h,
       width: double.infinity,
       color: bmiColor.withOpacity(0.3),
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

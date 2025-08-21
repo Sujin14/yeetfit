@@ -80,6 +80,9 @@ class MealTrackingCard extends ConsumerWidget {
                 AppTheme.colors['gradientTextEnd']!,
               ],
             ),
+            padding: EdgeInsets.symmetric(
+              horizontal: 8.w,
+            ), // Added horizontal padding
             child: Padding(
               padding: EdgeInsets.all(12.w),
               child: Column(
@@ -294,6 +297,9 @@ class MealTrackingCard extends ConsumerWidget {
           AppTheme.colors['gradientTextEnd']!,
         ],
       ),
+      padding: EdgeInsets.symmetric(
+        horizontal: 8.w,
+      ), // Added horizontal padding
       child: Padding(
         padding: EdgeInsets.all(12.w),
         child: Column(

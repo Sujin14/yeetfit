@@ -49,27 +49,15 @@ final GoRouter appRouter = GoRouter(
     final user = FirebaseAuth.instance.currentUser;
     final currentPath = state.uri.toString();
     if (user == null &&
-        ![
-          '/',
-          '/login',
-          '/signup',
-          '/onboarding',
-          '/welcome',
-        ].contains(currentPath)) {
+        !['/', '/login', '/signup', '/onboarding', '/welcome'].contains(currentPath)) {
       return '/login';
     }
     return null;
   },
   routes: [
     GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
-    GoRoute(
-      path: '/onboarding',
-      builder: (context, state) => const OnboardingScreen(),
-    ),
-    GoRoute(
-      path: '/welcome',
-      builder: (context, state) => const WelcomeScreen(),
-    ),
+    GoRoute(path: '/onboarding', builder: (context, state) => const OnboardingScreen()),
+    GoRoute(path: '/welcome', builder: (context, state) => const WelcomeScreen()),
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
     GoRoute(path: '/signup', builder: (context, state) => const SignUpScreen()),
     GoRoute(
@@ -81,22 +69,16 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/plans/:category',
-      builder: (context, state) =>
-          PlanListScreen(category: state.pathParameters['category']!),
+      builder: (context, state) => PlanListScreen(category: state.pathParameters['category']!),
     ),
     GoRoute(
       path: '/plans/:category/:id',
-      builder: (context, state) =>
-          PlanDetailPage(extra: state.extra as Map<String, dynamic>),
+      builder: (context, state) => PlanDetailPage(extra: state.extra as Map<String, dynamic>),
     ),
-    GoRoute(
-      path: '/modal/food',
-      builder: (context, state) => const CalorieTrackingScreen(),
-    ),
+    GoRoute(path: '/modal/food', builder: (context, state) => const CalorieTrackingScreen()),
     GoRoute(
       path: '/food-search',
-      builder: (context, state) =>
-          FoodSearchScreen(mealType: state.extra as String? ?? 'Breakfast'),
+      builder: (context, state) => FoodSearchScreen(mealType: state.extra as String? ?? 'Breakfast'),
     ),
     GoRoute(
       path: '/nutrition-details',
@@ -109,22 +91,10 @@ final GoRouter appRouter = GoRouter(
       path: '/weekly-calorie-chart',
       builder: (context, state) => const WeeklyCalorieChartScreen(),
     ),
-    GoRoute(
-      path: '/modal/steps',
-      builder: (context, state) => const StepCounterScreen(),
-    ),
-    GoRoute(
-      path: '/modal/sleep',
-      builder: (context, state) => const SleepTrackingScreen(),
-    ),
-    GoRoute(
-      path: '/modal/water',
-      builder: (context, state) => const WaterTrackingScreen(),
-    ),
-    GoRoute(
-      path: '/modal/weight',
-      builder: (context, state) => const WeightTrackingScreen(),
-    ),
+    GoRoute(path: '/modal/steps', builder: (context, state) => const StepCounterScreen()),
+    GoRoute(path: '/modal/sleep', builder: (context, state) => const SleepTrackingScreen()),
+    GoRoute(path: '/modal/water', builder: (context, state) => const WaterTrackingScreen()),
+    GoRoute(path: '/modal/weight', builder: (context, state) => const WeightTrackingScreen()),
     GoRoute(
       name: 'water-success',
       path: '/success/:goal',
@@ -149,10 +119,7 @@ final GoRouter appRouter = GoRouter(
         return StepsSuccessPage(goal: goal);
       },
     ),
-    GoRoute(
-      path: '/admin-list',
-      builder: (context, state) => const AdminListScreen(),
-    ),
+    GoRoute(path: '/admin-list', builder: (context, state) => const AdminListScreen()),
     GoRoute(
       path: '/chat',
       builder: (context, state) => ChatScreen(adminId: state.extra as String),
@@ -196,14 +163,8 @@ final GoRouter appRouter = GoRouter(
         ),
       ],
     ),
-    GoRoute(
-      path: '/settings',
-      builder: (context, state) => const SettingsScreen(),
-    ),
-    GoRoute(
-      path: '/account',
-      builder: (context, state) => const AccountScreen(),
-    ),
+    GoRoute(path: '/settings', builder: (context, state) => const SettingsScreen()),
+    GoRoute(path: '/account', builder: (context, state) => const AccountScreen()),
     GoRoute(
       path: '/basic-information',
       builder: (context, state) => const BasicInformationScreen(),
@@ -216,24 +177,15 @@ final GoRouter appRouter = GoRouter(
       path: '/food-preferences',
       builder: (context, state) => const FoodPreferencesScreen(),
     ),
-    GoRoute(
-      path: '/payment',
-      builder: (context, state) => const PaymentScreen(),
-    ),
-    GoRoute(
-      path: '/chatbot',
-      builder: (context, state) => const ChatbotScreen(),
-    ),
+    GoRoute(path: '/payment', builder: (context, state) => const PaymentScreen()),
+    GoRoute(path: '/chatbot', builder: (context, state) => const ChatbotScreen()),
     GoRoute(path: '/about', builder: (context, state) => const AboutScreen()),
     GoRoute(path: '/help', builder: (context, state) => const HelpScreen()),
     GoRoute(
       path: '/terms-and-conditions',
       builder: (context, state) => const TermsAndConditionsScreen(),
     ),
-    GoRoute(
-      path: '/contact-us',
-      builder: (context, state) => const ContactUsScreen(),
-    ),
+    GoRoute(path: '/contact-us', builder: (context, state) => const ContactUsScreen()),
     GoRoute(
       path: '/privacy_policy',
       builder: (context, state) => const PrivacyPolicyScreen(),
@@ -258,7 +210,9 @@ class _ShellScaffoldState extends State<ShellScaffold> {
       _currentIndex = index;
     });
     if (index != 2) {
-      widget.navigationShell.goBranch(index > 2 ? index - 1 : index);
+      // Map indices to branches: 0 -> 0 (Dashboard), 1 -> 1 (Explore), 3 -> 2 (Progress), 4 -> 3 (Favorites)
+      final branchIndex = index > 2 ? index - 1 : index;
+      widget.navigationShell.goBranch(branchIndex);
     }
   }
 
@@ -267,7 +221,7 @@ class _ShellScaffoldState extends State<ShellScaffold> {
     return Scaffold(
       appBar: CustomAppBar(
         title: _getTitle(_currentIndex),
-        showCalendar: true,
+        showCalendar: _currentIndex == 0, // Show calendar only on Dashboard
         onCalendar: () {
           final user = FirebaseAuth.instance.currentUser;
           if (user != null) {
@@ -295,15 +249,17 @@ class _ShellScaffoldState extends State<ShellScaffold> {
   String _getTitle(int index) {
     switch (index) {
       case 0:
-        return 'YeetFit Dashboard';
+        return 'Dashboard';
       case 1:
         return 'Explore';
+      case 2:
+        return 'Track';
       case 3:
         return 'Progress';
       case 4:
         return 'Favorites';
       default:
-        return '';
+        return 'YeetFit';
     }
   }
 }
