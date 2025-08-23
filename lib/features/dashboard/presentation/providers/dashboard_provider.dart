@@ -151,14 +151,6 @@ final dailyProgressStreamProvider =
     final weightDoc = snapshots[5] as DocumentSnapshot<Map<String, dynamic>>;
     final liveSteps = snapshots[6] as double;
 
-    print("👤 User data: ${userDoc.data()}");
-    print("👟 Firestore steps: ${stepsDoc.data()}");
-    print("📲 Live steps (pedometer): $liveSteps");
-    print("💧 Water data: ${waterDoc.data()}");
-    print("😴 Sleep data: ${sleepDoc.data()}");
-    print("🍎 Food docs: ${foodSnapshot.docs.length}");
-    print("⚖️ Weight data: ${weightDoc.data()}");
-
     // Process meal data
     double calories = 0.0, protein = 0.0, carbs = 0.0, fat = 0.0;
     bool hasData = foodSnapshot.docs.isNotEmpty;
@@ -208,7 +200,6 @@ final dailyProgressStreamProvider =
         .doc('$date-goal')
         .get();
 
-    // ✅ patched: use live steps if today
     final steps = date == today && liveSteps > 0
         ? liveSteps
         : (stepsDoc.exists
@@ -284,8 +275,6 @@ final dailyProgressStreamProvider =
       'weightDescription': 'Track your weight to monitor progress.',
       'hasData': hasData,
     };
-
-    print("📊 Final daily progress [$date] → $progress");
     yield progress;
   }
 });

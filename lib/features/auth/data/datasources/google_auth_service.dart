@@ -24,7 +24,6 @@ class GoogleAuthService {
           'Network error: Please check your internet connection and try again.',
         );
       }
-      print('Google Sign-In error: $e');
       return null;
     }
   }

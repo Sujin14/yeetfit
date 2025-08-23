@@ -24,7 +24,6 @@ class EmailAuthService {
       print('Signup failed: ${e.code} - ${e.message}');
       return null;
     } catch (e) {
-      print('Unexpected error during signup: $e');
       return null;
     }
   }

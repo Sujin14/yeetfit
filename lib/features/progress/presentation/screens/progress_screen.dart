@@ -26,9 +26,6 @@ class ProgressScreen extends ConsumerWidget {
             children: [
               ProgressHeader(
                 onMetricChanged: (_) {
-                  debugPrint(
-                    '[UI] ProgressHeader changed metric, refreshing provider for $firstOfMonth',
-                  );
                   ref
                       .read(monthlyProgressProvider(firstOfMonth).notifier)
                       .refresh();
@@ -44,7 +41,6 @@ class ProgressScreen extends ConsumerWidget {
                     try {
                       d = DateTime.parse(p.date);
                     } catch (e) {
-                      debugPrint('[UI] Skipping invalid date ${p.date}: $e');
                       continue;
                     }
 
@@ -58,8 +54,6 @@ class ProgressScreen extends ConsumerWidget {
                     dataset[d] = score;
                   }
 
-                  // debug: show dataset summary
-                  debugPrint('[UI] dataset size=${dataset.length}');
                   if (dataset.isNotEmpty) {
                     final sample = dataset.entries
                         .take(5)
@@ -68,13 +62,7 @@ class ProgressScreen extends ConsumerWidget {
                               '${e.key.toIso8601String().substring(0, 10)}:${e.value}',
                         )
                         .join(', ');
-                    debugPrint('[UI] dataset sample: $sample');
-                  } else {
-                    debugPrint(
-                      '[UI] dataset is empty (no progress for this month)',
-                    );
-                  }
-
+                  } 
                   return ProgressCalendar(dataset: dataset);
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
@@ -91,9 +79,6 @@ class ProgressScreen extends ConsumerWidget {
                       SizedBox(height: 8.h),
                       ElevatedButton(
                         onPressed: () {
-                          debugPrint(
-                            '[UI] Retry pressed - refreshing provider',
-                          );
                           ref
                               .read(
                                 monthlyProgressProvider(firstOfMonth).notifier,

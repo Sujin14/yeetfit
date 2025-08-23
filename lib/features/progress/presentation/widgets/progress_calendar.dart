@@ -13,15 +13,11 @@ class ProgressCalendar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // debug whole incoming dataset
-    debugPrint('[Calendar] incoming dataset size=${dataset.length}');
     if (dataset.isNotEmpty) {
       final sample = dataset.entries.take(8).map((e) => '${e.key.toIso8601String().substring(0,10)}:${e.value}').join(', ');
-      debugPrint('[Calendar] sample dataset: $sample');
     }
 
     if (dataset.isEmpty) {
-      debugPrint('[Calendar] dataset empty -> showing placeholder');
       return const Center(child: Text("No data available"));
     }
 
@@ -33,7 +29,6 @@ class ProgressCalendar extends StatelessWidget {
     final hasNonZero = normalizedDataset.values.any((v) => v > 0);
     final safeDataset = hasNonZero ? normalizedDataset : {DateTime.now(): 1};
 
-    debugPrint('[Calendar] normalized size=${normalizedDataset.length} hasNonZero=$hasNonZero safeDatasetSize=${safeDataset.length}');
 
     return HeatMapCalendar(
       datasets: safeDataset,
@@ -47,7 +42,6 @@ class ProgressCalendar extends StatelessWidget {
       size: 32,
       margin: const EdgeInsets.all(4),
       onClick: (date) {
-        debugPrint("Clicked on $date → ${safeDataset[date] ?? 0}");
       },
     );
   }

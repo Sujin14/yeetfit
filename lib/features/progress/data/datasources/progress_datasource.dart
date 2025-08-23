@@ -18,7 +18,6 @@ class ProgressDataSourceImpl implements ProgressDataSource {
   Future<List<DailyProgressModel>> getMonthlyProgress(DateTime month, {String? metric}) async {
     final userId = auth.currentUser?.uid;
     if (userId == null) {
-      print('[DataSource] User not authenticated');
       throw Exception('User not authenticated');
     }
 
@@ -27,11 +26,6 @@ class ProgressDataSourceImpl implements ProgressDataSource {
     final daysInMonth = endOfMonth.day;
     final startStr = startOfMonth.toIso8601String().substring(0, 10);
     final endStr = endOfMonth.toIso8601String().substring(0, 10);
-
-    print('[DataSource] Getting monthly progress for user=$userId '
-        'month=${month.year}-${month.month} range=$startStr..$endStr '
-        'metric=${metric ?? "ALL"}');
-
     final progressMap = <String, Map<String, Map<String, dynamic>>>{};
 
     try {
@@ -40,7 +34,6 @@ class ProgressDataSourceImpl implements ProgressDataSource {
           : ['food', 'sleep', 'steps', 'water', 'weight'];
 
       for (final m in metrics) {
-        print('[DataSource] Fetching metric: $m');
 
         final dataPath = firestore
             .collection('users')
@@ -48,9 +41,6 @@ class ProgressDataSourceImpl implements ProgressDataSource {
             .collection('progress')
             .doc(m)
             .collection(m);
-
-        print('[DataSource] Querying data at: users/$userId/progress/$m/$m '
-            'where id in [$startStr..$endStr]');
         final dataSnap = await dataPath
             .where(FieldPath.documentId, isGreaterThanOrEqualTo: startStr)
             .where(FieldPath.documentId, isLessThanOrEqualTo: endStr)
@@ -59,9 +49,7 @@ class ProgressDataSourceImpl implements ProgressDataSource {
           throw TimeoutException('Timed out fetching $m data');
         });
 
-        print('[DataSource] $m - progress docs returned: ${dataSnap.docs.length}');
         for (final doc in dataSnap.docs) {
-          print('[DataSource]   doc: ${doc.id} => ${doc.data()}');
           progressMap.putIfAbsent(doc.id, () => {});
           progressMap[doc.id]![m] = doc.data();
         }
@@ -82,7 +70,6 @@ class ProgressDataSourceImpl implements ProgressDataSource {
         );
       }
 
-      print('[DataSource] Built progressList with length=${progressList.length}');
       return progressList;
     } catch (e, st) {
       print('[DataSource] Error fetching progress: $e\n$st');

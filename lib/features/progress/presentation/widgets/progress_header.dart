@@ -43,7 +43,6 @@ class ProgressHeader extends ConsumerWidget {
             underline: const SizedBox(),
             onChanged: (value) {
               final v = value == 'All Metrics' ? null : value;
-              debugPrint('[Header] metric selected: $value => storing $v');
               ref.read(selectedMetricProvider.notifier).state = v;
               onMetricChanged(value);
             },

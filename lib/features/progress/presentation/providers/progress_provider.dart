@@ -53,10 +53,6 @@ final dailyProgressColorProvider = Provider.autoDispose.family<Color, String>((
     orElse: () => DailyProgress(date: date, completionRate: 0.0),
   );
   final p = entry.completionRate;
-  // Print only when there's meaningful progress (to avoid spam)
-  if (p > 0.0) {
-    debugPrint('[ColorProvider] date=$date completion=$p');
-  }
   if (p >= 0.8) return AppTheme.colors['fullProgress']!;
   if (p >= 0.5) return AppTheme.colors['threeQuarterProgress']!;
   if (p >= 0.2) return AppTheme.colors['halfProgress']!;
@@ -74,9 +70,6 @@ class MonthlyProgressNotifier
     _fetch();
     // Auto refresh when metric changes
     _ref.listen<String?>(selectedMetricProvider, (_, __) {
-      debugPrint(
-        '[Notifier] selectedMetricProvider changed - refreshing for month=$_month',
-      );
       refresh();
     });
   }
@@ -86,18 +79,10 @@ class MonthlyProgressNotifier
       if (!mounted) return;
       state = const AsyncValue.loading();
       final metric = _ref.read(selectedMetricProvider);
-      debugPrint(
-        '[Notifier] Fetching data for month=$_month metric=${metric ?? "ALL"}',
-      );
       final data = await _usecase.call(_month, metric: metric);
       if (!mounted) return;
-      debugPrint('[Notifier] Fetched ${data.length} entries for month=$_month');
-      for (final d in data.take(5)) {
-        debugPrint('[Notifier] sample: ${d.date} => ${d.completionRate}');
-      }
       state = AsyncValue.data(data);
     } catch (e, st) {
-      debugPrint('[Notifier] error: $e\n$st');
       if (!mounted) return;
       state = AsyncValue.error(e, st);
     }
