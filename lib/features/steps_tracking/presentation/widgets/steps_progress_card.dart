@@ -53,7 +53,7 @@ class StepsProgressCard extends ConsumerWidget {
                             userId: userId,
                             controller: controller,
                           ),
-                        ).then((_) => controller.dispose());
+                        );
                       }
                     : null,
                 tooltip: 'Set Steps Goal',

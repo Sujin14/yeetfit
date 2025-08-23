@@ -5,7 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../providers/steps_provider.dart';
 import '../../../../shared/theme/theme.dart';
 
-class StepsGoalDialog extends ConsumerWidget {
+class StepsGoalDialog extends ConsumerStatefulWidget {
   final String userId;
   final TextEditingController controller;
 
@@ -16,7 +16,18 @@ class StepsGoalDialog extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  _StepsGoalDialogState createState() => _StepsGoalDialogState();
+}
+
+class _StepsGoalDialogState extends ConsumerState<StepsGoalDialog> {
+  @override
+  void dispose() {
+    widget.controller.dispose(); // Dispose of the controller when the dialog is closed
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final isDesktop = ScreenUtil().screenWidth >= 600.w;
     return AlertDialog(
       backgroundColor: AppTheme.colors['lightBackground'],
@@ -32,7 +43,7 @@ class StepsGoalDialog extends ConsumerWidget {
       content: Padding(
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
         child: TextField(
-          controller: controller,
+          controller: widget.controller,
           decoration: InputDecoration(
             hintText: 'Enter goal steps (e.g., 10000)',
             hintStyle: GoogleFonts.roboto(
@@ -64,9 +75,9 @@ class StepsGoalDialog extends ConsumerWidget {
         ),
         ElevatedButton(
           onPressed: () {
-            final newGoal = int.tryParse(controller.text);
+            final newGoal = int.tryParse(widget.controller.text);
             if (newGoal != null && newGoal > 0) {
-              ref.read(stepsGoalProvider(userId).notifier).setGoal(newGoal);
+              ref.read(stepsGoalProvider(widget.userId).notifier).setGoal(newGoal);
               Navigator.pop(context);
             } else {
               ScaffoldMessenger.of(context).showSnackBar(

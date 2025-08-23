@@ -51,17 +51,16 @@ class StepsActionSheet extends ConsumerWidget {
               ),
             ),
             onTap: () {
+              // Create the controller here and pass it to the dialog
               final controller = TextEditingController(
                 text: ref.read(stepsGoalInitialValueProvider(userId)),
               );
               Navigator.pop(context);
               showDialog(
                 context: context,
-                builder: (context) => StepsGoalDialog(
-                  userId: userId,
-                  controller: controller,
-                ),
-              ).then((_) => controller.dispose());
+                builder: (context) =>
+                    StepsGoalDialog(userId: userId, controller: controller),
+              );
             },
           ),
           SizedBox(height: 16.h),
