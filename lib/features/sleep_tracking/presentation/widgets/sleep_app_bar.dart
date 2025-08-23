@@ -1,22 +1,19 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
-
 import '../../../../shared/theme/theme.dart';
 
-class SleepAppBar extends ConsumerWidget implements PreferredSizeWidget {
+class SleepAppBar extends StatelessWidget implements PreferredSizeWidget {
   const SleepAppBar({super.key});
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final userId = ref.watch(firebaseAuthProvider).currentUser?.uid;
+  Widget build(BuildContext context) {
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
+      centerTitle: true,
       title: Text(
         'Sleep Tracker',
         style: GoogleFonts.roboto(
@@ -28,5 +25,3 @@ class SleepAppBar extends ConsumerWidget implements PreferredSizeWidget {
     );
   }
 }
-
-final firebaseAuthProvider = Provider((ref) => FirebaseAuth.instance);

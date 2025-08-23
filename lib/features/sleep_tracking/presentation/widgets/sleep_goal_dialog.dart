@@ -4,27 +4,15 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../shared/theme/theme.dart';
 import '../providers/sleep_provider.dart';
 
-class SleepGoalDialog extends ConsumerStatefulWidget {
+class SleepGoalDialog extends ConsumerWidget {
   final String userId;
 
   const SleepGoalDialog({super.key, required this.userId});
 
   @override
-  ConsumerState<SleepGoalDialog> createState() => _SleepGoalDialogState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(sleepGoalDialogStateProvider(userId));
 
-class _SleepGoalDialogState extends ConsumerState<SleepGoalDialog> {
-  final controller = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    final goalHours = ref.read(sleepGoalProvider(widget.userId)).value;
-    controller.text = goalHours.toString();
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return AlertDialog(
       backgroundColor: AppTheme.colors['deepOrange']!.withOpacity(0.3),
       contentPadding: EdgeInsets.zero,
@@ -38,7 +26,7 @@ class _SleepGoalDialogState extends ConsumerState<SleepGoalDialog> {
       content: Padding(
         padding: const EdgeInsets.all(16.0),
         child: TextField(
-          controller: controller,
+          controller: state.controller,
           decoration: InputDecoration(
             fillColor: AppTheme.colors['white']!.withOpacity(0.6),
             filled: true,
@@ -48,7 +36,9 @@ class _SleepGoalDialogState extends ConsumerState<SleepGoalDialog> {
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(color: AppTheme.colors['white']!.withOpacity(0.3)),
+              borderSide: BorderSide(
+                color: AppTheme.colors['white']!.withOpacity(0.3),
+              ),
             ),
           ),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -58,34 +48,22 @@ class _SleepGoalDialogState extends ConsumerState<SleepGoalDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text('Cancel', style: GoogleFonts.roboto(color: AppTheme.colors['white'])),
+          child: Text(
+            'Cancel',
+            style: GoogleFonts.roboto(color: AppTheme.colors['white']),
+          ),
         ),
         ElevatedButton(
-          onPressed: () {
-            final newGoal = double.tryParse(controller.text);
-            if (newGoal != null && newGoal > 0) {
-              ref
-                  .read(sleepGoalProvider(widget.userId).notifier)
-                  .setGoal(newGoal);
-              Navigator.pop(context);
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Please enter a valid number')),
-              );
-            }
-          },
+          onPressed: () => state.submitGoal(context),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppTheme.colors['deepOrange']!.withOpacity(0.8),
           ),
-          child: Text('Save', style: GoogleFonts.roboto(color: AppTheme.colors['white'])),
+          child: Text(
+            'Save',
+            style: GoogleFonts.roboto(color: AppTheme.colors['white']),
+          ),
         ),
       ],
     );
-  }
-
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
   }
 }

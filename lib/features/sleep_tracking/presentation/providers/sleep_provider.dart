@@ -7,6 +7,10 @@ import '../../domain/usecases/add_sleep_entry.dart';
 import '../../domain/usecases/set_sleep_goal.dart';
 import '../../domain/usecases/get_sleep_data.dart';
 import '../../domain/usecases/get_weekly_sleep_data.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+/// Firebase Auth Provider
+final firebaseAuthProvider = Provider((ref) => FirebaseAuth.instance);
 
 /// Repository provider
 final sleepRepositoryProvider = Provider<SleepRepositoryImpl>(
@@ -213,10 +217,110 @@ class SleepTimesNotifier extends StateNotifier<AsyncValue<Map<String, DateTime?>
     try {
       await _addSleepEntry.call(_userId, bedtime, wakeUpTime, duration);
       await _fetchSleepTimes();
-      // Update duration provider
       _ref.read(sleepDurationProvider(_userId).notifier).updateDuration(bedtime, wakeUpTime, duration);
     } catch (e, stackTrace) {
       state = AsyncValue.error(e, stackTrace);
     }
+  }
+}
+
+/// Logic for SleepEntryDialog
+final sleepEntryDialogStateProvider = StateProvider.family<SleepEntryDialogState, String>((ref, userId) {
+  return SleepEntryDialogState(ref, userId);
+});
+
+class SleepEntryDialogState {
+  final Ref ref;
+  final String userId;
+  DateTime? bedtime;
+  DateTime? wakeUpTime;
+
+  SleepEntryDialogState(this.ref, this.userId) {
+    final sleepTimesAsync = ref.watch(sleepTimesProvider(userId));
+    bedtime = sleepTimesAsync.value?['bedtime'];
+    wakeUpTime = sleepTimesAsync.value?['wakeUpTime'];
+  }
+
+  Future<void> pickBedtime(BuildContext context) async {
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(bedtime ?? DateTime.now()),
+    );
+    if (time != null) {
+      bedtime = DateTime(
+        DateTime.now().year,
+        DateTime.now().month,
+        DateTime.now().day,
+        time.hour,
+        time.minute,
+      );
+    }
+  }
+
+  Future<void> pickWakeUpTime(BuildContext context) async {
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(wakeUpTime ?? DateTime.now()),
+    );
+    if (time != null) {
+      wakeUpTime = DateTime(
+        DateTime.now().year,
+        DateTime.now().month,
+        DateTime.now().day,
+        time.hour,
+        time.minute,
+      );
+      if (bedtime != null && wakeUpTime!.hour < bedtime!.hour) {
+        wakeUpTime = wakeUpTime!.add(const Duration(days: 1));
+      }
+    }
+  }
+
+  void submitSleepEntry(BuildContext context) {
+    if (bedtime != null && wakeUpTime != null) {
+      DateTime adjustedWakeUpTime = wakeUpTime!;
+      if (wakeUpTime!.isBefore(bedtime!) || wakeUpTime!.isAtSameMomentAs(bedtime!)) {
+        adjustedWakeUpTime = wakeUpTime!.add(const Duration(days: 1));
+      }
+      final duration = adjustedWakeUpTime.difference(bedtime!).inMinutes / 60.0;
+      ref.read(sleepTimesProvider(userId).notifier).addSleepEntry(bedtime!, adjustedWakeUpTime, duration);
+      Navigator.pop(context);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select both bedtime and wake-up time')),
+      );
+    }
+  }
+}
+
+/// Logic for SleepGoalDialog
+final sleepGoalDialogStateProvider = StateProvider.family<SleepGoalDialogState, String>((ref, userId) {
+  return SleepGoalDialogState(ref, userId);
+});
+
+class SleepGoalDialogState {
+  final Ref ref;
+  final String userId;
+  final TextEditingController controller;
+
+  SleepGoalDialogState(this.ref, this.userId)
+      : controller = TextEditingController(
+          text: ref.read(sleepGoalProvider(userId)).value?.toString() ?? '8.0',
+        );
+
+  void submitGoal(BuildContext context) {
+    final newGoal = double.tryParse(controller.text);
+    if (newGoal != null && newGoal > 0) {
+      ref.read(sleepGoalProvider(userId).notifier).setGoal(newGoal);
+      Navigator.pop(context);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid number')),
+      );
+    }
+  }
+
+  void dispose() {
+    controller.dispose();
   }
 }

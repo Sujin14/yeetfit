@@ -1,50 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:yeetfit/shared/theme/theme.dart';
+import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
+import '../providers/sleep_provider.dart';
 import '../widgets/sleep_entry_dialog.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'sleep_time_card_shimmer.dart';
 
-class SleepTimeCards extends StatelessWidget {
-  final DateTime? bedtime;
-  final DateTime? wakeUpTime;
-
-  const SleepTimeCards({super.key, this.bedtime, this.wakeUpTime});
+class SleepTimeCards extends ConsumerWidget {
+  const SleepTimeCards({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userId = ref.watch(firebaseAuthProvider).currentUser?.uid;
+    if (userId == null) return const SizedBox.shrink();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Sleep Time',
-          style: GoogleFonts.roboto(
-            fontWeight: FontWeight.bold,
-            fontSize: 18.sp,
-            color: AppTheme.colors['onSurface']!.withOpacity(0.8),
+    final sleepTimesAsync = ref.watch(sleepTimesProvider(userId));
+
+    return sleepTimesAsync.when(
+      data: (sleepTimes) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Sleep Time',
+            style: GoogleFonts.roboto(
+              fontWeight: FontWeight.bold,
+              fontSize: 18.sp,
+              color: AppTheme.colors['onSurface']!.withOpacity(0.8),
+            ),
           ),
-        ),
-        SizedBox(height: 20.h),
-        _buildTimeCard(
-          context,
-          'Bed Time',
-          bedtime != null ? DateFormat('h:mm a').format(bedtime!) : 'Not set',
-          userId,
-        ),
-        SizedBox(height: 20.h),
-        _buildTimeCard(
-          context,
-          'Wake Up Time',
-          wakeUpTime != null
-              ? DateFormat('h:mm a').format(wakeUpTime!)
-              : 'Not set',
-          userId,
-        ),
-      ],
+          SizedBox(height: 30.h),
+          _buildTimeCard(
+            context,
+            'Bed Time',
+            sleepTimes['bedtime'] != null
+                ? DateFormat('h:mm a').format(sleepTimes['bedtime']!)
+                : 'Not set',
+            userId,
+          ),
+          SizedBox(height: 25.h),
+          _buildTimeCard(
+            context,
+            'Wake Up Time',
+            sleepTimes['wakeUpTime'] != null
+                ? DateFormat('h:mm a').format(sleepTimes['wakeUpTime']!)
+                : 'Not set',
+            userId,
+          ),
+        ],
+      ),
+      loading: () => const SleepTimeCardsShimmer(),
+      error: (error, _) => Center(child: Text('Error: $error')),
     );
   }
 
@@ -52,26 +60,24 @@ class SleepTimeCards extends StatelessWidget {
     BuildContext context,
     String title,
     String time,
-    String? userId,
+    String userId,
   ) {
     return GlassmorphicContainer(
       color: AppTheme.colors['deepOrange']!,
       child: ListTile(
-        onTap: userId != null
-            ? () => showDialog(
-                context: context,
-                builder: (context) => SleepEntryDialog(userId: userId),
-              )
-            : null,
+        onTap: () => showDialog(
+          context: context,
+          builder: (context) => SleepEntryDialog(userId: userId),
+        ),
         title: Text(
           title,
-          style: GoogleFonts.roboto(fontSize: 16, color: AppTheme.colors['onSurface']!),
+          style: GoogleFonts.roboto(fontSize: 16.sp, color: AppTheme.colors['onSurface']!),
         ),
         trailing: Text(
           time,
           style: GoogleFonts.roboto(
             fontWeight: FontWeight.w600,
-            fontSize: 16,
+            fontSize: 16.sp,
             color: AppTheme.colors['onSurface']!.withOpacity(0.8),
           ),
         ),

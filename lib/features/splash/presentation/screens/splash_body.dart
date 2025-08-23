@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../../shared/theme/theme.dart';
+
 class SplashBody extends StatefulWidget {
   const SplashBody({super.key});
 
@@ -16,14 +18,12 @@ class _SplashBodyState extends State<SplashBody> {
   void initState() {
     super.initState();
 
-    // Show icon after 200ms, fade over 1s
     Future.delayed(const Duration(milliseconds: 200), () {
       setState(() {
         _showIcon = true;
       });
     });
 
-    // Show name after 800ms, fade over 1.5s
     Future.delayed(const Duration(milliseconds: 800), () {
       setState(() {
         _showName = true;
@@ -36,7 +36,7 @@ class _SplashBodyState extends State<SplashBody> {
     return Container(
       width: double.infinity,
       height: double.infinity,
-      color: Colors.white, // ✅ Minimal single-color background
+      color: AppTheme.colors['white'],
       child: Center(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
