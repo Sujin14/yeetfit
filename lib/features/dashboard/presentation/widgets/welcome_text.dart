@@ -10,7 +10,6 @@ class WelcomeText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('WelcomeText: Building with name=$name');
     return GradientText(
       text: 'Welcome, $name!',
       style: AppTheme.textStyles['heading']!.copyWith(

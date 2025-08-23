@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
+
 class DailyProgressModel {
-  final String date;
+  final String date; // yyyy-MM-dd
   final Map<String, Map<String, dynamic>> metrics;
 
   DailyProgressModel({required this.date, required this.metrics});
@@ -11,65 +13,103 @@ class DailyProgressModel {
     return DailyProgressModel(date: date, metrics: metricData);
   }
 
+  double _getNum(Map<String, dynamic>? map, List<String> keys, double fallback) {
+    if (map == null) return fallback;
+    for (final k in keys) {
+      final v = map[k];
+      if (v is num) return v.toDouble();
+    }
+    return fallback;
+  }
+
   double getCompletionRate({String? metric}) {
-    if (metrics.isEmpty) return 0.0;
+    debugPrint(
+      '[Model] getCompletionRate for date=$date metric=${metric ?? "ALL"} keys=${metrics.keys.toList()}',
+    );
+
+    if (metrics.isEmpty) {
+      debugPrint('[Model] metrics empty for $date -> returning 0.0');
+      return 0.0;
+    }
 
     if (metric != null) {
-      final data = metrics[metric];
-      final goalData = metrics['${metric}_goal'];
-      if (data == null || goalData == null) return 0.0;
+      final m = metric.toLowerCase();
+      final data = metrics[m];
+      if (data == null) {
+        debugPrint('[Model] missing data for $m on $date -> 0.0');
+        return 0.0;
+      }
 
-      switch (metric.toLowerCase()) {
+      double result = 0.0;
+      switch (m) {
         case 'steps':
-          final steps = (data['steps'] as num?)?.toDouble() ?? 0.0;
-          final goalSteps =
-              (goalData['goalSteps'] as num?)?.toDouble() ?? 10000.0;
-          return goalSteps > 0 ? (steps / goalSteps).clamp(0.0, 1.0) : 0.0;
+          {
+            final steps = _getNum(data, ['steps', 'count'], 0.0);
+            final goalSteps = _getNum(data, ['goalSteps', 'target', 'value'], 10000.0);
+            result = goalSteps > 0 ? (steps / goalSteps).clamp(0.0, 1.0) : 0.0;
+            debugPrint('[Model] steps: $steps / $goalSteps = $result');
+            return result;
+          }
         case 'water':
-          final glasses = (data['glassesConsumed'] as num?)?.toDouble() ?? 0.0;
-          final goalGlasses =
-              (goalData['goalGlasses'] as num?)?.toDouble() ?? 8.0;
-          return goalGlasses > 0
-              ? (glasses / goalGlasses).clamp(0.0, 1.0)
-              : 0.0;
+          {
+            final drank = _getNum(data, ['glassesConsumed', 'glasses'], 0.0);
+            final goal = _getNum(data, ['goalGlasses', 'target', 'value'], 8.0);
+            result = goal > 0 ? (drank / goal).clamp(0.0, 1.0) : 0.0;
+            debugPrint('[Model] water: $drank / $goal = $result');
+            return result;
+          }
         case 'sleep':
-          final duration = (data['duration'] as num?)?.toDouble() ?? 0.0;
-          final goalHours = (goalData['goalHours'] as num?)?.toDouble() ?? 8.0;
-          return goalHours > 0 ? (duration / goalHours).clamp(0.0, 1.0) : 0.0;
+          {
+            final hours = _getNum(data, ['duration', 'hours'], 0.0);
+            final goal = _getNum(data, ['goalHours', 'target', 'value'], 8.0);
+            result = goal > 0 ? (hours / goal).clamp(0.0, 1.0) : 0.0;
+            debugPrint('[Model] sleep: $hours / $goal = $result');
+            return result;
+          }
         case 'weight':
-          final currentWeight =
-              (data['currentWeight'] as num?)?.toDouble() ?? 77.0;
-          final goalWeight =
-              (goalData['goalWeight'] as num?)?.toDouble() ?? 70.0;
-          final userDoc = metrics['user'] ?? {};
-          final initialWeight =
-              (userDoc['weight'] as num?)?.toDouble() ?? currentWeight;
-          final weightChange = (initialWeight - currentWeight).abs();
-          final goalChange = (initialWeight - goalWeight).abs();
-          return goalChange > 0
-              ? (weightChange / goalChange).clamp(0.0, 1.0)
-              : 0.0;
+          {
+            final current = _getNum(data, ['currentWeight', 'weight'], 0.0);
+            final goal = _getNum(data, ['goalWeight', 'target', 'value'], 0.0);
+            final initial = _getNum(data, ['initialWeight', 'start'], current);
+
+            if (goal <= 0 || current <= 0 || initial <= 0) {
+              debugPrint('[Model] weight invalid -> 0.0');
+              return 0.0;
+            }
+
+            final traveled = (initial - current).abs();
+            final total = (initial - goal).abs();
+            result = total > 0 ? (traveled / total).clamp(0.0, 1.0) : 0.0;
+            debugPrint(
+              '[Model] weight: initial=$initial current=$current goal=$goal -> result=$result',
+            );
+            return result;
+          }
         case 'food':
-          final calories = (data['calories'] as num?)?.toDouble() ?? 0.0;
-          final caloriesGoal =
-              (goalData['caloriesGoal'] as num?)?.toDouble() ?? 1750.0;
-          return caloriesGoal > 0
-              ? (calories / caloriesGoal).clamp(0.0, 1.0)
-              : 0.0;
+          {
+            final kcal = _getNum(data, ['calories', 'kcal'], 0.0);
+            final kcalGoal = _getNum(data, ['caloriesGoal', 'goalCalories'], 1750.0);
+            result = kcalGoal > 0 ? (kcal / kcalGoal).clamp(0.0, 1.0) : 0.0;
+            debugPrint('[Model] food: $kcal / $kcalGoal = $result');
+            return result;
+          }
         default:
+          debugPrint('[Model] unknown metric $m -> 0.0');
           return 0.0;
       }
     }
 
-    // Average completion rate for all metrics
-    double totalRate = 0.0;
+    // Average across available metrics
+    double total = 0.0;
     int count = 0;
-    for (var key in metrics.keys) {
-      if (key.endsWith('_goal')) continue;
+    for (final key in metrics.keys) {
       final rate = getCompletionRate(metric: key);
-      totalRate += rate;
+      debugPrint('[Model] submetric rate for $key on $date = $rate');
+      total += rate;
       count++;
     }
-    return count > 0 ? totalRate / count : 0.0;
+    final average = count > 0 ? total / count : 0.0;
+    debugPrint('[Model] average completion for $date = $average (count=$count)');
+    return average;
   }
 }

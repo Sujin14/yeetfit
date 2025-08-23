@@ -27,7 +27,6 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
   void initState() {
     super.initState();
     if (kDebugMode)
-      print('ProgressCardsList: Initializing for userId=${widget.userId}');
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startAutoSwipe();
     });
@@ -52,10 +51,6 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
   void _onPageChanged(int index) {
     setState(() {
       _currentPage = index;
-      if (kDebugMode)
-        print(
-          'ProgressCardsList: Page changed to $index for userId=${widget.userId}',
-        );
     });
     _startAutoSwipe();
   }
@@ -63,7 +58,6 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
   @override
   void dispose() {
     if (kDebugMode)
-      print('ProgressCardsList: Disposing for userId=${widget.userId}');
     _autoSwipeTimer?.cancel();
     _pageController.dispose();
     super.dispose();

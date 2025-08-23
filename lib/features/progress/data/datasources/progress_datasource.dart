@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -19,73 +18,74 @@ class ProgressDataSourceImpl implements ProgressDataSource {
   Future<List<DailyProgressModel>> getMonthlyProgress(DateTime month, {String? metric}) async {
     final userId = auth.currentUser?.uid;
     if (userId == null) {
+      print('[DataSource] User not authenticated');
       throw Exception('User not authenticated');
     }
 
     final startOfMonth = DateTime(month.year, month.month, 1);
     final endOfMonth = DateTime(month.year, month.month + 1, 0);
     final daysInMonth = endOfMonth.day;
+    final startStr = startOfMonth.toIso8601String().substring(0, 10);
+    final endStr = endOfMonth.toIso8601String().substring(0, 10);
+
+    print('[DataSource] Getting monthly progress for user=$userId '
+        'month=${month.year}-${month.month} range=$startStr..$endStr '
+        'metric=${metric ?? "ALL"}');
+
     final progressMap = <String, Map<String, Map<String, dynamic>>>{};
 
     try {
-      // List of subcollections to query
-      final subcollections = metric != null
+      final metrics = metric != null
           ? [metric.toLowerCase()]
           : ['food', 'sleep', 'steps', 'water', 'weight'];
 
-      for (final subcollection in subcollections) {
-        // Query actual progress data
-        final querySnapshot = await firestore
+      for (final m in metrics) {
+        print('[DataSource] Fetching metric: $m');
+
+        final dataPath = firestore
             .collection('users')
             .doc(userId)
             .collection('progress')
-            .doc(subcollection)
-            .collection(subcollection)
-            .where(FieldPath.documentId, isGreaterThanOrEqualTo: startOfMonth.toIso8601String().substring(0, 10))
-            .where(FieldPath.documentId, isLessThanOrEqualTo: endOfMonth.toIso8601String().substring(0, 10))
-            .get()
-            .timeout(const Duration(seconds: 10), onTimeout: () {
-              throw TimeoutException('Failed to fetch $subcollection data');
-            });
+            .doc(m)
+            .collection(m);
 
-        // Query goal data
-        final goalSnapshot = await firestore
-            .collection('users')
-            .doc(userId)
-            .collection('progress')
-            .doc(subcollection)
-            .collection(subcollection)
-            .where(FieldPath.documentId, isGreaterThanOrEqualTo: '${startOfMonth.toIso8601String().substring(0, 10)}-goal')
-            .where(FieldPath.documentId, isLessThanOrEqualTo: '${endOfMonth.toIso8601String().substring(0, 10)}-goal')
+        print('[DataSource] Querying data at: users/$userId/progress/$m/$m '
+            'where id in [$startStr..$endStr]');
+        final dataSnap = await dataPath
+            .where(FieldPath.documentId, isGreaterThanOrEqualTo: startStr)
+            .where(FieldPath.documentId, isLessThanOrEqualTo: endStr)
             .get()
-            .timeout(const Duration(seconds: 10), onTimeout: () {
-              throw TimeoutException('Failed to fetch $subcollection goals');
-            });
+            .timeout(const Duration(seconds: 12), onTimeout: () {
+          throw TimeoutException('Timed out fetching $m data');
+        });
 
-        for (var doc in querySnapshot.docs) {
+        print('[DataSource] $m - progress docs returned: ${dataSnap.docs.length}');
+        for (final doc in dataSnap.docs) {
+          print('[DataSource]   doc: ${doc.id} => ${doc.data()}');
           progressMap.putIfAbsent(doc.id, () => {});
-          progressMap[doc.id]![subcollection] = doc.data();
-        }
-
-        for (var doc in goalSnapshot.docs) {
-          final date = doc.id.replaceAll('-goal', '');
-          progressMap.putIfAbsent(date, () => {});
-          progressMap[date]!['${subcollection}_goal'] = doc.data();
+          progressMap[doc.id]![m] = doc.data();
         }
       }
 
+      // Build final list in day order
       final List<DailyProgressModel> progressList = [];
       for (int day = 1; day <= daysInMonth; day++) {
-        final dateStr = DateTime(month.year, month.month, day).toIso8601String().substring(0, 10);
-        progressList.add(DailyProgressModel.fromFirestore(
-          dateStr,
-          progressMap[dateStr] ?? {},
-        ));
+        final dateStr = DateTime(month.year, month.month, day)
+            .toIso8601String()
+            .substring(0, 10);
+
+        progressList.add(
+          DailyProgressModel.fromFirestore(
+            dateStr,
+            progressMap[dateStr] ?? {},
+          ),
+        );
       }
 
+      print('[DataSource] Built progressList with length=${progressList.length}');
       return progressList;
-    } catch (e) {
-      print('Error fetching progress: $e');
+    } catch (e, st) {
+      print('[DataSource] Error fetching progress: $e\n$st');
       rethrow;
     }
   }

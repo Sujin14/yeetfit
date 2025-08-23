@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:rxdart/rxdart.dart';
@@ -72,9 +71,6 @@ final userDataFutureProvider = FutureProvider.family<Map<String, dynamic>?, Stri
 final dailyProgressStreamProvider = StreamProvider.family<Map<String, dynamic>, String>((ref, userId) async* {
   final date = ref.watch(selectedDateProvider).toIso8601String().split('T')[0];
   final today = DateTime.now().toIso8601String().split('T')[0];
-  if (kDebugMode) {
-    print('dailyProgressStreamProvider: Streaming for userId=$userId, date=$date');
-  }
 
   // Stream for user data
   final userStream = FirebaseFirestore.instance.collection('users').doc(userId).snapshots();
@@ -267,11 +263,6 @@ final dailyProgressStreamProvider = StreamProvider.family<Map<String, dynamic>, 
       'weightDescription': 'Track your weight to monitor progress.',
       'hasData': hasData,
     };
-
-    if (kDebugMode) {
-      print(
-          'dailyProgressStreamProvider: Yielding progress for userId=$userId, date=$date, steps=$steps, hasData=${progress['hasData']}');
-    }
     yield progress;
   }
 });

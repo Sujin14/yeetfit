@@ -9,12 +9,19 @@ class ProgressRepositoryImpl implements ProgressRepository {
 
   @override
   Future<List<DailyProgress>> getMonthlyProgress(DateTime month, {String? metric}) async {
+    print('[Repo] Requesting monthly progress for $month metric=${metric ?? "ALL"}');
     final models = await dataSource.getMonthlyProgress(month, metric: metric);
-    return models
-        .map((model) => DailyProgress(
-              date: model.date,
-              completionRate: model.getCompletionRate(metric: metric),
-            ))
+    final converted = models
+        .map((m) {
+          final dp = DailyProgress(
+            date: m.date,
+            completionRate: m.getCompletionRate(metric: metric),
+          );
+          print('[Repo] mapped model -> ${m.date} completion=${dp.completionRate}');
+          return dp;
+        })
         .toList();
+    print('[Repo] Returning ${converted.length} DailyProgress entries');
+    return converted;
   }
 }

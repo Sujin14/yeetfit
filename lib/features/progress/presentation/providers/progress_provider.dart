@@ -23,84 +23,85 @@ final getMonthlyProgressProvider = Provider<GetMonthlyProgress>(
   (ref) => GetMonthlyProgress(repository: ref.read(progressRepositoryProvider)),
 );
 
-// Provider for selected metric
+// Selected metric (null = all)
 final selectedMetricProvider = StateProvider<String?>((ref) => null);
 
-// Provider for monthly progress
+// Monthly progress provider (re-reads selectedMetric on each fetch)
 final monthlyProgressProvider = StateNotifierProvider.autoDispose
     .family<MonthlyProgressNotifier, AsyncValue<List<DailyProgress>>, DateTime>(
-      (ref, month) => MonthlyProgressNotifier(
-        ref,
-        ref.read(getMonthlyProgressProvider),
-        month,
-        ref.watch(selectedMetricProvider),
-      ),
+      (ref, month) {
+        return MonthlyProgressNotifier(
+          ref,
+          ref.read(getMonthlyProgressProvider),
+          month,
+        );
+      },
     );
 
-// Provider for daily progress color
-final dailyProgressColorProvider = Provider.autoDispose.family<Color, String>((ref, userIdAndDate) {
-  final parts = userIdAndDate.split('|');
-  final userId = parts[0];
+// Heat color provider for a given date
+final dailyProgressColorProvider = Provider.autoDispose.family<Color, String>((
+  ref,
+  key,
+) {
+  // key: "<userId>|<yyyy-MM-dd>"
+  final parts = key.split('|');
   final date = parts[1];
   final month = DateTime.parse(date).copyWith(day: 1);
-  final metric = ref.watch(selectedMetricProvider);
-  final monthlyData = ref.watch(monthlyProgressProvider(month)).value ?? [];
-
-  final progressEntry = monthlyData.firstWhere(
-    (entry) => entry.date == date,
+  final entries = ref.watch(monthlyProgressProvider(month)).value ?? [];
+  final entry = entries.firstWhere(
+    (e) => e.date == date,
     orElse: () => DailyProgress(date: date, completionRate: 0.0),
   );
-  final progress = progressEntry.completionRate;
-
-  if (progress >= 0.8) return AppTheme.colors['fullProgress']!;
-  if (progress >= 0.5) return AppTheme.colors['threeQuarterProgress']!;
-  if (progress >= 0.2) return AppTheme.colors['halfProgress']!;
+  final p = entry.completionRate;
+  // Print only when there's meaningful progress (to avoid spam)
+  if (p > 0.0) {
+    debugPrint('[ColorProvider] date=$date completion=$p');
+  }
+  if (p >= 0.8) return AppTheme.colors['fullProgress']!;
+  if (p >= 0.5) return AppTheme.colors['threeQuarterProgress']!;
+  if (p >= 0.2) return AppTheme.colors['halfProgress']!;
   return AppTheme.colors['noProgress']!;
 });
 
-// Notifier for monthly progress
-class MonthlyProgressNotifier extends StateNotifier<AsyncValue<List<DailyProgress>>> {
+class MonthlyProgressNotifier
+    extends StateNotifier<AsyncValue<List<DailyProgress>>> {
   final Ref _ref;
-  final GetMonthlyProgress _getMonthlyProgress;
+  final GetMonthlyProgress _usecase;
   final DateTime _month;
-  final String? _metric;
 
-  MonthlyProgressNotifier(
-    this._ref,
-    this._getMonthlyProgress,
-    this._month,
-    this._metric,
-  ) : super(const AsyncValue.loading()) {
-    _fetchProgress();
+  MonthlyProgressNotifier(this._ref, this._usecase, this._month)
+    : super(const AsyncValue.loading()) {
+    _fetch();
+    // Auto refresh when metric changes
+    _ref.listen<String?>(selectedMetricProvider, (_, __) {
+      debugPrint(
+        '[Notifier] selectedMetricProvider changed - refreshing for month=$_month',
+      );
+      refresh();
+    });
   }
 
-  Future<void> _fetchProgress() async {
+  Future<void> _fetch() async {
     try {
       if (!mounted) return;
       state = const AsyncValue.loading();
-      final progress = await _getMonthlyProgress.call(_month, metric: _metric);
-      if (mounted) {
-        state = AsyncValue.data(
-          progress.isEmpty
-              ? [
-                  DailyProgress(
-                    date: _month.toIso8601String().substring(0, 10),
-                    completionRate: 0.0,
-                  ),
-                ]
-              : progress,
-        );
+      final metric = _ref.read(selectedMetricProvider);
+      debugPrint(
+        '[Notifier] Fetching data for month=$_month metric=${metric ?? "ALL"}',
+      );
+      final data = await _usecase.call(_month, metric: metric);
+      if (!mounted) return;
+      debugPrint('[Notifier] Fetched ${data.length} entries for month=$_month');
+      for (final d in data.take(5)) {
+        debugPrint('[Notifier] sample: ${d.date} => ${d.completionRate}');
       }
-    } catch (e, stackTrace) {
-      print('MonthlyProgressNotifier error: $e');
-      if (mounted) {
-        state = AsyncValue.error(e, stackTrace);
-      }
+      state = AsyncValue.data(data);
+    } catch (e, st) {
+      debugPrint('[Notifier] error: $e\n$st');
+      if (!mounted) return;
+      state = AsyncValue.error(e, st);
     }
   }
 
-  Future<void> refresh() async {
-    if (!mounted) return;
-    await _fetchProgress();
-  }
+  Future<void> refresh() => _fetch();
 }

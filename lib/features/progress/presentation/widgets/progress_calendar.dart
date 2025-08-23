@@ -1,96 +1,54 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../../../shared/theme/theme.dart';
-import '../../../../shared/widgets/glassmorphic_container.dart';
-import '../../domain/usecases/daily_progress.dart';
-import '../providers/progress_provider.dart';
+import 'package:flutter_heatmap_calendar/flutter_heatmap_calendar.dart';
 
-class ProgressCalendar extends ConsumerWidget {
-  final List<DailyProgress> progress;
+class ProgressCalendar extends StatelessWidget {
+  final Map<DateTime, int> dataset;
+  final Color baseColor;
 
-  const ProgressCalendar({super.key, required this.progress});
+  const ProgressCalendar({
+    super.key,
+    required this.dataset,
+    this.baseColor = Colors.green,
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
-    return GlassmorphicContainer(
-      color: AppTheme.colors['teal']!,
-      padding: EdgeInsets.all(16.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Last 30 Days',
-            style: AppTheme.textStyles['subtitle']!.copyWith(
-              fontSize: 16.sp,
-              color: AppTheme.colors['white'],
-            ),
-          ),
-          SizedBox(height: 16.h),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 7,
-              crossAxisSpacing: 4.w,
-              mainAxisSpacing: 4.h,
-              childAspectRatio: 1,
-            ),
-            itemCount: progress.length,
-            itemBuilder: (context, index) {
-              final progressData = progress[index];
-              final date = progressData.date;
-              final color = ref.watch(dailyProgressColorProvider('$userId|$date'));
-              return Tooltip(
-                message: 'Day ${index + 1}: ${(progressData.completionRate * 100).toStringAsFixed(0)}% completed',
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(4.r),
-                    border: Border.all(color: AppTheme.colors['white']!.withOpacity(0.3)),
-                  ),
-                ),
-              );
-            },
-          ),
-          SizedBox(height: 16.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              _buildLegendItem('Low', AppTheme.colors['halfProgress']!),
-              SizedBox(width: 8.w),
-              _buildLegendItem('Medium', AppTheme.colors['threeQuarterProgress']!),
-              SizedBox(width: 8.w),
-              _buildLegendItem('High', AppTheme.colors['fullProgress']!),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) {
+    // debug whole incoming dataset
+    debugPrint('[Calendar] incoming dataset size=${dataset.length}');
+    if (dataset.isNotEmpty) {
+      final sample = dataset.entries.take(8).map((e) => '${e.key.toIso8601String().substring(0,10)}:${e.value}').join(', ');
+      debugPrint('[Calendar] sample dataset: $sample');
+    }
 
-  Widget _buildLegendItem(String label, Color color) {
-    return Row(
-      children: [
-        Container(
-          width: 12.w,
-          height: 12.h,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(4.r),
-          ),
-        ),
-        SizedBox(width: 4.w),
-        Text(
-          label,
-          style: AppTheme.textStyles['caption']!.copyWith(
-            fontSize: 12.sp,
-            color: AppTheme.colors['white']!.withOpacity(0.7),
-          ),
-        ),
-      ],
+    if (dataset.isEmpty) {
+      debugPrint('[Calendar] dataset empty -> showing placeholder');
+      return const Center(child: Text("No data available"));
+    }
+
+    final normalizedDataset = dataset.map((date, value) {
+      final safeValue = value < 0 ? 0 : value;
+      return MapEntry(date, safeValue);
+    });
+
+    final hasNonZero = normalizedDataset.values.any((v) => v > 0);
+    final safeDataset = hasNonZero ? normalizedDataset : {DateTime.now(): 1};
+
+    debugPrint('[Calendar] normalized size=${normalizedDataset.length} hasNonZero=$hasNonZero safeDatasetSize=${safeDataset.length}');
+
+    return HeatMapCalendar(
+      datasets: safeDataset,
+      colorMode: ColorMode.opacity,
+      colorsets: {1: baseColor},
+      showColorTip: true,
+      monthFontSize: 16,
+      weekFontSize: 12,
+      textColor: Colors.black,
+      defaultColor: Colors.grey[200]!,
+      size: 32,
+      margin: const EdgeInsets.all(4),
+      onClick: (date) {
+        debugPrint("Clicked on $date → ${safeDataset[date] ?? 0}");
+      },
     );
   }
 }

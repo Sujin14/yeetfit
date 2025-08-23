@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:glassmorphism/glassmorphism.dart';
@@ -44,11 +43,6 @@ class ProgressCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (kDebugMode) {
-      print(
-        'ProgressCard: Building $title with percent=$percent for userId=$userId, isLoading=$isLoading',
-      );
-    }
     final progressColor = ref.watch(progressColorProvider(percent));
 
     return isLoading
@@ -63,10 +57,6 @@ class ProgressCard extends ConsumerWidget {
         : GestureDetector(
             onTap: route != null
                 ? () {
-                    if (kDebugMode)
-                      print(
-                        'ProgressCard: Navigating to $route for userId=$userId',
-                      );
                     context.push(route!, extra: userId);
                   }
                 : null,

@@ -15,7 +15,6 @@ class DashboardBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final progressAsync = ref.watch(dailyProgressStreamProvider(userId));
 
-    print('DashboardBody: Building for userId=$userId');
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
@@ -25,9 +24,7 @@ class DashboardBody extends ConsumerWidget {
             const DragHandle(),
             progressAsync.when(
               data: (progress) {
-                print(
-                  'DashboardBody: Progress data for userId=$userId: $progress',
-                );
+                
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -44,9 +41,6 @@ class DashboardBody extends ConsumerWidget {
                 ],
               ),
               error: (error, _) {
-                print(
-                  'DashboardBody: Error loading progress for userId=$userId: $error',
-                );
                 return Center(child: Text('Error: $error'));
               },
             ),

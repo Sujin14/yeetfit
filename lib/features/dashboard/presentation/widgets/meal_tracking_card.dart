@@ -53,9 +53,7 @@ class MealTrackingCard extends ConsumerWidget {
         final fat = data['fat']?.toDouble() ?? 0.0;
         final fatGoal = data['fatGoal']?.toDouble() ?? 70.0;
 
-        print(
-          'MealTrackingCard: Building for userId=$userId, calories=$calories/$caloriesGoal',
-        );
+        
 
         return GestureDetector(
           onTap: () => context.push('/modal/food', extra: userId),
@@ -229,7 +227,6 @@ class MealTrackingCard extends ConsumerWidget {
         child: _buildShimmerCard(context),
       ),
       error: (error, _) {
-        print('MealTrackingCard: Error for userId=$userId: $error');
         return Center(child: Text('Error: $error'));
       },
     );

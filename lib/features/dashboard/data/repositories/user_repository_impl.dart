@@ -54,7 +54,6 @@ class UserRepositoryImpl implements UserRepository {
 
   @override
   Stream<Map<String, dynamic>> getDailyProgressStream(String userId, String date) {
-    print('UserRepositoryImpl: Streaming progress for userId=$userId, date=$date');
     return CombineLatestStream.combine5(
       userDataSource.getUserData(userId).asStream(),
       progressDataSource.getProgressStream(userId, 'steps', date),
@@ -69,7 +68,6 @@ class UserRepositoryImpl implements UserRepository {
         Map<String, dynamic>? mealData,
       ) {
         return weightDataSource.getWeightData(userId, date).then((weightData) {
-          print('UserRepositoryImpl: Combined stream update for userId=$userId, date=$date');
           return {
             'steps': stepsData?['steps']?.toDouble() ?? 0.0,
             'stepsGoal': stepsData?['goalSteps']?.toDouble() ?? 10000.0,
@@ -94,7 +92,6 @@ class UserRepositoryImpl implements UserRepository {
         });
       },
     ).asyncExpand((futureMap) => Stream.fromFuture(futureMap)).handleError((e) {
-      print('UserRepositoryImpl: Error streaming progress for userId=$userId, date=$date: $e');
       throw e;
     });
   }
@@ -106,7 +103,6 @@ class UserRepositoryImpl implements UserRepository {
     final height = userData?['height']?.toDouble() ?? 181.0;
     final weight = progress['currentWeight']?.toDouble() ?? userData?['currentWeight']?.toDouble() ?? 77.0;
     final heightInMeters = height / 100;
-    print('UserRepositoryImpl: Calculating BMI for userId=$userId, height=$height, weight=$weight');
     return weight / (heightInMeters * heightInMeters);
   }
 }

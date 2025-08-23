@@ -1,19 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../shared/theme/theme.dart';
-import '../../../../shared/widgets/glassmorphic_container.dart';
+import '../providers/progress_provider.dart';
 
-class ProgressHeader extends StatelessWidget {
+class ProgressHeader extends ConsumerWidget {
   final ValueChanged<String?> onMetricChanged;
-
   const ProgressHeader({super.key, required this.onMetricChanged});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDesktop = MediaQuery.of(context).size.width >= 600;
-    return GlassmorphicContainer(
-      color: AppTheme.colors['indigo']!,
+    final selected = ref.watch(selectedMetricProvider) ?? 'All Metrics';
+
+    return Container(
       padding: EdgeInsets.all(isDesktop ? 20.w : 16.w),
+      decoration: BoxDecoration(
+        color: AppTheme.colors['indigo']!,
+        borderRadius: BorderRadius.circular(12.r),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -25,7 +30,7 @@ class ProgressHeader extends StatelessWidget {
             ),
           ),
           DropdownButton<String>(
-            value: 'All Metrics',
+            value: selected,
             dropdownColor: AppTheme.colors['indigo']!.withOpacity(0.5),
             style: AppTheme.textStyles['body']!.copyWith(
               color: AppTheme.colors['primaryText'],
@@ -36,50 +41,22 @@ class ProgressHeader extends StatelessWidget {
               color: AppTheme.colors['primaryText'],
             ),
             underline: const SizedBox(),
-            onChanged: onMetricChanged,
-            items: [
+            onChanged: (value) {
+              final v = value == 'All Metrics' ? null : value;
+              debugPrint('[Header] metric selected: $value => storing $v');
+              ref.read(selectedMetricProvider.notifier).state = v;
+              onMetricChanged(value);
+            },
+            items: const [
               DropdownMenuItem(
                 value: 'All Metrics',
-                child: Text(
-                  'All Metrics',
-                  style: TextStyle(color: AppTheme.colors['primaryText']),
-                ),
+                child: Text('All Metrics'),
               ),
-              DropdownMenuItem(
-                value: 'food',
-                child: Text(
-                  'Meal Tracking',
-                  style: TextStyle(color: AppTheme.colors['primaryText']),
-                ),
-              ),
-              DropdownMenuItem(
-                value: 'sleep',
-                child: Text(
-                  'Sleep',
-                  style: TextStyle(color: AppTheme.colors['primaryText']),
-                ),
-              ),
-              DropdownMenuItem(
-                value: 'steps',
-                child: Text(
-                  'Steps',
-                  style: TextStyle(color: AppTheme.colors['primaryText']),
-                ),
-              ),
-              DropdownMenuItem(
-                value: 'water',
-                child: Text(
-                  'Water',
-                  style: TextStyle(color: AppTheme.colors['primaryText']),
-                ),
-              ),
-              DropdownMenuItem(
-                value: 'weight',
-                child: Text(
-                  'Weight',
-                  style: TextStyle(color: AppTheme.colors['primaryText']),
-                ),
-              ),
+              DropdownMenuItem(value: 'food', child: Text('Meal Tracking')),
+              DropdownMenuItem(value: 'sleep', child: Text('Sleep')),
+              DropdownMenuItem(value: 'steps', child: Text('Steps')),
+              DropdownMenuItem(value: 'water', child: Text('Water')),
+              DropdownMenuItem(value: 'weight', child: Text('Weight')),
             ],
           ),
         ],
