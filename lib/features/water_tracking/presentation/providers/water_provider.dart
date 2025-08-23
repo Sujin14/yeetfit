@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../data/datasources/water_datasource.dart';
 import '../../data/model/water_model.dart';
@@ -9,6 +11,9 @@ import '../../domain/usecases/remove_glass.dart';
 import '../../domain/usecases/set_water_goal.dart';
 import '../../domain/usecases/get_water_data.dart';
 import '../../domain/usecases/get_weekly_water_data.dart';
+
+/// Firebase Auth Provider
+final firebaseAuthProvider = Provider((ref) => FirebaseAuth.instance);
 
 /// Repository provider
 final waterRepositoryProvider = Provider<WaterRepositoryImpl>(
@@ -81,11 +86,15 @@ final dailyProgressColorProvider = Provider.autoDispose.family<Color, String>(
           ).goalGlasses);
     final progress = goalGlasses > 0 ? glassesConsumed / goalGlasses : 0.0;
 
-    if (progress >= 1.0) return AppTheme.colors['fullProgress']!;
-    if (progress >= 0.75) return AppTheme.colors['ThreeQuarterProgress']!;
-    if (progress >= 0.5) return AppTheme.colors['halfProgress']!;
-    if (progress >= 0.25) return AppTheme.colors['QuarterProgress']!;
-    return AppTheme.colors['noProgress']!;
+    return progress >= 1.0
+        ? AppTheme.colors['fullProgress']!
+        : progress >= 0.75
+            ? AppTheme.colors['threeQuarterProgress']!
+            : progress >= 0.5
+                ? AppTheme.colors['halfProgress']!
+                : progress >= 0.25
+                    ? AppTheme.colors['quarterProgress']!
+                    : AppTheme.colors['noProgress']!;
   },
 );
 
@@ -98,7 +107,6 @@ final weeklyWaterDataProvider = FutureProvider.family<List<WaterData>, String>(
       error: (e, _) => throw e,
       loading: () => [],
     );
-    // Ensure today's data is included, using current glassesConsumed and goalGlasses
     final today = DateTime.now().toIso8601String().split('T')[0];
     final glassesConsumed = ref.watch(glassesConsumedProvider(userId).select((value) => value.value ?? 0));
     final goalGlasses = ref.watch(waterGoalProvider(userId).select((value) => value.value ?? 8));
@@ -108,7 +116,6 @@ final weeklyWaterDataProvider = FutureProvider.family<List<WaterData>, String>(
         glassesConsumed: glassesConsumed,
         goalGlasses: goalGlasses,
       ));
-    // Sort by date to ensure correct order
     updatedData.sort((a, b) => a.date.compareTo(b.date));
     return updatedData.cast<WaterData>();
   },
@@ -121,15 +128,10 @@ class GlassesConsumedNotifier extends StateNotifier<AsyncValue<int>> {
   final AddGlass _addGlass;
   final RemoveGlass _removeGlass;
   final String _userId;
-  String? _lastDate; // Track the date of the last data fetch
+  String? _lastDate;
 
-  GlassesConsumedNotifier(
-    this._ref,
-    this._getWaterData,
-    this._addGlass,
-    this._removeGlass,
-    this._userId,
-  ) : super(const AsyncValue.loading()) {
+  GlassesConsumedNotifier(this._ref, this._getWaterData, this._addGlass, this._removeGlass, this._userId)
+      : super(const AsyncValue.loading()) {
     _fetchGlassesConsumed();
   }
 
@@ -138,8 +140,7 @@ class GlassesConsumedNotifier extends StateNotifier<AsyncValue<int>> {
       state = const AsyncValue.loading();
       final waterData = await _getWaterData.call(_userId);
       final newValue = waterData?.glassesConsumed ?? 0;
-      final currentDate = waterData?.date ?? DateTime.now().toIso8601String().split('T')[0];
-      _lastDate = currentDate; // Update the last date
+      _lastDate = waterData?.date ?? DateTime.now().toIso8601String().split('T')[0];
       state = AsyncValue.data(newValue);
     } catch (e, stackTrace) {
       state = AsyncValue.error(e, stackTrace);
@@ -164,7 +165,7 @@ class GlassesConsumedNotifier extends StateNotifier<AsyncValue<int>> {
     }
   }
 
-  String? get lastDate => _lastDate; // Getter for lastDate
+  String? get lastDate => _lastDate;
 }
 
 /// Notifier for water goal
@@ -196,5 +197,74 @@ class WaterGoalNotifier extends StateNotifier<AsyncValue<int>> {
     } catch (e, stackTrace) {
       state = AsyncValue.error(e, stackTrace);
     }
+  }
+}
+
+/// State for WaterTrackingScreen navigation
+final waterTrackingNavigationProvider = StateNotifierProvider.family<WaterTrackingNavigationNotifier, bool, String>(
+  (ref, userId) => WaterTrackingNavigationNotifier(ref, userId),
+);
+
+class WaterTrackingNavigationNotifier extends StateNotifier<bool> {
+  final Ref _ref;
+  final String _userId;
+  String? _lastNavigatedDate;
+
+  WaterTrackingNavigationNotifier(this._ref, this._userId) : super(false) {
+    _listenToGlassesConsumed();
+  }
+
+  void _listenToGlassesConsumed() {
+    _ref.listen(glassesConsumedProvider(_userId), (previous, next) {
+      final glassesConsumed = next.value ?? 0;
+      final goalGlasses = _ref.read(waterGoalProvider(_userId)).value ?? 8;
+      final today = DateTime.now().toIso8601String().split('T')[0];
+      final lastDate = _ref.read(glassesConsumedProvider(_userId).notifier).lastDate;
+
+      if (lastDate != null && lastDate != today) {
+        state = false;
+        _lastNavigatedDate = null;
+      }
+
+      if (glassesConsumed == goalGlasses && !state && _lastNavigatedDate != today) {
+        state = true;
+        _lastNavigatedDate = today;
+        // Navigation is handled in the screen
+      }
+    });
+  }
+
+  bool get hasNavigatedToSuccess => state;
+}
+
+/// State for WaterProgressCard dialog
+final waterGoalDialogStateProvider = StateProvider.family<WaterGoalDialogState, String>((ref, userId) {
+  return WaterGoalDialogState(ref, userId);
+});
+
+class WaterGoalDialogState {
+  final Ref ref;
+  final String userId;
+  final TextEditingController controller;
+
+  WaterGoalDialogState(this.ref, this.userId)
+      : controller = TextEditingController(
+          text: ref.read(waterGoalProvider(userId)).value?.toString() ?? '8',
+        );
+
+  void submitGoal(BuildContext context) {
+    final newGoal = int.tryParse(controller.text);
+    if (newGoal != null && newGoal > 0) {
+      ref.read(waterGoalProvider(userId).notifier).setGoal(newGoal);
+      context.pop();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid number')),
+      );
+    }
+  }
+
+  void dispose() {
+    controller.dispose();
   }
 }

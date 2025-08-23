@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
-import 'package:yeetfit/shared/theme/theme.dart';
+import '../../../../shared/theme/theme.dart';
 import '../widgets/water_action_button.dart';
 import '../widgets/water_app_bar.dart';
 import '../widgets/water_chart_section.dart';
@@ -13,49 +12,40 @@ import '../widgets/water_progress_card.dart';
 import '../widgets/water_tip_card.dart';
 import '../providers/water_provider.dart';
 
-class WaterTrackingScreen extends ConsumerStatefulWidget {
+class WaterTrackingScreen extends ConsumerWidget {
   const WaterTrackingScreen({super.key});
 
   @override
-  ConsumerState<WaterTrackingScreen> createState() => _WaterTrackingScreenState();
-}
-
-class _WaterTrackingScreenState extends ConsumerState<WaterTrackingScreen> {
-  bool _hasNavigatedToSuccess = false;
-  String? _lastNavigatedDate;
-
-  @override
-  Widget build(BuildContext context) {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userId = ref.watch(firebaseAuthProvider).currentUser?.uid;
     if (userId == null) {
       return const Scaffold(
         body: Center(child: Text('Please log in to track water intake')),
       );
     }
 
-    ref.listen(glassesConsumedProvider(userId), (previous, next) {
-      final glassesConsumed = next.value ?? 0;
-      final goalGlasses = ref.read(waterGoalProvider(userId)).value ?? 8;
-      final today = DateTime.now().toIso8601String().split('T')[0];
-      final lastDate = ref.read(glassesConsumedProvider(userId).notifier).lastDate;
-
-      if (lastDate != null && lastDate != today) {
-        _hasNavigatedToSuccess = false;
-        _lastNavigatedDate = null;
-      }
-
-      if (glassesConsumed == goalGlasses && !_hasNavigatedToSuccess && _lastNavigatedDate != today) {
-        _hasNavigatedToSuccess = true;
-        _lastNavigatedDate = today;
-        context.goNamed('water-success', pathParameters: {'goal': goalGlasses.toString()});
+    ref.listen(waterTrackingNavigationProvider(userId), (
+      previous,
+      hasNavigated,
+    ) {
+      if (hasNavigated) {
+        final goalGlasses = ref.read(waterGoalProvider(userId)).value ?? 8;
+        context.goNamed(
+          'water-success',
+          pathParameters: {'goal': goalGlasses.toString()},
+        );
       }
     });
+
+    final consumed = ref.watch(glassesConsumedProvider(userId)).value ?? 0;
+    final goal = ref.watch(waterGoalProvider(userId)).value ?? 8;
+    final progress = goal > 0 ? consumed / goal : 0.0;
 
     return Scaffold(
       backgroundColor: AppTheme.colors['lightBackground'],
       appBar: const WaterAppBar(),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16.w),
         children: [
           SizedBox(
             height: 150.h,
@@ -65,38 +55,16 @@ class _WaterTrackingScreenState extends ConsumerState<WaterTrackingScreen> {
             ),
           ),
           SizedBox(height: 16.h),
-          Consumer(
-            builder: (context, ref, _) {
-              final glassesConsumed = ref.watch(
-                glassesConsumedProvider(userId).select((value) => value.value ?? 0),
-              );
-              final goalGlasses = ref.watch(
-                waterGoalProvider(userId).select((value) => value.value ?? 8),
-              );
-              return WaterProgressCard(
-                glassesConsumed: glassesConsumed,
-                goalGlasses: goalGlasses,
-              );
-            },
-          ),
+          const WaterProgressCard(),
           SizedBox(height: 30.h),
-          Consumer(
-            builder: (context, ref, _) {
-              final glassesConsumed = ref.watch(
-                glassesConsumedProvider(userId).select((value) => value.value ?? 0),
-              );
-              final goalGlasses = ref.watch(
-                waterGoalProvider(userId).select((value) => value.value ?? 8),
-              );
-              return WaterCircularIndicator(
-                progress: goalGlasses > 0 ? glassesConsumed / goalGlasses : 0.0,
-              );
-            },
-          ),
+          WaterCircularIndicator(progress: progress), // ✅ fixed
           SizedBox(height: 15.h),
           WaterActionButtons(
-            onAdd: () => ref.read(glassesConsumedProvider(userId).notifier).addGlass(),
-            onRemove: () => ref.read(glassesConsumedProvider(userId).notifier).removeGlass(),
+            onAdd: () =>
+                ref.read(glassesConsumedProvider(userId).notifier).addGlass(),
+            onRemove: () => ref
+                .read(glassesConsumedProvider(userId).notifier)
+                .removeGlass(),
           ),
           SizedBox(height: 30.h),
           const WaterTipCard(),

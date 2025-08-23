@@ -1,33 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../shared/theme/theme.dart';
 
-class StepsAppBar extends ConsumerWidget implements PreferredSizeWidget {
+class StepsAppBar extends StatelessWidget implements PreferredSizeWidget {
   const StepsAppBar({super.key});
 
   @override
-  Size get preferredSize => Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: AppTheme.colors['lightBackground'],
+      backgroundColor: Colors.transparent,
       elevation: 0,
-      leading: IconButton(
-        onPressed: () => context.go('/user-dashboard'),
-        icon: Icon(
-          Icons.arrow_back_ios_new_rounded,
-          color: AppTheme.colors['onSurface'],
-        ),
-      ),
       centerTitle: true,
       title: Text(
-        'Step Counter',
+        'Steps Tracker',
         style: GoogleFonts.roboto(
-          fontSize: 26.sp,
+          fontSize: 26,
           color: AppTheme.colors['onSurface'],
           fontWeight: FontWeight.bold,
         ),
