@@ -53,24 +53,31 @@ class _BottomNavBarState extends State<BottomNavBar> {
   }
 
   Widget _buildNavItem(
-    BuildContext context,
-    IconData icon,
-    int index, {
-    bool isProminent = false,
-  }) {
-    final isSelected = widget.currentIndex == index;
-    return GestureDetector(
+  BuildContext context,
+  IconData icon,
+  int index, {
+  bool isProminent = false,
+}) {
+  final isSelected = widget.currentIndex == index;
+
+  return Expanded(
+    child: InkWell(
+      borderRadius: BorderRadius.circular(40.r),
       onTap: () => _onItemTapped(context, index),
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: 10.h),
-        child: Icon(
-          icon,
-          size: isProminent ? 32.sp : 28.sp,
-          color: isSelected
-              ? AppTheme.colors['navBarActive']!
-              : AppTheme.colors['navBarInactiveOpacity']!,
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 8.h),
+        child: Center(
+          child: Icon(
+            icon,
+            size: isProminent ? 32.sp : 28.sp,
+            color: isSelected
+                ? AppTheme.colors['navBarActive']!
+                : AppTheme.colors['navBarInactiveOpacity']!,
+          ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
 }

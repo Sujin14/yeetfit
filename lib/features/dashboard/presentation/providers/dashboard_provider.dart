@@ -8,9 +8,11 @@ import '../../../../shared/theme/theme.dart';
 
 final selectedDateProvider = StateProvider<DateTime>((ref) => DateTime.now());
 
-final bmiFutureProvider = FutureProvider.family<double, String>((ref, userId) async {
+final bmiFutureProvider =
+    FutureProvider.family<double, String>((ref, userId) async {
   final date = ref.watch(selectedDateProvider).toIso8601String().split('T')[0];
-  final userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+  final userDoc =
+      await FirebaseFirestore.instance.collection('users').doc(userId).get();
   final weightDoc = await FirebaseFirestore.instance
       .collection('users')
       .doc(userId)
@@ -63,19 +65,22 @@ final progressColorProvider = Provider.family<Color, double>((ref, percent) {
   return AppTheme.colors['fullProgress']!;
 });
 
-final userDataFutureProvider = FutureProvider.family<Map<String, dynamic>?, String>((ref, userId) async {
-  final doc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+final userDataFutureProvider =
+    FutureProvider.family<Map<String, dynamic>?, String>((ref, userId) async {
+  final doc =
+      await FirebaseFirestore.instance.collection('users').doc(userId).get();
   return doc.data();
 });
 
-final dailyProgressStreamProvider = StreamProvider.family<Map<String, dynamic>, String>((ref, userId) async* {
+final dailyProgressStreamProvider =
+    StreamProvider.family<Map<String, dynamic>, String>((ref, userId) async* {
   final date = ref.watch(selectedDateProvider).toIso8601String().split('T')[0];
   final today = DateTime.now().toIso8601String().split('T')[0];
 
-  // Stream for user data
-  final userStream = FirebaseFirestore.instance.collection('users').doc(userId).snapshots();
+  // Firestore base streams
+  final userStream =
+      FirebaseFirestore.instance.collection('users').doc(userId).snapshots();
 
-  // Streams for progress data
   final stepsStream = FirebaseFirestore.instance
       .collection('users')
       .doc(userId)
@@ -121,8 +126,12 @@ final dailyProgressStreamProvider = StreamProvider.family<Map<String, dynamic>, 
       .doc(date)
       .snapshots();
 
+  // ✅ patched: always emit 0.0 first for today
   final stepsProviderStream = date == today
-      ? ref.watch(stepsCountStreamProvider(userId).stream)
+      ? ref
+          .watch(stepsCountStreamProvider(userId).stream)
+          .startWith(0.0)
+          .onErrorReturn(0.0)
       : Stream.value(0.0);
 
   await for (final snapshots in CombineLatestStream.list([
@@ -142,11 +151,16 @@ final dailyProgressStreamProvider = StreamProvider.family<Map<String, dynamic>, 
     final weightDoc = snapshots[5] as DocumentSnapshot<Map<String, dynamic>>;
     final liveSteps = snapshots[6] as double;
 
+    print("👤 User data: ${userDoc.data()}");
+    print("👟 Firestore steps: ${stepsDoc.data()}");
+    print("📲 Live steps (pedometer): $liveSteps");
+    print("💧 Water data: ${waterDoc.data()}");
+    print("😴 Sleep data: ${sleepDoc.data()}");
+    print("🍎 Food docs: ${foodSnapshot.docs.length}");
+    print("⚖️ Weight data: ${weightDoc.data()}");
+
     // Process meal data
-    double calories = 0.0;
-    double protein = 0.0;
-    double carbs = 0.0;
-    double fat = 0.0;
+    double calories = 0.0, protein = 0.0, carbs = 0.0, fat = 0.0;
     bool hasData = foodSnapshot.docs.isNotEmpty;
 
     for (final doc in foodSnapshot.docs) {
@@ -194,13 +208,20 @@ final dailyProgressStreamProvider = StreamProvider.family<Map<String, dynamic>, 
         .doc('$date-goal')
         .get();
 
-    // Use live steps for today, otherwise fall back to Firestore
+    // ✅ patched: use live steps if today
     final steps = date == today && liveSteps > 0
         ? liveSteps
-        : (stepsDoc.exists ? (stepsDoc.data()?['steps'] as num?)?.toDouble() ?? 0.0 : 0.0);
-    hasData = hasData || steps > 0 || stepsDoc.exists || waterDoc.exists || sleepDoc.exists || weightDoc.exists;
+        : (stepsDoc.exists
+            ? (stepsDoc.data()?['steps'] as num?)?.toDouble() ?? 0.0
+            : 0.0);
 
-    // Build progress map
+    hasData = hasData ||
+        steps > 0 ||
+        stepsDoc.exists ||
+        waterDoc.exists ||
+        sleepDoc.exists ||
+        weightDoc.exists;
+
     final progress = {
       'steps': steps,
       'stepsGoal': stepsGoalDoc.exists
@@ -263,6 +284,8 @@ final dailyProgressStreamProvider = StreamProvider.family<Map<String, dynamic>, 
       'weightDescription': 'Track your weight to monitor progress.',
       'hasData': hasData,
     };
+
+    print("📊 Final daily progress [$date] → $progress");
     yield progress;
   }
 });
