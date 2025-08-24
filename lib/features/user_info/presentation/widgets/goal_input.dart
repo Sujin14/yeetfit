@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import '../../../../shared/theme/theme.dart';
 import '../../domain/validators/user_info_validators.dart';
 import '../providers/user_info_provider.dart';
 
@@ -17,7 +18,7 @@ class GoalInput extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userInfo = ref.watch(userInfoControllerProvider);
-    const goals = ['Weight Loss', 'Weight Gain', 'Muscle Building'];
+    const goals = ['weight loss', 'weight gain', 'muscle building'];
 
     return Form(
       key: formKey,
@@ -37,7 +38,7 @@ class GoalInput extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(12.r),
               ),
               filled: true,
-              fillColor: Colors.grey[100],
+              fillColor: AppTheme.colors['gray']!,
             ),
             items: goals.map((goal) {
               return DropdownMenuItem<String>(value: goal, child: Text(goal));

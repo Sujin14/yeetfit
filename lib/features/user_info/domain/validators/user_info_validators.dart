@@ -18,7 +18,7 @@ class UserInfoValidators {
 
   static String? validateGoal(String? value) {
     if (value == null || value.trim().isEmpty) return 'Goal is required';
-    if (!['Weight Loss', 'Weight Gain', 'Muscle Building'].contains(value)) {
+    if (!['weight loss', 'weight gain', 'muscle building'].contains(value)) {
       return 'Select a valid goal';
     }
     return null;

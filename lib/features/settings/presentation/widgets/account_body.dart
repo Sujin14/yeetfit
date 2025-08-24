@@ -48,7 +48,7 @@ class AccountBody extends ConsumerWidget {
               title: 'Fitness Goal',
               selectedGoal: userInfo.goal.isNotEmpty
                   ? userInfo.goal
-                  : 'Weight Loss',
+                  : 'weight loss',
               onGoalSelected: (newGoal) {
                 if (newGoal != null) {
                   ref

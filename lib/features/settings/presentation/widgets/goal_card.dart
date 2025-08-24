@@ -17,7 +17,7 @@ class GoalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final goalTypes = ['Weight Loss', 'Weight Gain', 'Muscle Building'];
+    final goalTypes = ['weight loss', 'weight gain', 'muscle building'];
 
     return GlassmorphicContainer(
       width: double.infinity,

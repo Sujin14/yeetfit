@@ -22,7 +22,7 @@ class GoalSettingsBody extends ConsumerWidget {
           children: [
             GoalCard(
               title: 'Fitness Goal',
-              selectedGoal: userInfo.goal.isNotEmpty ? userInfo.goal : 'Weight Loss',
+              selectedGoal: userInfo.goal.isNotEmpty ? userInfo.goal : 'weight loss',
               onGoalSelected: (newGoal) {
                 if (newGoal != null) {
                   ref.read(settingsControllerProvider.notifier).updateFitnessGoal(
