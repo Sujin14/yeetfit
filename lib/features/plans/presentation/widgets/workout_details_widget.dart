@@ -19,9 +19,9 @@ class WorkoutDetailsWidget extends StatelessWidget {
         child: Text(
           'No exercises available',
           style: AppTheme.textStyles['body']?.copyWith(
-            color: AppTheme.colors['secondaryText'] ?? Colors.grey,
+            color: AppTheme.colors['secondaryText'],
             fontSize: 16.sp,
-          ) ?? TextStyle(fontSize: 16.sp, color: Colors.grey),
+          ) ?? TextStyle(fontSize: 16.sp, color: AppTheme.colors['gray']),
         ),
       );
     }
@@ -59,13 +59,13 @@ class WorkoutDetailsWidget extends StatelessWidget {
               Text(
                 'Exercise ${index + 1}: $name',
                 style: AppTheme.textStyles['subheading']?.copyWith(
-                      color: AppTheme.colors['primaryText'] ?? Colors.black,
+                      color: AppTheme.colors['primaryText'],
                       fontSize: 18.sp,
                       fontWeight: FontWeight.w600,
                     ) ??
                     TextStyle(
                       fontSize: 18.sp,
-                      color: Colors.black,
+                      color: AppTheme.colors['black'],
                       fontWeight: FontWeight.w600,
                     ),
               ),
@@ -74,10 +74,10 @@ class WorkoutDetailsWidget extends StatelessWidget {
               Text(
                 'Reps: $reps $repsType',
                 style: AppTheme.textStyles['body']?.copyWith(
-                      color: AppTheme.colors['secondaryText'] ?? Colors.grey,
+                      color: AppTheme.colors['secondaryText'],
                       fontSize: 14.sp,
                     ) ??
-                    TextStyle(fontSize: 14.sp, color: Colors.grey),
+                    TextStyle(fontSize: 14.sp, color: AppTheme.colors['gray']),
               ),
 
               // Sets
@@ -85,13 +85,13 @@ class WorkoutDetailsWidget extends StatelessWidget {
               Text(
                 'Sets: $sets',
                 style: AppTheme.textStyles['body']?.copyWith(
-                      color: AppTheme.colors['secondaryText'] ?? Colors.grey,
+                      color: AppTheme.colors['secondaryText'],
                       fontSize: 14.sp,
                       fontWeight: FontWeight.w500,
                     ) ??
                     TextStyle(
                       fontSize: 14.sp,
-                      color: Colors.grey,
+                      color: AppTheme.colors['gray'],
                       fontWeight: FontWeight.w500,
                     ),
               ),
@@ -103,10 +103,10 @@ class WorkoutDetailsWidget extends StatelessWidget {
                   'Description: $description',
                   style: AppTheme.textStyles['body']?.copyWith(
                         color:
-                            AppTheme.colors['secondaryText'] ?? Colors.grey,
+                            AppTheme.colors['secondaryText'],
                         fontSize: 14.sp,
                       ) ??
-                      TextStyle(fontSize: 14.sp, color: Colors.grey),
+                      TextStyle(fontSize: 14.sp, color: AppTheme.colors['gray']),
                 ),
               ],
 
@@ -117,13 +117,13 @@ class WorkoutDetailsWidget extends StatelessWidget {
                   'Instructions:',
                   style: AppTheme.textStyles['body']?.copyWith(
                         color:
-                            AppTheme.colors['secondaryText'] ?? Colors.grey,
+                            AppTheme.colors['secondaryText'],
                         fontSize: 14.sp,
                         fontWeight: FontWeight.w500,
                       ) ??
                       TextStyle(
                         fontSize: 14.sp,
-                        color: Colors.grey,
+                        color: AppTheme.colors['gray'],
                         fontWeight: FontWeight.w500,
                       ),
                 ),
@@ -133,11 +133,10 @@ class WorkoutDetailsWidget extends StatelessWidget {
                     child: Text(
                       '- $text',
                       style: AppTheme.textStyles['body']?.copyWith(
-                            color: AppTheme.colors['secondaryText'] ??
-                                Colors.grey,
+                            color: AppTheme.colors['secondaryText'],
                             fontSize: 14.sp,
                           ) ??
-                          TextStyle(fontSize: 14.sp, color: Colors.grey),
+                          TextStyle(fontSize: 14.sp, color: AppTheme.colors['gray']),
                     ),
                   ),
                 ),

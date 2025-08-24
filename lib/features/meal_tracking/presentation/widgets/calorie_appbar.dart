@@ -15,7 +15,7 @@ class CalorieAppBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: AppTheme.colors['transparent'],
       elevation: 0,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new_rounded),
+        icon: const Icon(Icons.arrow_back),
         onPressed: () => context.go('/user-dashboard'),
       ),
       title: Text(

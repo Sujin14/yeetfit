@@ -1,14 +1,11 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/custom_appbar.dart';
-import '../../../explore/presentation/providers/explore_providers.dart';
 import '../../data/models/plan_model.dart';
+import '../providers/plan_provider.dart';
 import '../widgets/plan_details_display.dart';
 
 class PlanDetailPage extends ConsumerWidget {
@@ -21,119 +18,124 @@ class PlanDetailPage extends ConsumerWidget {
     final plan = extra['plan'] as PlanModel;
     final category = extra['category'] as String?;
     final onUnfavorite = extra['onUnfavorite'] as VoidCallback?;
-    final userId = FirebaseAuth.instance.currentUser?.uid;
 
-    if (userId == null) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text(
-            'Error',
-            style: AppTheme.textStyles['body']?.copyWith(
-              color: AppTheme.colors['primaryText'] ?? Colors.black,
-            ),
-          ),
-        ),
-        body: Center(
-          child: Text(
-            'User not logged in',
-            style: AppTheme.textStyles['body']?.copyWith(
-              color: AppTheme.colors['error'] ?? Colors.red,
-              fontSize: 16.sp,
-            ),
-          ),
-        ),
-      );
-    }
+    final planAsync = ref.watch(planDetailProvider(extra));
 
-    return StreamBuilder<DocumentSnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .collection(category == 'diet' ? 'diets' : 'workouts')
-          .doc(plan.id)
-          .snapshots(),
-      builder: (context, snapshot) {
-        PlanModel updatedPlan = plan;
-        if (snapshot.hasData && snapshot.data != null) {
-          updatedPlan = PlanModel.fromFirestore(snapshot.data!);
+    return planAsync.when(
+      data: (updatedPlan) {
+        if (updatedPlan == null) {
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(
+                'Error',
+                style: AppTheme.textStyles['body']?.copyWith(
+                  color: AppTheme.colors['primaryText'],
+                ),
+              ),
+            ),
+            body: Center(
+              child: Text(
+                'Plan not found',
+                style: AppTheme.textStyles['body']?.copyWith(
+                  color: AppTheme.colors['error'],
+                  fontSize: 16.sp,
+                ),
+              ),
+            ),
+          );
         }
 
-        return YoutubePlayerScaffold(
-          controller: YoutubePlayerController(),
-          builder: (context, child) => Scaffold(
-            appBar: CustomAppBar(
-              title: updatedPlan.title,
-              showSettings: true,
-              onSettings: () => context.push('/settings'),
-              showFavorite: true,
-              isFavorite: updatedPlan.isFavorite,
-              favoriteColor: updatedPlan.isFavorite 
-                  ? AppTheme.colors['favorite'] 
-                  : AppTheme.colors['secondaryText'],
-              onFavorite: () async {
-                try {
-                  await ref
-                      .read(toggleFavoriteUseCaseProvider)
-                      .execute(
-                        updatedPlan.id!,
-                        updatedPlan.type,
-                        !updatedPlan.isFavorite,
-                      );
-                  ref.invalidate(dietPlanProvider);
-                  ref.invalidate(workoutPlanProvider);
-                  ref.invalidate(favoritePlansProvider);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        updatedPlan.isFavorite
-                            ? 'Removed from favorites'
-                            : 'Added to favorites',
-                        style: AppTheme.textStyles['body']?.copyWith(
-                          color: AppTheme.colors['primaryText'] ?? Colors.black,
-                        ) ?? const TextStyle(color: Colors.black),
-                      ),
-                      backgroundColor: AppTheme.colors['primaryButton'] ?? Colors.blue,
+        return Scaffold(
+          appBar: CustomAppBar(
+            title: updatedPlan.title,
+            showSettings: true,
+            onSettings: () => context.push('/settings'),
+            showFavorite: true,
+            isFavorite: updatedPlan.isFavorite,
+            favoriteColor: updatedPlan.isFavorite
+                ? AppTheme.colors['favorite']
+                : AppTheme.colors['secondaryText'],
+            onFavorite: () async {
+              try {
+                await ref.read(favoritePlansProvider.notifier).toggleFavorite(
+                      updatedPlan.id!,
+                      updatedPlan.type,
+                      !updatedPlan.isFavorite,
+                    );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      updatedPlan.isFavorite
+                          ? 'Removed from favorites'
+                          : 'Added to favorites',
+                      style: AppTheme.textStyles['body']?.copyWith(
+                        color: AppTheme.colors['primaryText'],
+                      ) ?? TextStyle(color: AppTheme.colors['black']),
                     ),
-                  );
-                  if (!updatedPlan.isFavorite && onUnfavorite != null) {
-                    onUnfavorite();
-                  }
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        e.toString().contains('PERMISSION_DENIED')
-                            ? 'Permission denied: Only admins can update plans'
-                            : 'Error: $e',
-                        style: AppTheme.textStyles['body']?.copyWith(
-                          color: AppTheme.colors['primaryText'] ?? Colors.black,
-                        ) ?? const TextStyle(color: Colors.black),
-                      ),
-                      backgroundColor: AppTheme.colors['error'] ?? Colors.red,
-                    ),
-                  );
+                    backgroundColor: AppTheme.colors['primaryButton'],
+                  ),
+                );
+                if (!updatedPlan.isFavorite && onUnfavorite != null) {
+                  onUnfavorite();
                 }
-              },
-            ),
-            body: SafeArea(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: PlanDetailsDisplay(
-                        plan: updatedPlan,
-                        category: category,
-                      ),
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      e.toString().contains('PERMISSION_DENIED')
+                          ? 'Permission denied: Only admins can update plans'
+                          : 'Error: $e',
+                      style: AppTheme.textStyles['body']?.copyWith(
+                        color: AppTheme.colors['primaryText'],
+                      ) ?? TextStyle(color: AppTheme.colors['black']),
                     ),
-                  ],
-                ),
+                    backgroundColor: AppTheme.colors['error'],
+                  ),
+                );
+              }
+            },
+          ),
+          body: SafeArea(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: PlanDetailsDisplay(
+                      plan: updatedPlan,
+                      category: category,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
         );
       },
+      loading: () => Scaffold(
+        appBar: CustomAppBar(title: plan.title),
+        body: const Center(child: CircularProgressIndicator()),
+      ),
+      error: (error, _) => Scaffold(
+        appBar: AppBar(
+          title: Text(
+            'Error',
+            style: AppTheme.textStyles['body']?.copyWith(
+              color: AppTheme.colors['primaryText'],
+            ),
+          ),
+        ),
+        body: Center(
+          child: Text(
+            'Error: $error',
+            style: AppTheme.textStyles['body']?.copyWith(
+              color: AppTheme.colors['error'],
+              fontSize: 16.sp,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

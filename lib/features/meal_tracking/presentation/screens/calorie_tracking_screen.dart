@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:yeetfit/features/meal_tracking/presentation/widgets/calorie_appbar.dart';
 import '../providers/food_provider.dart';
+import '../widgets/calorie_appbar.dart';
 import '../widgets/calorie_summary.dart';
 import '../widgets/meal_section.dart';
+import '../widgets/shimmer_card.dart';
 
 class CalorieTrackingScreen extends ConsumerWidget {
   const CalorieTrackingScreen({super.key});
@@ -32,18 +33,33 @@ class CalorieTrackingScreen extends ConsumerWidget {
               SizedBox(height: 80.h),
               Consumer(
                 builder: (context, ref, _) {
-                  final totalCalories = ['Breakfast', 'Morning Snack', 'Lunch', 'Evening Snack', 'Dinner']
-                      .map((mealType) => ref.watch(dailyCaloriesProvider('$userId|$mealType')))
-                      .fold(0.0, (sum, calories) => sum + calories);
-                  final goalCaloriesAsync = ref.watch(calorieGoalProvider(userId));
-                  final progressColor = ref.watch(dailyCalorieProgressColorProvider('$userId|$today'));
+                  final totalCalories =
+                      [
+                            'Breakfast',
+                            'Morning Snack',
+                            'Lunch',
+                            'Evening Snack',
+                            'Dinner',
+                          ]
+                          .map(
+                            (mealType) => ref.watch(
+                              dailyCaloriesProvider('$userId|$mealType'),
+                            ),
+                          )
+                          .fold(0.0, (sum, calories) => sum + calories);
+                  final goalCaloriesAsync = ref.watch(
+                    calorieGoalProvider(userId),
+                  );
+                  final progressColor = ref.watch(
+                    dailyCalorieProgressColorProvider('$userId|$today'),
+                  );
                   return goalCaloriesAsync.when(
                     data: (goalCalories) => CalorieSummary(
                       totalCalories: totalCalories,
                       goalCalories: goalCalories,
                       progressColor: progressColor,
                     ),
-                    loading: () => const Center(child: CircularProgressIndicator()),
+                    loading: () => ShimmerCard(isSummary: true),
                     error: (error, _) => Text('Error: $error'),
                   );
                 },

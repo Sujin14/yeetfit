@@ -8,6 +8,7 @@ import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
 import '../../data/model/food_model.dart';
 import '../providers/food_provider.dart';
+import '../widgets/shimmer_card.dart';
 
 class CalorieChartCard extends ConsumerWidget {
   final String userId;
@@ -18,7 +19,8 @@ class CalorieChartCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final weeklyDataAsync = ref.watch(weeklyFoodDataProvider(userId));
 
-    return SizedBox(height: 350.h,
+    return SizedBox(
+      height: 350.h,
       child: GlassmorphicContainer(
         color: AppTheme.colors['indigo']!,
         padding: EdgeInsets.all(24.w),
@@ -44,7 +46,7 @@ class CalorieChartCard extends ConsumerWidget {
                       .map((item) => item.calories)
                       .fold<double>(1750.0, (a, b) => a > b ? a : b);
                   final interval = maxGoal <= 2000 ? 400.0 : 800.0;
-      
+
                   return BarChart(
                     BarChartData(
                       maxY: maxGoal < 2000 ? 2000 : (maxGoal + 200).clamp(2000, 4000),
@@ -61,7 +63,7 @@ class CalorieChartCard extends ConsumerWidget {
                       barGroups: List.generate(7, (index) {
                         final date = DateTime.now().subtract(Duration(days: 6 - index));
                         final dateString = DateFormat('yyyy-MM-dd').format(date);
-      
+
                         double totalCalories = 0.0;
                         for (final mealType in weeklyData.keys) {
                           final dayData = weeklyData[mealType]!.firstWhere(
@@ -75,16 +77,16 @@ class CalorieChartCard extends ConsumerWidget {
                               fat: 0.0,
                               carbs: 0.0,
                               fiber: 0.0,
-                              quantity: 0.0
+                              quantity: 0.0,
                             ),
                           );
                           totalCalories += dayData.calories;
                         }
-      
+
                         final progressColor = ref.watch(
                           dailyCalorieProgressColorProvider('$userId|$dateString'),
                         );
-      
+
                         return BarChartGroupData(
                           x: index,
                           barRods: [
@@ -167,13 +169,7 @@ class CalorieChartCard extends ConsumerWidget {
                     duration: const Duration(milliseconds: 800),
                   );
                 },
-                loading: () => Center(
-                  child: SizedBox(
-                    height: 40.h,
-                    width: 40.h,
-                    child: CircularProgressIndicator(color: AppTheme.colors['white']),
-                  ),
-                ),
+                loading: () => ShimmerCard(isChart: true),
                 error: (error, _) => Text(
                   'Error: $error',
                   style: GoogleFonts.roboto(

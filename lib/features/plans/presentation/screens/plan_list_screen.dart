@@ -1,44 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../shared/theme/theme.dart';
-import '../../data/models/plan_model.dart';
+import '../providers/plan_provider.dart';
 import '../widgets/plan_list_item.dart';
 
-class PlanListScreen extends StatelessWidget {
+class PlanListScreen extends ConsumerWidget {
   final String category;
 
   const PlanListScreen({super.key, required this.category});
 
   @override
-  Widget build(BuildContext context) {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
-    if (userId == null) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text(
-            'Error',
-            style: GoogleFonts.roboto(
-              fontSize: 28.sp,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.colors['teal'],
-            ),
-          ),
-        ),
-        body: Center(
-          child: Text(
-            'User not logged in',
-            style: GoogleFonts.roboto(
-              fontSize: 16.sp,
-              color: AppTheme.colors['error'],
-            ),
-          ),
-        ),
-      );
-    }
+  Widget build(BuildContext context, WidgetRef ref) {
+    final plansAsync = ref.watch(category == 'diet' ? dietPlanProvider : workoutPlanProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -55,32 +31,9 @@ class PlanListScreen extends StatelessWidget {
         ),
       ),
       body: SafeArea(
-        child: StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection('users')
-              .doc(userId)
-              .collection(category == 'diet' ? 'diets' : 'workouts')
-              .orderBy('createdAt', descending: true)
-              .snapshots(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snapshot.hasError) {
-              return Center(
-                child: Text(
-                  'Error: ${snapshot.error}',
-                  style: GoogleFonts.roboto(
-                    fontSize: 16.sp,
-                    color: AppTheme.colors['error'],
-                  ),
-                ),
-              );
-            }
-            final plans = snapshot.data!.docs
-                .map((doc) => PlanModel.fromFirestore(doc))
-                .toList();
-            if (plans.isEmpty) {
+        child: plansAsync.when(
+          data: (plan) {
+            if (plan == null) {
               return Center(
                 child: Text(
                   'No ${category == 'diet' ? 'diet' : 'workout'} plans available',
@@ -93,10 +46,8 @@ class PlanListScreen extends StatelessWidget {
             }
             return ListView.builder(
               padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
-              itemCount: plans.length,
+              itemCount: 1, // Single plan as per provider
               itemBuilder: (context, index) {
-                final plan = plans[index];
-                debugPrint('PlanListScreen: Navigating to plan - id=${plan.id}, type=${plan.type}, category=$category');
                 return Padding(
                   padding: EdgeInsets.only(bottom: 16.h),
                   child: PlanListItem(
@@ -112,6 +63,16 @@ class PlanListScreen extends StatelessWidget {
               },
             );
           },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => Center(
+            child: Text(
+              'Error: $error',
+              style: GoogleFonts.roboto(
+                fontSize: 16.sp,
+                color: AppTheme.colors['error'],
+              ),
+            ),
+          ),
         ),
       ),
     );

@@ -6,6 +6,7 @@ import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../providers/food_provider.dart';
+import '../widgets/shimmer_card.dart';
 
 class MealSection extends ConsumerWidget {
   final String mealType;
@@ -50,7 +51,7 @@ class MealSection extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  loading: () => const CircularProgressIndicator(),
+                  loading: () => ShimmerCard(height: 14),
                   error: (error, _) => Text('Error: $error'),
                 );
               },
@@ -95,7 +96,7 @@ class MealSection extends ConsumerWidget {
                     onTap: () => context.push('/nutrition-details', extra: item),
                   )).toList(),
                 ),
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => ShimmerCard(isListTile: true),
           error: (error, _) => Text('Error: $error'),
         ),
         const SizedBox(height: 16),
