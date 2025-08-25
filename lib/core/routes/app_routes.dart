@@ -187,7 +187,7 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(path: '/contact-us', builder: (context, state) => const ContactUsScreen()),
     GoRoute(
-      path: '/privacy_policy',
+      path: '/privacy-policy',
       builder: (context, state) => const PrivacyPolicyScreen(),
     ),
   ],
