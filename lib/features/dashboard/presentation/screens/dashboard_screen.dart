@@ -25,6 +25,7 @@ class DashboardScreen extends ConsumerWidget {
 
     final bmiAsync = ref.watch(bmiFutureProvider(userId));
     final userDataAsync = ref.watch(userDataFutureProvider(userId));
+    final paymentStatusAsync = ref.watch(paymentStatusProvider);
 
     return Scaffold(
       backgroundColor: AppTheme.colors['lightBackground'],
@@ -80,12 +81,25 @@ class DashboardScreen extends ConsumerWidget {
               backgroundColor: AppTheme.colors['primaryAccent'],
               foregroundColor: AppTheme.colors['onSurfaceDark'],
               onPressed: () {
-                final hasPaid = ref.read(paymentStatusProvider).value ?? false;
-                if (hasPaid) {
-                  context.go('/admin-list');
-                } else {
-                  context.go('/payment');
-                }
+                paymentStatusAsync.when(
+                  data: (hasPaid) {
+                    if (hasPaid) {
+                      context.go('/admin-list');
+                    } else {
+                      context.go('/payment');
+                    }
+                  },
+                  loading: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Checking payment status...')),
+                    );
+                  },
+                  error: (e, _) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error: $e')),
+                    );
+                  },
+                );
               },
               heroTag: 'chat_fab',
               child: Icon(Icons.chat, size: 24.sp),
