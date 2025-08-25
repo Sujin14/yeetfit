@@ -32,19 +32,36 @@ android {
     }
 
     buildTypes {
-        release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
-        }
+    release {
+        isMinifyEnabled = true
+        isShrinkResources = true
+        proguardFiles(
+            getDefaultProguardFile("proguard-android-optimize.txt"),
+            "proguard-rules.pro"
+        )
+        signingConfig = signingConfigs.getByName("debug") // replace later with release
     }
 }
 
+}
+
 dependencies {
+    // Firebase
     implementation(platform("com.google.firebase:firebase-bom:33.15.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
+
+    // Only core-common (avoid duplicate with play-core)
+    implementation("com.google.android.play:core-common:2.0.3")
+
+    // Razorpay annotations
+    implementation("com.guardsquare:proguard-annotations:7.4.0")
+
+    // Kotlin stdlib
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.24")
 }
+
+
 
 
 flutter {
