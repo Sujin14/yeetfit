@@ -8,28 +8,41 @@ import '../../../../shared/theme/theme.dart';
 
 final selectedDateProvider = StateProvider<DateTime>((ref) => DateTime.now());
 
-final bmiFutureProvider =
-    FutureProvider.family<double, String>((ref, userId) async {
+final bmiStreamProvider = StreamProvider.family<double, String>((ref, userId) {
   final date = ref.watch(selectedDateProvider).toIso8601String().split('T')[0];
-  final userDoc =
-      await FirebaseFirestore.instance.collection('users').doc(userId).get();
-  final weightDoc = await FirebaseFirestore.instance
+
+  final userStream = FirebaseFirestore.instance
+      .collection('users')
+      .doc(userId)
+      .snapshots();
+
+  final weightStream = FirebaseFirestore.instance
       .collection('users')
       .doc(userId)
       .collection('progress')
       .doc('weight')
       .collection('weight')
       .doc(date)
-      .get();
+      .snapshots();
 
-  final height = (userDoc.data()?['height'] as num?)?.toDouble() ?? 181.0;
-  final weight = weightDoc.exists
-      ? (weightDoc.data()?['currentWeight'] as num?)?.toDouble() ?? 77.0
-      : (userDoc.data()?['weight'] as num?)?.toDouble() ?? 77.0;
+  return Rx.combineLatest2(
+    userStream,
+    weightStream,
+    (DocumentSnapshot<Map<String, dynamic>> userDoc,
+     DocumentSnapshot<Map<String, dynamic>> weightDoc) {
+      final height = (userDoc.data()?['height'] as num?)?.toDouble() ?? 0.0;
 
-  if (height <= 0) return 0.0;
-  return weight / ((height / 100) * (height / 100));
+      final weight = weightDoc.exists
+          ? (weightDoc.data()?['currentWeight'] as num?)?.toDouble()
+          : (userDoc.data()?['currentWeight'] as num?)?.toDouble();
+
+      if (height <= 0 || weight == null) return 0.0;
+
+      return weight / ((height / 100) * (height / 100));
+    },
+  );
 });
+
 
 final bmiCategoryProvider = Provider.family<String, double>((ref, bmi) {
   if (bmi < 18.5) return 'Underweight';
@@ -67,17 +80,17 @@ final progressColorProvider = Provider.family<Color, double>((ref, percent) {
 
 final userDataFutureProvider =
     FutureProvider.family<Map<String, dynamic>?, String>((ref, userId) async {
-  final doc =
-      await FirebaseFirestore.instance.collection('users').doc(userId).get();
-  return doc.data();
-});
-
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+      return doc.data();
+    });
 final dailyProgressStreamProvider =
     StreamProvider.family<Map<String, dynamic>, String>((ref, userId) async* {
   final date = ref.watch(selectedDateProvider).toIso8601String().split('T')[0];
   final today = DateTime.now().toIso8601String().split('T')[0];
 
-  // Firestore base streams
   final userStream =
       FirebaseFirestore.instance.collection('users').doc(userId).snapshots();
 
@@ -126,7 +139,6 @@ final dailyProgressStreamProvider =
       .doc(date)
       .snapshots();
 
-  // ✅ patched: always emit 0.0 first for today
   final stepsProviderStream = date == today
       ? ref
           .watch(stepsCountStreamProvider(userId).stream)
@@ -151,10 +163,9 @@ final dailyProgressStreamProvider =
     final weightDoc = snapshots[5] as DocumentSnapshot<Map<String, dynamic>>;
     final liveSteps = snapshots[6] as double;
 
-    // Process meal data
+    // --- Food totals ---
     double calories = 0.0, protein = 0.0, carbs = 0.0, fat = 0.0;
     bool hasData = foodSnapshot.docs.isNotEmpty;
-
     for (final doc in foodSnapshot.docs) {
       final foodItem = FoodItem.fromMap(doc.data());
       calories += foodItem.calories;
@@ -163,16 +174,73 @@ final dailyProgressStreamProvider =
       fat += foodItem.fat;
     }
 
-    // Fetch goals
-    final foodGoalDoc = await FirebaseFirestore.instance
+    // --- Goals from daily_goals ---
+    final dailyGoalsDocRef = FirebaseFirestore.instance
         .collection('users')
         .doc(userId)
         .collection('progress')
         .doc('food')
-        .collection('food')
-        .doc('$date-goal')
-        .get();
+        .collection('daily_goals')
+        .doc(date);
 
+    final dailyGoalsSnap = await dailyGoalsDocRef.get();
+    final Map<String, dynamic>? goalsData =
+        dailyGoalsSnap.exists ? dailyGoalsSnap.data() : null;
+
+    double effectiveCaloriesGoal = 0;
+    double effectiveProteinGoal = 0;
+    double effectiveCarbsGoal = 0;
+    double effectiveFatGoal = 0;
+
+    if (goalsData != null) {
+      effectiveCaloriesGoal =
+          (goalsData['caloriesGoal'] as num?)?.toDouble() ?? 0;
+      effectiveProteinGoal =
+          (goalsData['proteinGoal'] as num?)?.toDouble() ?? 0;
+      effectiveCarbsGoal = (goalsData['carbsGoal'] as num?)?.toDouble() ?? 0;
+      effectiveFatGoal = (goalsData['fatGoal'] as num?)?.toDouble() ?? 0;
+    }
+
+    // --- Fallback only if no daily_goals exist ---
+    if (effectiveCaloriesGoal <= 0) {
+      final userMap = userDoc.data();
+      final gender = (userMap?['gender'] as String?) ?? 'female';
+      final weight = (userMap?['currentWeight'] as num?)?.toDouble() ?? 70.0;
+      final height = (userMap?['height'] as num?)?.toDouble() ?? 170.0;
+      final age = (userMap?['age'] as num?)?.toDouble() ?? 30.0;
+      final activity =
+          (userMap?['activityLevel'] as String?) ?? 'Lightly Active';
+      final goal = (userMap?['goal'] as String?) ?? 'Maintenance';
+
+      double bmr;
+      if (gender.toLowerCase() == 'male') {
+        bmr = 10 * weight + 6.25 * height - 5 * age + 5;
+      } else {
+        bmr = 10 * weight + 6.25 * height - 5 * age - 161;
+      }
+
+      double activityFactor = activity == 'Moderately Active' ? 1.55 : 1.2;
+      double totalCalories = bmr * activityFactor;
+      if (goal.toLowerCase() == 'weight loss') totalCalories -= 500;
+
+      effectiveCaloriesGoal = totalCalories;
+      effectiveProteinGoal = (totalCalories * 0.20) / 4;
+      effectiveFatGoal = (totalCalories * 0.30) / 9;
+      effectiveCarbsGoal = (totalCalories * 0.45) / 4;
+    } else {
+      // if calories goal exists but macros missing, compute them proportionally
+      if (effectiveProteinGoal <= 0) {
+        effectiveProteinGoal = (effectiveCaloriesGoal * 0.20) / 4;
+      }
+      if (effectiveFatGoal <= 0) {
+        effectiveFatGoal = (effectiveCaloriesGoal * 0.30) / 9;
+      }
+      if (effectiveCarbsGoal <= 0) {
+        effectiveCarbsGoal = (effectiveCaloriesGoal * 0.45) / 4;
+      }
+    }
+
+    // --- Other goals (water, sleep, steps) ---
     final waterGoalDoc = await FirebaseFirestore.instance
         .collection('users')
         .doc(userId)
@@ -233,24 +301,16 @@ final dailyProgressStreamProvider =
               'Hydration supports metabolism and energy levels.'
           : 'Hydration supports metabolism and energy levels.',
       'calories': calories,
-      'caloriesGoal': foodGoalDoc.exists
-          ? (foodGoalDoc.data()?['caloriesGoal'] as num?)?.toDouble() ?? 1750.0
-          : 1750.0,
+      'caloriesGoal': effectiveCaloriesGoal,
       'protein': protein,
-      'proteinGoal': foodGoalDoc.exists
-          ? (foodGoalDoc.data()?['proteinGoal'] as num?)?.toDouble() ?? 50.0
-          : 50.0,
+      'proteinGoal': effectiveProteinGoal,
       'carbs': carbs,
-      'carbsGoal': foodGoalDoc.exists
-          ? (foodGoalDoc.data()?['carbsGoal'] as num?)?.toDouble() ?? 250.0
-          : 250.0,
+      'carbsGoal': effectiveCarbsGoal,
       'fat': fat,
-      'fatGoal': foodGoalDoc.exists
-          ? (foodGoalDoc.data()?['fatGoal'] as num?)?.toDouble() ?? 70.0
-          : 70.0,
-      'caloriesDescription': foodGoalDoc.exists && foodGoalDoc.data() != null
-          ? foodGoalDoc.data()!['description'] as String? ??
-              'Track your daily nutrition to meet your goals.'
+      'fatGoal': effectiveFatGoal,
+      'caloriesDescription': goalsData != null &&
+              goalsData['description'] != null
+          ? goalsData['description'] as String
           : 'Track your daily nutrition to meet your goals.',
       'sleep': sleepDoc.exists
           ? (sleepDoc.data()?['duration'] as num?)?.toDouble() ?? 0.0

@@ -23,7 +23,7 @@ class DashboardScreen extends ConsumerWidget {
       );
     }
 
-    final bmiAsync = ref.watch(bmiFutureProvider(userId));
+    final bmiAsync = ref.watch(bmiStreamProvider(userId));
     final userDataAsync = ref.watch(userDataFutureProvider(userId));
     final paymentStatusAsync = ref.watch(paymentStatusProvider);
 
@@ -33,7 +33,6 @@ class DashboardScreen extends ConsumerWidget {
         children: [
           bmiAsync.when(
             data: (bmi) => BMISuggestions(
-              bmi: bmi,
               userData: userDataAsync,
               userId: userId,
             ),
@@ -91,13 +90,15 @@ class DashboardScreen extends ConsumerWidget {
                   },
                   loading: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Checking payment status...')),
+                      const SnackBar(
+                        content: Text('Checking payment status...'),
+                      ),
                     );
                   },
                   error: (e, _) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error: $e')),
-                    );
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text('Error: $e')));
                   },
                 );
               },

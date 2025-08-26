@@ -97,12 +97,17 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
-  Future<double> getBMI(String userId, String date) async {
-    final userData = await userDataSource.getUserData(userId);
-    final progress = await getDailyProgress(userId, date);
-    final height = userData?['height']?.toDouble() ?? 181.0;
-    final weight = progress['currentWeight']?.toDouble() ?? userData?['currentWeight']?.toDouble() ?? 77.0;
-    final heightInMeters = height / 100;
-    return weight / (heightInMeters * heightInMeters);
-  }
+Future<double> getBMI(String userId, String date) async {
+  final userData = await userDataSource.getUserData(userId);
+  final progress = await getDailyProgress(userId, date);
+
+  final height = (userData?['height'] as num?)?.toDouble() ?? 0.0;
+  final weight = progress['currentWeight']?.toDouble()
+      ?? (userData?['currentWeight'] as num?)?.toDouble()
+      ?? 0.0;
+
+  if (height <= 0 || weight <= 0) return 0.0;
+  return weight / ((height / 100) * (height / 100));
+}
+
 }

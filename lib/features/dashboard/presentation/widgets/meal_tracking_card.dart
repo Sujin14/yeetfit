@@ -53,8 +53,6 @@ class MealTrackingCard extends ConsumerWidget {
         final fat = data['fat']?.toDouble() ?? 0.0;
         final fatGoal = data['fatGoal']?.toDouble() ?? 70.0;
 
-        
-
         return GestureDetector(
           onTap: () => context.push('/modal/food', extra: userId),
           child: GlassmorphicContainer(
