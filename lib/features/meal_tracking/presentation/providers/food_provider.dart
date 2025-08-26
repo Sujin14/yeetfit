@@ -1,5 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yeetfit/shared/theme/theme.dart';
+import '../../../user_info/data/models/user_info_model.dart';
 import '../../data/datasources/food_datasource.dart';
 import '../../data/model/food_model.dart';
 import '../../domain/repositories/food_repository.dart';
@@ -24,6 +27,21 @@ final getFoodDataProvider = Provider<GetFoodData>(
 final getWeeklyFoodDataProvider = Provider<GetWeeklyFoodData>(
   (ref) => GetWeeklyFoodData(ref.read(foodRepositoryProvider)),
 );
+
+/// ✅ User info is now family-based, scoped by userId
+final userInfoProvider = FutureProvider.family<UserInfoModel, String>((ref, userId) async {
+  if (userId.isEmpty) {
+    throw Exception('User not logged in');
+  }
+  final doc = await FirebaseFirestore.instance
+      .collection('users')
+      .doc(userId)
+      .get();
+  if (!doc.exists) {
+    throw Exception('User data not found');
+  }
+  return UserInfoModel.fromMap(doc.data()!);
+});
 
 final dailyFoodItemsProvider = StateNotifierProvider.autoDispose
     .family<DailyFoodItemsNotifier, AsyncValue<List<FoodItem>>, String>(
@@ -75,25 +93,122 @@ final calorieGoalProvider = StateNotifierProvider.autoDispose
   ),
 );
 
+/// ✅ Uses userInfoProvider(userId)
+final nutrientGoalsProvider = Provider.family<Map<String, double>, String>((ref, userId) {
+  final userInfoAsync = ref.watch(userInfoProvider(userId));
+  return userInfoAsync.when(
+    data: (userInfo) {
+      double bmr;
+      if (userInfo.gender.toLowerCase() == 'male') {
+        bmr = 10 * userInfo.currentWeight + 6.25 * userInfo.height - 5 * userInfo.age + 5;
+      } else {
+        bmr = 10 * userInfo.currentWeight + 6.25 * userInfo.height - 5 * userInfo.age - 161;
+      }
+
+      double activityFactor = userInfo.activityLevel == 'Moderately Active' ? 1.55 : 1.2;
+      double totalCalories = bmr * activityFactor;
+
+      if (userInfo.goal.toLowerCase() == 'weight loss') {
+        totalCalories -= 500;
+      }
+
+      final proteinCalories = totalCalories * 0.20;
+      final fatCalories = totalCalories * 0.30;
+      final carbCalories = totalCalories * 0.45;
+      final fiberGrams = totalCalories < 2000 ? 25.0 : 30.0;
+
+      return {
+        'protein': proteinCalories / 4,
+        'fat': fatCalories / 9,
+        'carbs': carbCalories / 4,
+        'fiber': fiberGrams,
+      };
+    },
+    loading: () => {
+      'protein': 70.0,
+      'fat': 50.0,
+      'carbs': 250.0,
+      'fiber': 30.0,
+    },
+    error: (_, __) => {
+      'protein': 70.0,
+      'fat': 50.0,
+      'carbs': 250.0,
+      'fiber': 30.0,
+    },
+  );
+});
+
+/// ✅ Uses userInfoProvider(userId)
+final mealCalorieGoalsProvider = Provider.family<Map<String, double>, String>((ref, userId) {
+  final userInfoAsync = ref.watch(userInfoProvider(userId));
+  return userInfoAsync.when(
+    data: (userInfo) {
+      double bmr;
+      if (userInfo.gender.toLowerCase() == 'male') {
+        bmr = 10 * userInfo.currentWeight + 6.25 * userInfo.height - 5 * userInfo.age + 5;
+      } else {
+        bmr = 10 * userInfo.currentWeight + 6.25 * userInfo.height - 5 * userInfo.age - 161;
+      }
+
+      double activityFactor = userInfo.activityLevel == 'Moderately Active' ? 1.55 : 1.2;
+      double totalCalories = bmr * activityFactor;
+
+      if (userInfo.goal.toLowerCase() == 'weight loss') {
+        totalCalories -= 500;
+      }
+
+      return {
+        'Breakfast': totalCalories * 0.25,
+        'Lunch': totalCalories * 0.25,
+        'Dinner': totalCalories * 0.25,
+        'Morning Snack': totalCalories * 0.125,
+        'Evening Snack': totalCalories * 0.125,
+      };
+    },
+    loading: () => {
+      'Breakfast': 1750.0 / 5,
+      'Lunch': 1750.0 / 5,
+      'Dinner': 1750.0 / 5,
+      'Morning Snack': 1750.0 / 10,
+      'Evening Snack': 1750.0 / 10,
+    },
+    error: (_, __) => {
+      'Breakfast': 1750.0 / 5,
+      'Lunch': 1750.0 / 5,
+      'Dinner': 1750.0 / 5,
+      'Morning Snack': 1750.0 / 10,
+      'Evening Snack': 1750.0 / 10,
+    },
+  );
+});
+
+/// ✅ Now waits for real calorie goal before computing progress
 final dailyCalorieProgressColorProvider = Provider.autoDispose.family<Color, String>(
   (ref, userIdAndDate) {
     final parts = userIdAndDate.split('|');
     final userId = parts[0];
     final mealTypes = ['Breakfast', 'Morning Snack', 'Lunch', 'Evening Snack', 'Dinner'];
-    double totalCalories = 0.0;
 
+    double totalCalories = 0.0;
     for (final mealType in mealTypes) {
       final calories = ref.watch(dailyCaloriesProvider('$userId|$mealType'));
       totalCalories += calories;
     }
 
-    final goalCalories = ref.watch(calorieGoalProvider(userId)).value ?? 1750.0;
-    final progress = goalCalories > 0 ? totalCalories / goalCalories : 0.0;
+    final goalAsync = ref.watch(calorieGoalProvider(userId));
 
-    if (progress >= 1.0) return const Color(0xFF4CAF50);
-    if (progress > 0.75) return const Color(0xFFFFEB3B);
-    if (progress >= 0.5) return const Color(0xFFFF9800);
-    return const Color(0xFFF44336);
+    return goalAsync.when(
+      data: (goalCalories) {
+        final progress = goalCalories > 0 ? totalCalories / goalCalories : 0.0;
+        if (progress >= 1.0) return AppTheme.colors['threeQuarterProgress']!;
+        if (progress > 0.75) return AppTheme.colors['carbsProgress']!;
+        if (progress >= 0.5) return AppTheme.colors['quarterProgress']!;
+        return AppTheme.colors['error']!;
+      },
+      loading: () => AppTheme.colors['quarterProgress']!, // Neutral while loading
+      error: (_, __) => AppTheme.colors['error']!,
+    );
   },
 );
 
@@ -168,11 +283,35 @@ class CalorieGoalNotifier extends StateNotifier<AsyncValue<double>> {
     _fetchGoal();
   }
 
-  Future<void> _fetchGoal() async {
+    Future<void> _fetchGoal() async {
     try {
       state = const AsyncValue.loading();
-      final goal = await _repository.getCalorieGoal(_userId);
-      state = AsyncValue.data(goal);
+      final savedGoal = await _repository.getCalorieGoal(_userId);
+      if (savedGoal > 0) {
+        state = AsyncValue.data(savedGoal);
+        return;
+      }
+      final userInfo = await _ref.read(userInfoProvider(_userId).future);
+      double bmr;
+      if (userInfo.gender.toLowerCase() == 'male') {
+        bmr = 10 * userInfo.currentWeight +
+            6.25 * userInfo.height -
+            5 * userInfo.age +
+            5;
+      } else {
+        bmr = 10 * userInfo.currentWeight +
+            6.25 * userInfo.height -
+            5 * userInfo.age -
+            161;
+      }
+      double activityFactor =
+          userInfo.activityLevel == 'Moderately Active' ? 1.55 : 1.2;
+      double totalCalories = bmr * activityFactor;
+      if (userInfo.goal.toLowerCase() == 'weight loss') {
+        totalCalories -= 500;
+      }
+      await _setCalorieGoal.call(_userId, totalCalories);
+      state = AsyncValue.data(totalCalories);
     } catch (e, stackTrace) {
       state = AsyncValue.error(e, stackTrace);
     }
@@ -181,7 +320,7 @@ class CalorieGoalNotifier extends StateNotifier<AsyncValue<double>> {
   Future<void> setGoal(double newGoal) async {
     try {
       await _setCalorieGoal.call(_userId, newGoal);
-      await _fetchGoal();
+      state = AsyncValue.data(newGoal);
     } catch (e, stackTrace) {
       state = AsyncValue.error(e, stackTrace);
     }

@@ -56,7 +56,6 @@ class CalorieTrackingScreen extends ConsumerWidget {
                   return goalCaloriesAsync.when(
                     data: (goalCalories) => CalorieSummary(
                       totalCalories: totalCalories,
-                      goalCalories: goalCalories,
                       progressColor: progressColor,
                     ),
                     loading: () => ShimmerCard(isSummary: true),

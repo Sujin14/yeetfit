@@ -18,7 +18,7 @@ class FoodDataSource {
     return querySnapshot.docs.map((doc) => FoodItem.fromMap(doc.data())).toList();
   }
 
-  Future<double> getCalorieGoal(String userId, String date) async {
+    Future<double> getCalorieGoal(String userId, String date) async {
     final docRef = _firestore
         .collection('users')
         .doc(userId)
@@ -28,8 +28,19 @@ class FoodDataSource {
         .doc('$date-goal');
 
     final doc = await docRef.get();
-    return doc.exists ? (doc.data()!['calorieGoal'] as num?)?.toDouble() ?? 1750.0 : 1750.0;
+
+    if (!doc.exists) return 0.0;
+
+    final data = doc.data()!;
+    final raw = (data['calorieGoal'] as num?)?.toDouble();
+
+    if (raw == null) return 0.0;
+
+    if (raw == 1750.0) return 0.0;
+
+    return raw;
   }
+
 
   Future<void> addFoodEntry(
     String userId,

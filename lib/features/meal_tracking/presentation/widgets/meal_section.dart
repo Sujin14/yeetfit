@@ -18,6 +18,7 @@ class MealSection extends ConsumerWidget {
     final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
     final today = DateTime.now().toIso8601String().split('T')[0];
     final foodItemsAsync = ref.watch(dailyFoodItemsProvider('$userId|$mealType'));
+    final mealCalorieGoals = ref.watch(mealCalorieGoalsProvider(userId));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -36,23 +37,19 @@ class MealSection extends ConsumerWidget {
             Consumer(
               builder: (context, ref, _) {
                 final calories = ref.watch(dailyCaloriesProvider('$userId|$mealType'));
-                final goalCaloriesAsync = ref.watch(calorieGoalProvider(userId).select((value) => value));
-                return goalCaloriesAsync.when(
-                  data: (goalCalories) => Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        '${calories.toStringAsFixed(0)} of ${(goalCalories / 5).toStringAsFixed(0)} Cal',
-                        style: GoogleFonts.roboto(
-                          color: AppTheme.colors['onSurface']!.withOpacity(0.7),
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        ),
+                final mealGoalCalories = mealCalorieGoals[mealType] ?? 350.0;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '${calories.toStringAsFixed(0)} of ${mealGoalCalories.toStringAsFixed(0)} Cal',
+                      style: GoogleFonts.roboto(
+                        color: AppTheme.colors['onSurface']!.withOpacity(0.7),
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
                       ),
-                    ],
-                  ),
-                  loading: () => ShimmerCard(height: 14),
-                  error: (error, _) => Text('Error: $error'),
+                    ),
+                  ],
                 );
               },
             ),
