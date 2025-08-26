@@ -27,13 +27,17 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
     if (_formKey.currentState!.validate()) {
       final success = await ref
           .read(emailAuthControllerProvider.notifier)
-          .signUp(_emailController.text.trim(), _passwordController.text.trim(), context);
+          .signUp(
+            _emailController.text.trim(),
+            _passwordController.text.trim(),
+            context,
+          );
       if (success) {
         context.go('/user-info-step/0');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Signup failed')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Signup failed')));
       }
     }
   }
@@ -77,7 +81,7 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
               ),
               suffixIcon: IconButton(
                 icon: Icon(
-                  _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
                   color: AppTheme.colors['primaryAccent'],
                 ),
                 onPressed: () {
@@ -104,7 +108,9 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
               ),
               suffixIcon: IconButton(
                 icon: Icon(
-                  _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
+                  _obscureConfirmPassword
+                      ? Icons.visibility_off
+                      : Icons.visibility,
                   color: AppTheme.colors['primaryAccent'],
                 ),
                 onPressed: () {
@@ -115,7 +121,8 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
               ),
             ),
             obscureText: _obscureConfirmPassword,
-            validator: (value) => AuthValidators.confirmPassword(value, _passwordController.text),
+            validator: (value) =>
+                AuthValidators.confirmPassword(value, _passwordController.text),
           ),
           SizedBox(height: kIsWeb ? 32.h : 24.h),
           ConstrainedBox(
