@@ -5,6 +5,48 @@ import '../model/weight_model.dart';
 class WeightDataSource {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  /// Centralized method to update both users.currentWeight and today's weight entry
+  Future<void> updateWeight(
+    String userId,
+    double currentWeight,
+    double? goalWeight,
+    double? initialWeight,
+    DateTime? targetDate,
+  ) async {
+    final today = DateTime.now().toIso8601String().split('T')[0];
+    final userDocRef = _firestore.collection('users').doc(userId);
+    final weightDocRef = userDocRef
+        .collection('progress')
+        .doc('weight')
+        .collection('weight')
+        .doc(today);
+
+    try {
+      // 1️⃣ Update user's currentWeight on user doc
+      await userDocRef.set({
+        'currentWeight': currentWeight,
+        // Optionally keep goal info in users doc as well
+        if (goalWeight != null || initialWeight != null || targetDate != null)
+          'weightGoal': {
+            if (goalWeight != null) 'goalWeight': goalWeight,
+            if (initialWeight != null) 'initialWeight': initialWeight,
+            if (targetDate != null) 'targetDate': Timestamp.fromDate(targetDate),
+          },
+      }, SetOptions(merge: true));
+
+      await weightDocRef.set({
+        'date': today,
+        'currentWeight': currentWeight,
+        'goalWeight': goalWeight ?? 70.0,
+        'initialWeight': initialWeight ?? 75.0,
+        'targetDate': targetDate != null ? Timestamp.fromDate(targetDate) : null,
+        'timestamp': Timestamp.fromDate(DateTime.parse('$today 00:00:00')),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      print('WeightDataSource.updateWeight: Error=$e');
+      rethrow;
+    }
+  }
   Future<WeightData?> getWeightData(String userId, String date) async {
     print('getWeightData: userId=$userId, authUid=${FirebaseAuth.instance.currentUser?.uid}, date=$date');
     final docRef = _firestore
@@ -140,4 +182,4 @@ class WeightDataSource {
       rethrow;
     }
   }
-}
+} 

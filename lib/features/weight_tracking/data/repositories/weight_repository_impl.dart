@@ -8,6 +8,16 @@ class WeightRepositoryImpl implements WeightRepository {
 
   WeightRepositoryImpl(this._dataSource);
 
+  Future<void> updateWeight(
+    String userId,
+    double currentWeight,
+    double? goalWeight,
+    double? initialWeight,
+    DateTime? targetDate,
+  ) async {
+    await _dataSource.updateWeight(userId, currentWeight, goalWeight, initialWeight, targetDate);
+  }
+
   @override
   Future<WeightData?> getWeightData(String userId) async {
     final today = DateTime.now().toIso8601String().split('T')[0];
@@ -46,5 +56,16 @@ class WeightRepositoryImpl implements WeightRepository {
     } catch (e, stackTrace) {
       return AsyncValue.error(e, stackTrace);
     }
+  }
+
+  @override
+  Future<void> updateCurrentWeight(String userId, double currentWeight) async {
+    await _dataSource.updateWeight(
+      userId,
+      currentWeight,
+      null, // keep existing goal
+      null, // keep existing initial
+      null, // keep existing target date
+    );
   }
 }

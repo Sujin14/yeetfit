@@ -8,4 +8,6 @@ abstract class WeightRepository {
       String userId, String date, double currentWeight, double goalWeight, double initialWeight, DateTime? targetDate);
   Future<void> setUserWeightGoal(String userId, double goalWeight, double initialWeight, DateTime? targetDate);
   Future<AsyncValue<List<WeightData>>> getWeeklyWeightData(String userId);
+  Future<void> updateCurrentWeight(String userId, double currentWeight);
+
 }

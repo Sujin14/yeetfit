@@ -105,7 +105,7 @@ class _WeightEntryDialogState extends ConsumerState<WeightEntryDialog> {
             if (currentWeight != null && currentWeight > 0) {
               ref
                   .read(currentWeightProvider(widget.userId).notifier)
-                  .addWeight(currentWeight);
+                  .updateWeight(currentWeight);
               print(
                 'WeightEntryDialog: Saving currentWeight for userId=${widget.userId}',
               );

@@ -40,12 +40,7 @@ final currentWeightProvider = StateNotifierProvider.autoDispose
     .family<CurrentWeightNotifier, AsyncValue<double>, String>(
   (ref, userId) {
     print('currentWeightProvider: Initializing with userId=$userId, authUid=${FirebaseAuth.instance.currentUser?.uid}');
-    return CurrentWeightNotifier(
-      ref,
-      ref.read(getWeightDataProvider),
-      ref.read(addWeightEntryProvider),
-      userId,
-    );
+    return CurrentWeightNotifier(ref, userId);
   },
 );
 
@@ -123,54 +118,49 @@ final weeklyWeightDataProvider = FutureProvider.family<List<WeightData>, String>
   },
 );
 
+/// ---------------- CurrentWeightNotifier with centralized updateWeight ----------------
+
 class CurrentWeightNotifier extends StateNotifier<AsyncValue<double>> {
   final Ref _ref;
-  final GetWeightData _getWeightData;
-  final AddWeightEntry _addWeightEntry;
   final String _userId;
 
-  CurrentWeightNotifier(this._ref, this._getWeightData, this._addWeightEntry, this._userId)
-      : super(const AsyncValue.loading()) {
-    print('CurrentWeightNotifier: Initialized with userId=$_userId, authUid=${FirebaseAuth.instance.currentUser?.uid}');
+  CurrentWeightNotifier(this._ref, this._userId) : super(const AsyncValue.loading()) {
     _fetchWeight();
   }
 
   Future<void> _fetchWeight() async {
-    print('CurrentWeightNotifier: Fetching weight for userId=$_userId');
     try {
       state = const AsyncValue.loading();
-      final weightData = await _getWeightData.call(_userId);
+      final weightData = await _ref.read(weightRepositoryProvider).getWeightData(_userId);
       final weight = weightData?.currentWeight ?? 75.0;
-      print('CurrentWeightNotifier: Fetched currentWeight=$weight for userId=$_userId');
       state = AsyncValue.data(weight);
     } catch (e, stackTrace) {
-      print('CurrentWeightNotifier: Error fetching weight for userId=$_userId: $e');
       state = AsyncValue.error(e, stackTrace);
     }
   }
 
-  Future<void> addWeight(double currentWeight) async {
-    print('CurrentWeightNotifier: Adding currentWeight=$currentWeight for userId=$_userId');
+  /// Single method to update weight (users doc + daily progress)
+  Future<void> updateWeight(double currentWeight) async {
     try {
       state = const AsyncValue.loading();
       final goal = await _ref.read(weightRepositoryProvider).getUserWeightGoal(_userId);
-      final today = DateTime.now().toIso8601String().split('T')[0];
-      await _addWeightEntry.call(
-        _userId,
-        today,
-        currentWeight,
-        goal?.goalWeight ?? 70.0,
-        goal?.initialWeight ?? 75.0,
-        goal?.targetDate,
-      );
-      print('CurrentWeightNotifier: Successfully added currentWeight=$currentWeight for userId=$_userId');
+
+      await _ref.read(weightRepositoryProvider).updateWeight(
+            _userId,
+            currentWeight,
+            goal?.goalWeight,
+            goal?.initialWeight,
+            goal?.targetDate,
+          );
+
       state = AsyncValue.data(currentWeight);
     } catch (e, stackTrace) {
-      print('CurrentWeightNotifier: Error adding weight for userId=$_userId: $e');
       state = AsyncValue.error(e, stackTrace);
     }
   }
 }
+
+/// ---------------- WeightGoalNotifier remains unchanged ----------------
 
 class WeightGoalNotifier extends StateNotifier<AsyncValue<WeightData>> {
   final Ref _ref;
@@ -209,4 +199,4 @@ class WeightGoalNotifier extends StateNotifier<AsyncValue<WeightData>> {
       state = AsyncValue.error(e, stackTrace);
     }
   }
-} 
+}
