@@ -1,15 +1,30 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yeetfit/shared/theme/theme.dart';
 import '../providers/onboarding_controller.dart';
 import 'onboarding_page.dart';
 
-class OnboardingBody extends ConsumerWidget {
+class OnboardingBody extends ConsumerStatefulWidget {
   const OnboardingBody({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<OnboardingBody> createState() => _OnboardingBodyState();
+}
+
+class _OnboardingBodyState extends ConsumerState<OnboardingBody> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(onboardingControllerProvider.notifier).preloadImages(context);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final controller = ref.watch(onboardingControllerProvider);
 
     final pages = const [
@@ -41,15 +56,18 @@ class OnboardingBody extends ConsumerWidget {
           ),
           if (controller.currentPage < 2)
             Positioned(
-              top: 20.h,
-              right: 20.h,
+              top: kIsWeb ? 30.h : 20.h,
+              right: kIsWeb ? 30.w : 20.w,
               child: TextButton(
                 onPressed: () => context.go('/welcome'),
-                child: const Text("Skip"),
+                child: Text(
+                  "Skip",
+                  style: TextStyle(fontSize: (kIsWeb ? 18.sp : 16.sp).clamp(14.0, 18.0)),
+                ),
               ),
             ),
           Positioned(
-            bottom: 60,
+            bottom: kIsWeb ? 80.h : 60.h,
             left: 0,
             right: 0,
             child: Row(
@@ -58,20 +76,20 @@ class OnboardingBody extends ConsumerWidget {
                 final isActive = index == controller.currentPage;
                 return AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  height: 8,
-                  width: isActive ? 20 : 8,
+                  margin: EdgeInsets.symmetric(horizontal: kIsWeb ? 6.w : 4.w),
+                  height: kIsWeb ? 10.h : 8.h,
+                  width: isActive ? (kIsWeb ? 24.w : 20.w) : (kIsWeb ? 10.w : 8.w),
                   decoration: BoxDecoration(
-                    color: Colors.orangeAccent,
-                    borderRadius: BorderRadius.circular(20),
+                    color: AppTheme.colors['orangeAccent'],
+                    borderRadius: BorderRadius.circular(20.r),
                   ),
                 );
               }),
             ),
           ),
           Positioned(
-            bottom: 20,
-            right: 20,
+            bottom: kIsWeb ? 30.h : 20.h,
+            right: kIsWeb ? 30.w : 20.w,
             child: ElevatedButton(
               onPressed: () {
                 if (controller.currentPage < 2) {
@@ -80,7 +98,10 @@ class OnboardingBody extends ConsumerWidget {
                   context.go('/welcome');
                 }
               },
-              child: Text(controller.currentPage < 2 ? 'Next' : 'Get Started'),
+              child: Text(
+                controller.currentPage < 2 ? 'Next' : 'Get Started',
+                style: TextStyle(fontSize: (kIsWeb ? 18.sp : 16.sp).clamp(14.0, 18.0)),
+              ),
             ),
           ),
         ],

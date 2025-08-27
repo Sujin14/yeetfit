@@ -2,7 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import 'splash_body.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -27,15 +28,6 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SizedBox(
-        width: 1.sw,
-        height: 1.sh,
-        child: Image.asset(
-          'assets/images/splash_screen.jpg',
-          fit: BoxFit.cover,
-        ),
-      ),
-    );
+    return Scaffold(body: SplashBody());
   }
 }

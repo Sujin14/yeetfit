@@ -16,10 +16,10 @@ class YoutubePlayerWidget extends StatelessWidget {
         'Invalid video URL',
         style:
             AppTheme.textStyles['body']?.copyWith(
-              color: AppTheme.colors['error'] ?? Colors.red,
+              color: AppTheme.colors['error'],
               fontSize: 14.sp,
             ) ??
-            TextStyle(fontSize: 14.sp, color: Colors.red),
+            TextStyle(fontSize: 14.sp, color: AppTheme.colors['error']),
       );
     }
     return SizedBox(
@@ -28,7 +28,7 @@ class YoutubePlayerWidget extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           border: Border.all(
-            color: AppTheme.colors['primaryBorder'] ?? Colors.grey,
+            color: AppTheme.colors['primaryBorder']!,
             width: 5.w,
           ),
           borderRadius: BorderRadius.circular(8.r),

@@ -9,14 +9,17 @@ class TrackOptionsModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 400.h,
-      width: 370.w,
-      decoration: BoxDecoration(
-        color: AppTheme.colors['primaryAccent'],
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+    return SafeArea(
+      child: Container(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        decoration: BoxDecoration(
+          color: AppTheme.colors['navigationAccent'],
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+        ),
+        child: const AddModalWidget(),
       ),
-      child: AddModalWidget(),
     );
   }
 }

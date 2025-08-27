@@ -1,52 +1,63 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import '../../../../shared/theme/theme.dart';
+import '../../../../shared/widgets/entry_dialog.dart';
+import '../widgets/sleep_animation.dart';
 import '../widgets/sleep_app_bar.dart';
 import '../widgets/sleep_chart_section.dart';
+import '../widgets/sleep_entry_dialog.dart';
 import '../widgets/sleep_progress_section.dart';
 import '../widgets/sleep_time_card.dart';
 import '../widgets/sleep_tips_card.dart';
+import '../providers/sleep_provider.dart';
 
-
-class SleepTrackingScreen extends StatelessWidget {
+class SleepTrackingScreen extends ConsumerWidget {
   const SleepTrackingScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width >= 600;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userId = ref.watch(firebaseAuthProvider).currentUser?.uid;
+    if (userId == null) {
+      return const Scaffold(
+        body: Center(child: Text('Please log in to track sleep')),
+      );
+    }
+
     return Scaffold(
       appBar: const SleepAppBar(),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 600),
           child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(
-              horizontal: isDesktop ? 12 : 16,
-              vertical: isDesktop ? 12 : 20,
-            ),
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SleepProgressSection(),
-                SizedBox(height: 16),
-                SleepTimeCards(),
-                SizedBox(height: 20),
-                SleepTipsCard(),
-                SizedBox(height: 20),
-                SleepChartSection(),
-                SizedBox(height: 60),
+                const SleepAnimation(),
+                SizedBox(height: 25.h),
+                const SleepProgressSection(),
+                SizedBox(height: 30.h),
+                const SleepTimeCards(),
+                SizedBox(height: 20.h),
+                const SleepTipsCard(),
+                SizedBox(height: 20.h),
+                SleepChartSection(userId: userId),
               ],
             ),
           ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF3F51B5).withOpacity(0.3),
-        onPressed: () {},
-        child: const Icon(
-          Icons.bed,
-          size: 22,
-          color: Colors.white,
-        ),
+        backgroundColor: AppTheme.colors['indigo']!.withOpacity(0.7),
+        onPressed: () {
+          entryDialog(
+            context: context,
+            ref: ref,
+            dialog: SleepEntryDialog(userId: userId),
+          );
+        },
+        child: Icon(Icons.bed_rounded, color: AppTheme.colors['white']!),
       ),
     );
   }

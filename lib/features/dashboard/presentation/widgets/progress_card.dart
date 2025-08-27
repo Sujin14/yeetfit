@@ -2,14 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:glassmorphism/glassmorphism.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:shimmer/shimmer.dart';
 import '../../../../shared/theme/theme.dart';
+import '../providers/dashboard_provider.dart';
 
-class ProgressCard extends StatelessWidget {
+class ProgressCard extends ConsumerWidget {
   final String title;
   final double percent;
   final String value;
   final IconData icon;
   final String description;
+  final String? route;
+  final String userId;
+  final bool isLoading;
 
   const ProgressCard({
     super.key,
@@ -18,21 +25,49 @@ class ProgressCard extends StatelessWidget {
     required this.value,
     required this.icon,
     required this.description,
+    required this.route,
+    required this.userId,
+    this.isLoading = false,
   });
 
-  // Get color based on percent
-  Color get progressColor {
-    if (percent < 0.25) return const Color(0xFFFF6B6B);
-    if (percent < 0.5) return const Color(0xFFFFB347);
-    if (percent < 0.75) return const Color(0xFFFFD700);
-    return const Color(0xFF4CAF50);
-  }
+  const ProgressCard.loading({
+    super.key,
+    this.title = '',
+    this.percent = 0.0,
+    this.value = '',
+    this.icon = Icons.help,
+    this.description = '',
+    this.route,
+    required this.userId,
+  }) : isLoading = true;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final progressColor = ref.watch(progressColorProvider(percent));
+
+    return isLoading
+        ? Shimmer.fromColors(
+            baseColor: AppTheme.colors['secondaryText']!.withOpacity(0.2),
+            highlightColor: AppTheme.colors['secondaryText']!.withOpacity(0.4),
+            child: _buildCard(
+              context,
+              progressColor: AppTheme.colors['secondaryText']!,
+            ),
+          )
+        : GestureDetector(
+            onTap: route != null
+                ? () {
+                    context.push(route!, extra: userId);
+                  }
+                : null,
+            child: _buildCard(context, progressColor: progressColor),
+          );
+  }
+
+  Widget _buildCard(BuildContext context, {required Color progressColor}) {
     return GlassmorphicContainer(
-      width: 340.w,
-      height: 180.h,
+      width: 360.w,
+      height: 200.h,
       borderRadius: 16.r,
       blur: 10,
       alignment: Alignment.center,
@@ -51,68 +86,97 @@ class ProgressCard extends StatelessWidget {
           AppTheme.colors['gradientTextEnd']!,
         ],
       ),
+       padding: EdgeInsets.symmetric(horizontal: 8.w), // Added horizontal padding
       child: Row(
         children: [
           Expanded(
             flex: 1,
             child: Padding(
               padding: EdgeInsets.all(8.w),
-              child: CircularPercentIndicator(
-                radius: 40.r,
-                lineWidth: 10.w,
-                percent: percent.clamp(0.0, 1.0),
-                center: Icon(
-                  icon,
-                  size: 24.sp,
-                  color: AppTheme.colors['primaryText'],
-                ),
-                progressColor: progressColor,
-                backgroundColor: AppTheme.colors['secondaryText']!.withOpacity(
-                  0.2,
-                ),
-                circularStrokeCap: CircularStrokeCap.round,
-              ),
+              child: isLoading
+                  ? _buildShimmerIndicator()
+                  : CircularPercentIndicator(
+                      radius: 50.r,
+                      lineWidth: 8.w,
+                      percent: percent.clamp(0.0, 1.0),
+                      center: Icon(
+                        icon,
+                        size: 20.sp,
+                        color: AppTheme.colors['primaryText'],
+                      ),
+                      progressColor: progressColor,
+                      backgroundColor: AppTheme.colors['secondaryText']!
+                          .withOpacity(0.2),
+                      circularStrokeCap: CircularStrokeCap.round,
+                    ),
             ),
           ),
           Expanded(
             flex: 2,
             child: Padding(
               padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 8.w),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: AppTheme.textStyles['subtitle']!.copyWith(
-                      fontSize: 16.sp,
-                      color: AppTheme.colors['primaryText'],
+              child: isLoading
+                  ? _buildShimmerContent()
+                  : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: AppTheme.textStyles['subtitle']!.copyWith(
+                            fontSize: 14.sp,
+                            color: AppTheme.colors['primaryText'],
+                          ),
+                        ),
+                        SizedBox(height: 4.h),
+                        Text(
+                          value,
+                          style: AppTheme.textStyles['body']!.copyWith(
+                            fontSize: 12.sp,
+                            color: AppTheme.colors['secondaryText'],
+                          ),
+                        ),
+                        SizedBox(height: 4.h),
+                        Text(
+                          description,
+                          style: AppTheme.textStyles['body']!.copyWith(
+                            fontSize: 10.sp,
+                            color: AppTheme.colors['secondaryText']!
+                                .withOpacity(0.7),
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ),
-                  ),
-                  SizedBox(height: 4.h),
-                  Text(
-                    value,
-                    style: AppTheme.textStyles['body']!.copyWith(
-                      fontSize: 14.sp,
-                      color: AppTheme.colors['secondaryText'],
-                    ),
-                  ),
-                  SizedBox(height: 4.h),
-                  Text(
-                    description,
-                    style: AppTheme.textStyles['body']!.copyWith(
-                      fontSize: 12.sp,
-                      color: AppTheme.colors['secondaryText']!.withOpacity(0.7),
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildShimmerIndicator() {
+    return Container(
+      width: 100.w,
+      height: 100.h,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: AppTheme.colors['white'],
+      ),
+    );
+  }
+
+  Widget _buildShimmerContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(width: 100.w, height: 14.h, color: AppTheme.colors['white']),
+        SizedBox(height: 4.h),
+        Container(width: 80.w, height: 12.h, color: AppTheme.colors['white']),
+        SizedBox(height: 4.h),
+        Container(width: 150.w, height: 20.h, color: AppTheme.colors['white']),
+      ],
     );
   }
 }

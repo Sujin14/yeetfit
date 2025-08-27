@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../providers/user_info_controller.dart';
 import '../../domain/validators/user_info_validators.dart';
+import '../providers/user_info_provider.dart';
 
 class WeightInput extends ConsumerStatefulWidget {
   final GlobalKey<FormState> formKey;
 
-  const WeightInput({super.key, required this.formKey});
+  const WeightInput({
+    super.key,
+    required this.formKey,
+  });
 
   @override
   _WeightInputState createState() => _WeightInputState();
@@ -21,12 +25,10 @@ class _WeightInputState extends ConsumerState<WeightInput> {
     super.initState();
     final userInfo = ref.read(userInfoControllerProvider);
     _currentWeightController = TextEditingController(
-      text: userInfo.currentWeight == 0
-          ? ''
-          : userInfo.currentWeight.toString(),
+      text: userInfo.value?.currentWeight == 0 ? '' : userInfo.value?.currentWeight.toString(),
     );
     _goalWeightController = TextEditingController(
-      text: userInfo.goalWeight == 0 ? '' : userInfo.goalWeight.toString(),
+      text: userInfo.value?.goalWeight == 0 ? '' : userInfo.value?.goalWeight.toString(),
     );
   }
 
@@ -39,40 +41,56 @@ class _WeightInputState extends ConsumerState<WeightInput> {
 
   @override
   Widget build(BuildContext context) {
-    final notifier = ref.read(userInfoControllerProvider.notifier);
+    final controller = ref.read(userInfoControllerProvider.notifier);
 
     return Form(
       key: widget.formKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("What is your current weight?"),
-          const SizedBox(height: 8),
+          Text(
+            "What is your current weight?",
+            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
+          ),
+          SizedBox(height: 8.h),
           TextFormField(
             controller: _currentWeightController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               hintText: "Enter current weight (kg)",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              filled: true,
+              fillColor: Colors.grey[100],
             ),
             keyboardType: TextInputType.number,
             validator: UserInfoValidators.validateWeight,
-            onChanged: (val) {
-              final weight = double.tryParse(val) ?? 0;
-              notifier.updateWeights(current: weight, context: context);
+            onSaved: (value) {
+              final weight = double.tryParse(value ?? '') ?? 0;
+              controller.setFormValue('currentWeight', weight);
             },
           ),
-          const SizedBox(height: 24),
-          const Text("What is your goal weight?"),
-          const SizedBox(height: 8),
+          SizedBox(height: 24.h),
+          Text(
+            "What is your goal weight?",
+            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
+          ),
+          SizedBox(height: 8.h),
           TextFormField(
             controller: _goalWeightController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               hintText: "Enter goal weight (kg)",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              filled: true,
+              fillColor: Colors.grey[100],
             ),
             keyboardType: TextInputType.number,
             validator: UserInfoValidators.validateWeight,
-            onChanged: (val) {
-              final weight = double.tryParse(val) ?? 0;
-              notifier.updateWeights(goal: weight, context: context);
+            onSaved: (value) {
+              final weight = double.tryParse(value ?? '') ?? 0;
+              controller.setFormValue('goalWeight', weight);
             },
           ),
         ],

@@ -18,6 +18,9 @@ class UserInfoValidators {
 
   static String? validateGoal(String? value) {
     if (value == null || value.trim().isEmpty) return 'Goal is required';
+    if (!['weight loss', 'weight gain', 'muscle building'].contains(value)) {
+      return 'Select a valid goal';
+    }
     return null;
   }
 
@@ -39,6 +42,15 @@ class UserInfoValidators {
     if (value == null || value.trim().isEmpty) {
       return 'Activity level is required';
     }
+    return null;
+  }
+
+  static String? validateTimeDuration(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Time duration is required';
+    }
+    final duration = int.tryParse(value);
+    if (duration == null || duration < 1) return 'Enter a valid duration';
     return null;
   }
 }

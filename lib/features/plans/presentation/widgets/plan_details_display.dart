@@ -35,7 +35,11 @@ class PlanDetailsDisplay extends StatelessWidget {
         ],
         Expanded(
           child: isDiet
-              ? DietDetailsWidget(meals: plan.details['meals'] ?? [])
+              ? DietDetailsWidget(
+                  meals: plan.details['meals'] ?? {},
+                  totalCalories: plan.totalCalories,
+                  totalMacronutrients: plan.totalMacronutrients,
+                )
               : WorkoutDetailsWidget(
                   exercises: plan.details['exercises'] ?? [],
                 ),

@@ -1,63 +1,61 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import '../../../../shared/theme/theme.dart';
+import '../providers/progress_provider.dart';
 
-import '../../../../shared/widgets/glassmorphic_container.dart';
-
-class ProgressHeader extends StatelessWidget {
-  const ProgressHeader({super.key});
+class ProgressHeader extends ConsumerWidget {
+  final ValueChanged<String?> onMetricChanged;
+  const ProgressHeader({super.key, required this.onMetricChanged});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDesktop = MediaQuery.of(context).size.width >= 600;
-    return GlassmorphicContainer(
-      color: const Color(0xFF3F51B5),
-      padding: EdgeInsets.all(isDesktop ? 20 : 16),
+    final selected = ref.watch(selectedMetricProvider) ?? 'All Metrics';
+
+    return Container(
+      padding: EdgeInsets.all(isDesktop ? 20.w : 16.w),
+      decoration: BoxDecoration(
+        color: AppTheme.colors['indigo']!,
+        borderRadius: BorderRadius.circular(12.r),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             'Progress Heatmap',
-            style: GoogleFonts.roboto(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+            style: AppTheme.textStyles['title']!.copyWith(
+              fontSize: 20.sp,
+              color: AppTheme.colors['primaryText'],
             ),
           ),
           DropdownButton<String>(
-            value: 'All Metrics',
-            dropdownColor: const Color(0xFF3F51B5).withOpacity(0.5),
-            style: GoogleFonts.roboto(
-              color: Colors.white,
-              fontSize: isDesktop ? 16 : 14,
+            value: selected,
+            dropdownColor: AppTheme.colors['indigo']!.withOpacity(0.5),
+            style: AppTheme.textStyles['body']!.copyWith(
+              color: AppTheme.colors['primaryText'],
+              fontSize: isDesktop ? 16.sp : 14.sp,
             ),
-            icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+            icon: Icon(
+              Icons.arrow_drop_down,
+              color: AppTheme.colors['primaryText'],
+            ),
             underline: const SizedBox(),
-            onChanged: (value) {},
+            onChanged: (value) {
+              final v = value == 'All Metrics' ? null : value;
+              ref.read(selectedMetricProvider.notifier).state = v;
+              onMetricChanged(value);
+            },
             items: const [
               DropdownMenuItem(
                 value: 'All Metrics',
-                child: Text('All Metrics', style: TextStyle(color: Colors.white)),
+                child: Text('All Metrics'),
               ),
-              DropdownMenuItem(
-                value: 'Meal Tracking',
-                child: Text('Meal Tracking', style: TextStyle(color: Colors.white)),
-              ),
-              DropdownMenuItem(
-                value: 'Sleep',
-                child: Text('Sleep', style: TextStyle(color: Colors.white)),
-              ),
-              DropdownMenuItem(
-                value: 'Steps',
-                child: Text('Steps', style: TextStyle(color: Colors.white)),
-              ),
-              DropdownMenuItem(
-                value: 'Water',
-                child: Text('Water', style: TextStyle(color: Colors.white)),
-              ),
-              DropdownMenuItem(
-                value: 'Weight',
-                child: Text('Weight', style: TextStyle(color: Colors.white)),
-              ),
+              DropdownMenuItem(value: 'food', child: Text('Meal Tracking')),
+              DropdownMenuItem(value: 'sleep', child: Text('Sleep')),
+              DropdownMenuItem(value: 'steps', child: Text('Steps')),
+              DropdownMenuItem(value: 'water', child: Text('Water')),
+              DropdownMenuItem(value: 'weight', child: Text('Weight')),
             ],
           ),
         ],

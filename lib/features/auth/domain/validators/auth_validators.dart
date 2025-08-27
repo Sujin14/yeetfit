@@ -13,4 +13,11 @@ class AuthValidators {
     if (value.length < 6) return 'Minimum 6 characters';
     return null;
   }
+
+  static String? confirmPassword(String? value, String password) {
+    if (value == null || value.isEmpty) return 'Confirm Password';
+    if (value.length < 6) return 'Minimum 6 characters';
+    if (value != password) return 'Passwords do not match';
+    return null;
+  }
 }

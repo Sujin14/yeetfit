@@ -4,4 +4,5 @@ abstract class UserRepository {
   Future<bool> checkUserExists(String uid);
   Future<void> saveUserData(UserInfoModel userInfo);
   Future<UserInfoModel?> getUserData(String uid);
+  Future<void> deleteUserData(String uid);
 }

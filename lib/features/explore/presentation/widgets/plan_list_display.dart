@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../providers/explore_providers.dart';
+import '../../../plans/presentation/providers/plan_provider.dart';
 import 'plan_tile_widget.dart';
 import 'error_tile_widget.dart';
 import 'loading_tile_widget.dart';
@@ -18,21 +18,13 @@ class PlanListDisplay extends ConsumerWidget {
     return ListView(
       children: [
         dietPlanAsync.when(
-          data: (plan) => plan == null
-              ? const ErrorTileWidget(message: 'No diet plan available')
-              : PlanTileWidget(
-                  title: 'Diet Plan',
-                  icon: Icons.restaurant,
-                  onTap: () {
-                    debugPrint(
-                      'Diet Plan tapped: id=${plan.id}, type=${plan.type}',
-                    );
-                    context.push(
-                      '/plans/${plan.id}',
-                      extra: {'plan': plan, 'category': 'diet'},
-                    );
-                  },
-                ),
+          data: (plan) => PlanTileWidget(
+            title: 'Diet Plans',
+            icon: Icons.restaurant,
+            onTap: () {
+              context.push('/plans/diet');
+            },
+          ),
           loading: () => const LoadingTileWidget(),
           error: (error, _) => ErrorTileWidget(
             message: error.toString().contains('PERMISSION_DENIED')
@@ -42,21 +34,13 @@ class PlanListDisplay extends ConsumerWidget {
         ),
         SizedBox(height: 16.h),
         workoutPlanAsync.when(
-          data: (plan) => plan == null
-              ? const ErrorTileWidget(message: 'No workout plan available')
-              : PlanTileWidget(
-                  title: 'Workout Plan',
-                  icon: Icons.fitness_center,
-                  onTap: () {
-                    debugPrint(
-                      'Workout Plan tapped: id=${plan.id}, type=${plan.type}',
-                    );
-                    context.push(
-                      '/plans/${plan.id}',
-                      extra: {'plan': plan, 'category': 'workouts'},
-                    );
-                  },
-                ),
+          data: (plan) => PlanTileWidget(
+            title: 'Workout Plans',
+            icon: Icons.fitness_center,
+            onTap: () {
+              context.push('/plans/workouts');
+            },
+          ),
           loading: () => const LoadingTileWidget(),
           error: (error, _) => ErrorTileWidget(
             message: error.toString().contains('PERMISSION_DENIED')

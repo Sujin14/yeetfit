@@ -1,6 +1,9 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../providers/email_auth_controller.dart';
+import '../../../../shared/theme/theme.dart';
 
 class ForgotPasswordButton extends ConsumerWidget {
   const ForgotPasswordButton({super.key});
@@ -16,7 +19,13 @@ class ForgotPasswordButton extends ConsumerWidget {
               .resetPassword(email.trim(), context);
         }
       },
-      child: const Text("Forgot Password?"),
+      child: Text(
+        "Forgot Password?",
+        style: AppTheme.textStyles['body']!.copyWith(
+          fontSize: (kIsWeb ? 16.sp : 14.sp).clamp(12.0, 16.0),
+          color: AppTheme.colors['primaryAccent'],
+        ),
+      ),
     );
   }
 
@@ -25,20 +34,41 @@ class ForgotPasswordButton extends ConsumerWidget {
     return showDialog<String>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text("Reset Password"),
+        title: Text(
+          "Reset Password",
+          style: AppTheme.textStyles['title']!.copyWith(
+            fontSize: (kIsWeb ? 20.sp : 18.sp).clamp(16.0, 20.0),
+            color: AppTheme.colors['primaryText'],
+          ),
+        ),
         content: TextField(
-          decoration: const InputDecoration(labelText: "Enter your email"),
+          decoration: InputDecoration(
+            labelText: "Enter your email",
+            labelStyle: AppTheme.textStyles['body']!.copyWith(
+              color: AppTheme.colors['secondaryText'],
+            ),
+          ),
           keyboardType: TextInputType.emailAddress,
           onChanged: (value) => email = value,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
+            child: Text(
+              "Cancel",
+              style: AppTheme.textStyles['body']!.copyWith(
+                color: AppTheme.colors['error'],
+              ),
+            ),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, email),
-            child: const Text("Send"),
+            child: Text(
+              "Send",
+              style: AppTheme.textStyles['body']!.copyWith(
+                color: AppTheme.colors['primaryText'],
+              ),
+            ),
           ),
         ],
       ),

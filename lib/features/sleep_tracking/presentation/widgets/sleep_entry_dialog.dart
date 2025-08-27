@@ -1,69 +1,76 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:intl/intl.dart';
+import '../../../../shared/theme/theme.dart';
+import '../providers/sleep_provider.dart';
 
-import '../../../../shared/widgets/glassmorphic_container.dart';
+class SleepEntryDialog extends ConsumerWidget {
+  final String userId;
 
-class SleepEntryDialog extends StatelessWidget {
-  const SleepEntryDialog({super.key});
+  const SleepEntryDialog({super.key, required this.userId});
 
   @override
-  Widget build(BuildContext context) {
-    return GlassmorphicContainer(
-      color: const Color(0xFFFF5722),
-      child: AlertDialog(
-        backgroundColor: Colors.transparent,
-        contentPadding: EdgeInsets.zero,
-        title: Text(
-          'Add Sleep Entry',
-          style: GoogleFonts.roboto(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(sleepEntryDialogStateProvider(userId));
+
+    return AlertDialog(
+      backgroundColor: AppTheme.colors['deepOrange']!.withOpacity(0.4),
+      contentPadding: EdgeInsets.zero,
+      title: Text(
+        'Add Sleep Entry',
+        style: GoogleFonts.roboto(
+          fontWeight: FontWeight.bold,
+          color: AppTheme.colors['white']!,
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              title: Text(
-                'Bed Time',
-                style: GoogleFonts.roboto(color: Colors.white),
-              ),
-              trailing: Text(
-                '10:00 PM',
-                style: GoogleFonts.roboto(color: Colors.white),
-              ),
-              onTap: () {},
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            title: Text(
+              'Bed Time',
+              style: GoogleFonts.roboto(color: AppTheme.colors['white']!),
             ),
-            ListTile(
-              title: Text(
-                'Wake Up Time',
-                style: GoogleFonts.roboto(color: Colors.white),
-              ),
-              trailing: Text(
-                '06:00 AM',
-                style: GoogleFonts.roboto(color: Colors.white),
-              ),
-              onTap: () {},
+            trailing: Text(
+              state.bedtime != null
+                  ? DateFormat('h:mm a').format(state.bedtime!)
+                  : 'Select',
+              style: GoogleFonts.roboto(color: AppTheme.colors['white']!),
             ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: GoogleFonts.roboto(color: Colors.white),
-            ),
+            onTap: () => state.pickBedtime(context),
           ),
-          ElevatedButton(
-            onPressed: () {},
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF26A69A).withOpacity(0.3),
+          ListTile(
+            title: Text(
+              'Wake Up Time',
+              style: GoogleFonts.roboto(color: AppTheme.colors['white']!),
             ),
-            child: Text('Add', style: GoogleFonts.roboto(color: Colors.white)),
+            trailing: Text(
+              state.wakeUpTime != null
+                  ? DateFormat('h:mm a').format(state.wakeUpTime!)
+                  : 'Select',
+              style: GoogleFonts.roboto(color: AppTheme.colors['white']!),
+            ),
+            onTap: () => state.pickWakeUpTime(context),
           ),
         ],
       ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(
+            'Cancel',
+            style: GoogleFonts.roboto(color: AppTheme.colors['white']!),
+          ),
+        ),
+        ElevatedButton(
+          onPressed: () => state.submitSleepEntry(context),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppTheme.colors['navBarActive']!.withOpacity(0.6),
+          ),
+          child: Text('Add', style: GoogleFonts.roboto(color: AppTheme.colors['white']!)),
+        ),
+      ],
     );
   }
 }

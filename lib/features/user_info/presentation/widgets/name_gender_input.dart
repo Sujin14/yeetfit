@@ -1,15 +1,23 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:google_fonts/google_fonts.dart';
-import '../providers/user_info_controller.dart';
 import '../../domain/validators/user_info_validators.dart';
-import 'dart:io';
+import '../providers/user_info_provider.dart';
 
 class NameGenderInput extends ConsumerStatefulWidget {
   final GlobalKey<FormState> formKey;
+  final void Function(String) onGenderChanged;
+  final void Function(XFile) onImageSelected;
 
-  const NameGenderInput({super.key, required this.formKey});
+  const NameGenderInput({
+    super.key,
+    required this.formKey,
+    required this.onGenderChanged,
+    required this.onImageSelected,
+  });
 
   @override
   _NameGenderInputState createState() => _NameGenderInputState();
@@ -19,45 +27,53 @@ class _NameGenderInputState extends ConsumerState<NameGenderInput> {
   String? gender;
   XFile? _image;
   String? _genderError;
+  bool _isUploading = false;
+  late TextEditingController _nameController;
 
   @override
   void initState() {
     super.initState();
-    // Initialize gender from userInfo to persist selection when navigating back
     final userInfo = ref.read(userInfoControllerProvider);
-    gender = userInfo.gender.isNotEmpty ? userInfo.gender : null;
+    gender = userInfo.value?.gender.isNotEmpty ?? false ? userInfo.value!.gender : null;
+    _nameController = TextEditingController(text: userInfo.value?.name ?? '');
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
   }
 
   Future<void> _pickImage() async {
+    if (_isUploading) return;
+    setState(() {
+      _isUploading = true;
+    });
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
         _image = pickedFile;
       });
-      ref.read(userInfoControllerProvider.notifier).updateProfileImageUrl(
-            pickedFile.path,
-            context,
-          );
+      widget.onImageSelected(pickedFile);
     }
+    setState(() {
+      _isUploading = false;
+    });
   }
 
-  Widget _buildGenderOption(
-    String genderType,
-    IconData icon,
-    Color color,
-  ) {
+  Widget _buildGenderOption(String genderType, IconData icon, Color color) {
     return GestureDetector(
       onTap: () {
         setState(() {
           gender = genderType;
           _genderError = null;
         });
-        ref.read(userInfoControllerProvider.notifier).updateGender(genderType, context);
+        widget.onGenderChanged(genderType);
       },
       child: Container(
-        width: 80,
-        height: 80,
+        width: 80.w,
+        height: 80.h,
         decoration: BoxDecoration(
           color: gender == genderType ? color : Colors.white,
           shape: BoxShape.circle,
@@ -73,7 +89,7 @@ class _NameGenderInputState extends ConsumerState<NameGenderInput> {
         child: Center(
           child: Icon(
             icon,
-            size: 40,
+            size: 40.sp,
             color: gender == genderType ? Colors.white : Colors.grey[600],
           ),
         ),
@@ -84,11 +100,10 @@ class _NameGenderInputState extends ConsumerState<NameGenderInput> {
   @override
   Widget build(BuildContext context) {
     final userInfo = ref.watch(userInfoControllerProvider);
-    final notifier = ref.read(userInfoControllerProvider.notifier);
-    final screenWidth = MediaQuery.of(context).size.width;
+    final controller = ref.read(userInfoControllerProvider.notifier);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       child: Form(
         key: widget.formKey,
         child: Column(
@@ -97,117 +112,144 @@ class _NameGenderInputState extends ConsumerState<NameGenderInput> {
             Text(
               "Upload a profile picture",
               style: GoogleFonts.aBeeZee(
-                fontSize: 16,
+                fontSize: 16.sp,
                 fontWeight: FontWeight.w600,
                 color: Colors.black87,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12.h),
             GestureDetector(
               onTap: _pickImage,
-              child: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.grey[400]!, width: 2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.2),
-                      spreadRadius: 2,
-                      blurRadius: 5,
-                      offset: const Offset(0, 2),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.grey[400]!, width: 2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.2),
+                          spreadRadius: 2,
+                          blurRadius: 5,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                child: CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Colors.grey[200],
-                  backgroundImage: _image != null ? FileImage(File(_image!.path)) : null,
-                  child: _image == null
-                      ? Icon(Icons.add_a_photo, size: 35, color: Colors.grey[600])
-                      : null,
-                ),
+                    child: CircleAvatar(
+                      radius: 50.r,
+                      backgroundColor: Colors.grey[200],
+                      backgroundImage: _image != null
+                          ? FileImage(File(_image!.path))
+                          : userInfo.value?.profileImageUrl != null
+                              ? NetworkImage(userInfo.value!.profileImageUrl!)
+                              : null,
+                      child: _image == null && userInfo.value?.profileImageUrl == null
+                          ? Icon(Icons.add_a_photo, size: 35.sp, color: Colors.grey[600])
+                          : null,
+                    ),
+                  ),
+                  if (_isUploading)
+                    CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
+                    ),
+                ],
               ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20.h),
             Text(
               "What is your name?",
               style: GoogleFonts.aBeeZee(
-                fontSize: 16,
+                fontSize: 16.sp,
                 fontWeight: FontWeight.w600,
                 color: Colors.black87,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12.h),
             TextFormField(
-              initialValue: userInfo.name,
+              controller: _nameController,
               decoration: InputDecoration(
                 hintText: "Enter your name",
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
                 filled: true,
                 fillColor: Colors.grey[100],
               ),
               validator: UserInfoValidators.validateName,
-              onChanged: (val) => notifier.updateName(val.trim(), context),
+              onSaved: (value) {
+                if (value != null) {
+                  controller.setFormValue('name', value.trim());
+                }
+              },
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20.h),
             Text(
               "Select your gender",
               style: GoogleFonts.aBeeZee(
-                fontSize: 16,
+                fontSize: 16.sp,
                 fontWeight: FontWeight.w600,
                 color: Colors.black87,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 12),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.2),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildGenderOption(
-                    "Male",
-                    Icons.male,
-                    const Color(0xFF040B90),
+            SizedBox(height: 12.h),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8.w),
+                    child: _buildGenderOption(
+                      "Male",
+                      Icons.male,
+                      const Color(0xFF040B90),
+                    ),
                   ),
-                  _buildGenderOption(
-                    "Female",
-                    Icons.female,
-                    const Color.fromARGB(255, 255, 0, 234),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8.w),
+                    child: _buildGenderOption(
+                      "Female",
+                      Icons.female,
+                      const Color.fromARGB(255, 255, 0, 234),
+                    ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
             SizedBox(
               height: 0,
               child: TextFormField(
                 enabled: false,
-                initialValue: gender ?? userInfo.gender,
-                decoration: const InputDecoration(
-                ),
+                initialValue: gender ?? userInfo.value?.gender ?? '',
                 validator: (value) {
-                  final error = UserInfoValidators.validateGender(gender ?? userInfo.gender);
+                  final error = UserInfoValidators.validateGender(gender ?? userInfo.value?.gender);
                   setState(() {
                     _genderError = error;
                   });
                   return error;
                 },
+                onSaved: (value) {
+                  if (gender != null) {
+                    controller.setFormValue('gender', gender);
+                  }
+                },
               ),
             ),
             if (_genderError != null)
               Padding(
-                padding: const EdgeInsets.only(top: 8),
+                padding: EdgeInsets.only(top: 8.h),
                 child: Text(
                   _genderError!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 12),
+                  style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 12.sp),
                   textAlign: TextAlign.center,
                 ),
               ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20.h),
           ],
         ),
       ),

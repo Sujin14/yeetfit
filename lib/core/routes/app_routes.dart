@@ -6,20 +6,42 @@ import 'package:yeetfit/features/auth/presentation/screens/sign_up_screen.dart';
 import 'package:yeetfit/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:yeetfit/features/explore/presentation/screens/explore_screen.dart';
 import 'package:yeetfit/features/meal_tracking/presentation/screens/calorie_tracking_screen.dart';
+import 'package:yeetfit/features/meal_tracking/presentation/screens/food_search_screen.dart';
+import 'package:yeetfit/features/meal_tracking/presentation/screens/weekly_calorie_chart_screen.dart';
 import 'package:yeetfit/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:yeetfit/features/plans/presentation/screens/favorites_page.dart';
 import 'package:yeetfit/features/plans/presentation/screens/plan_detail_page.dart';
+import 'package:yeetfit/features/plans/presentation/screens/plan_list_screen.dart';
 import 'package:yeetfit/features/progress/presentation/screens/progress_screen.dart';
+import 'package:yeetfit/features/settings/presentation/screens/contact_us_screen.dart';
+import 'package:yeetfit/features/settings/presentation/screens/privacy_policy_screen.dart';
 import 'package:yeetfit/features/settings/presentation/screens/settings_screen.dart';
+import 'package:yeetfit/features/settings/presentation/screens/account_screen.dart';
+import 'package:yeetfit/features/settings/presentation/screens/basic_information_screen.dart';
+import 'package:yeetfit/features/settings/presentation/screens/goal_settings_screen.dart';
 import 'package:yeetfit/features/splash/presentation/screens/splash_screen.dart';
 import 'package:yeetfit/features/user_info/presentation/screens/user_info_step_page.dart';
 import 'package:yeetfit/features/welcome/presentation/screens/welcome_screen.dart';
 import 'package:yeetfit/features/sleep_tracking/presentation/screens/sleep_tracking_screen.dart';
-import 'package:yeetfit/features/steps/presentation/screens/step_counter_screen.dart';
-import 'package:yeetfit/features/water/presentation/screens/water_tracking_screen.dart';
-import 'package:yeetfit/features/weight/presentation/screens/weight_tracking_screen.dart';
+import 'package:yeetfit/features/steps_tracking/presentation/screens/step_counter_screen.dart';
+import 'package:yeetfit/features/water_tracking/presentation/screens/water_tracking_screen.dart';
+import 'package:yeetfit/features/weight_tracking/presentation/screens/weight_tracking_screen.dart';
 import 'package:yeetfit/shared/widgets/custom_appbar.dart';
 import 'package:yeetfit/shared/widgets/bottom_nav_bar.dart';
+import 'package:yeetfit/features/water_tracking/presentation/widgets/water_success_page.dart';
+import 'package:yeetfit/features/chat/presentation/screens/chat_screen.dart';
+import 'package:yeetfit/features/chat/presentation/screens/admin_list_screen.dart';
+import 'package:yeetfit/features/chatbot/presentation/screens/chatbot_screen.dart';
+import 'package:yeetfit/features/dashboard/presentation/widgets/calendar_dialog.dart';
+import 'package:yeetfit/features/meal_tracking/data/model/food_model.dart';
+import 'package:yeetfit/features/meal_tracking/presentation/screens/nutrition_details_screen.dart';
+import 'package:yeetfit/features/payment/presentation/screens/payment_screen.dart';
+import 'package:yeetfit/features/steps_tracking/presentation/widgets/steps_success_page.dart';
+import 'package:yeetfit/features/weight_tracking/presentation/widgets/weight_success_page.dart';
+import 'package:yeetfit/features/settings/presentation/screens/about_screen.dart';
+import 'package:yeetfit/features/settings/presentation/screens/food_preference_screen.dart';
+import 'package:yeetfit/features/settings/presentation/screens/help_screen.dart';
+import 'package:yeetfit/features/settings/presentation/screens/terms_and_conditions_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/',
@@ -34,14 +56,8 @@ final GoRouter appRouter = GoRouter(
   },
   routes: [
     GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
-    GoRoute(
-      path: '/onboarding',
-      builder: (context, state) => const OnboardingScreen(),
-    ),
-    GoRoute(
-      path: '/welcome',
-      builder: (context, state) => const WelcomeScreen(),
-    ),
+    GoRoute(path: '/onboarding', builder: (context, state) => const OnboardingScreen()),
+    GoRoute(path: '/welcome', builder: (context, state) => const WelcomeScreen()),
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
     GoRoute(path: '/signup', builder: (context, state) => const SignUpScreen()),
     GoRoute(
@@ -52,29 +68,61 @@ final GoRouter appRouter = GoRouter(
       },
     ),
     GoRoute(
-      path: '/plans/:id',
-      builder: (context, state) =>
-          PlanDetailPage(extra: state.extra as Map<String, dynamic>),
+      path: '/plans/:category',
+      builder: (context, state) => PlanListScreen(category: state.pathParameters['category']!),
     ),
     GoRoute(
-      path: '/modal/food',
-      builder: (context, state) => const CalorieTrackingScreen(),
+      path: '/plans/:category/:id',
+      builder: (context, state) => PlanDetailPage(extra: state.extra as Map<String, dynamic>),
+    ),
+    GoRoute(path: '/modal/food', builder: (context, state) => const CalorieTrackingScreen()),
+    GoRoute(
+      path: '/food-search',
+      builder: (context, state) => FoodSearchScreen(mealType: state.extra as String? ?? 'Breakfast'),
     ),
     GoRoute(
-      path: '/modal/steps',
-      builder: (context, state) => const StepCounterScreen(),
+      path: '/nutrition-details',
+      builder: (context, state) {
+        final foodItem = state.extra as FoodItem;
+        return NutritionDetailsScreen(foodItem: foodItem);
+      },
     ),
     GoRoute(
-      path: '/modal/sleep',
-      builder: (context, state) => const SleepTrackingScreen(),
+      path: '/weekly-calorie-chart',
+      builder: (context, state) => const WeeklyCalorieChartScreen(),
+    ),
+    GoRoute(path: '/modal/steps', builder: (context, state) => const StepCounterScreen()),
+    GoRoute(path: '/modal/sleep', builder: (context, state) => const SleepTrackingScreen()),
+    GoRoute(path: '/modal/water', builder: (context, state) => const WaterTrackingScreen()),
+    GoRoute(path: '/modal/weight', builder: (context, state) => const WeightTrackingScreen()),
+    GoRoute(
+      name: 'water-success',
+      path: '/success/:goal',
+      builder: (context, state) {
+        final goal = int.tryParse(state.pathParameters['goal'] ?? '0') ?? 0;
+        return WaterSuccessPage(goal: goal);
+      },
     ),
     GoRoute(
-      path: '/modal/water',
-      builder: (context, state) => const WaterTrackingScreen(),
+      name: 'weight-success',
+      path: '/weight-success/:goal',
+      builder: (context, state) {
+        final goal = double.tryParse(state.pathParameters['goal'] ?? '0') ?? 0;
+        return WeightSuccessPage(goal: goal.toString());
+      },
     ),
     GoRoute(
-      path: '/modal/weight',
-      builder: (context, state) => const WeightTrackingScreen(),
+      name: 'steps-success',
+      path: '/steps-success/:goal',
+      builder: (context, state) {
+        final goal = state.pathParameters['goal'] ?? '0';
+        return StepsSuccessPage(goal: goal);
+      },
+    ),
+    GoRoute(path: '/admin-list', builder: (context, state) => const AdminListScreen()),
+    GoRoute(
+      path: '/chat',
+      builder: (context, state) => ChatScreen(adminId: state.extra as String),
     ),
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
@@ -85,7 +133,7 @@ final GoRouter appRouter = GoRouter(
           routes: [
             GoRoute(
               path: '/user-dashboard',
-              builder: (context, state) => const DashboardBody(),
+              builder: (context, state) => const DashboardScreen(),
             ),
           ],
         ),
@@ -115,9 +163,32 @@ final GoRouter appRouter = GoRouter(
         ),
       ],
     ),
+    GoRoute(path: '/settings', builder: (context, state) => const SettingsScreen()),
+    GoRoute(path: '/account', builder: (context, state) => const AccountScreen()),
     GoRoute(
-      path: '/settings',
-      builder: (context, state) => const SettingsScreen(),
+      path: '/basic-information',
+      builder: (context, state) => const BasicInformationScreen(),
+    ),
+    GoRoute(
+      path: '/goal-settings',
+      builder: (context, state) => const GoalSettingsScreen(),
+    ),
+    GoRoute(
+      path: '/food-preferences',
+      builder: (context, state) => const FoodPreferencesScreen(),
+    ),
+    GoRoute(path: '/payment', builder: (context, state) => const PaymentScreen()),
+    GoRoute(path: '/chatbot', builder: (context, state) => const ChatbotScreen()),
+    GoRoute(path: '/about', builder: (context, state) => const AboutScreen()),
+    GoRoute(path: '/help', builder: (context, state) => const HelpScreen()),
+    GoRoute(
+      path: '/terms-and-conditions',
+      builder: (context, state) => const TermsAndConditionsScreen(),
+    ),
+    GoRoute(path: '/contact-us', builder: (context, state) => const ContactUsScreen()),
+    GoRoute(
+      path: '/privacy-policy',
+      builder: (context, state) => const PrivacyPolicyScreen(),
     ),
   ],
 );
@@ -139,7 +210,9 @@ class _ShellScaffoldState extends State<ShellScaffold> {
       _currentIndex = index;
     });
     if (index != 2) {
-      widget.navigationShell.goBranch(index > 2 ? index - 1 : index);
+      // Map indices to branches: 0 -> 0 (Dashboard), 1 -> 1 (Explore), 3 -> 2 (Progress), 4 -> 3 (Favorites)
+      final branchIndex = index > 2 ? index - 1 : index;
+      widget.navigationShell.goBranch(branchIndex);
     }
   }
 
@@ -148,6 +221,16 @@ class _ShellScaffoldState extends State<ShellScaffold> {
     return Scaffold(
       appBar: CustomAppBar(
         title: _getTitle(_currentIndex),
+        showCalendar: _currentIndex == 0, // Show calendar only on Dashboard
+        onCalendar: () {
+          final user = FirebaseAuth.instance.currentUser;
+          if (user != null) {
+            showDialog(
+              context: context,
+              builder: (context) => CalendarDialog(userId: user.uid),
+            );
+          }
+        },
         showSettings: true,
         onSettings: () => context.push('/settings'),
       ),
@@ -166,15 +249,17 @@ class _ShellScaffoldState extends State<ShellScaffold> {
   String _getTitle(int index) {
     switch (index) {
       case 0:
-        return 'YeetFit Dashboard';
+        return 'Dashboard';
       case 1:
         return 'Explore';
+      case 2:
+        return 'Track';
       case 3:
         return 'Progress';
       case 4:
         return 'Favorites';
       default:
-        return '';
+        return 'YeetFit';
     }
   }
 }

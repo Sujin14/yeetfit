@@ -9,6 +9,8 @@ class PlanModel {
   final Map<String, dynamic> details;
   final bool isFavorite;
   final Timestamp createdAt;
+  final int totalCalories;
+  final Map<String, double> totalMacronutrients;
 
   PlanModel({
     this.id,
@@ -19,6 +21,8 @@ class PlanModel {
     required this.details,
     required this.isFavorite,
     required this.createdAt,
+    required this.totalCalories,
+    this.totalMacronutrients = const {'protein': 0.0, 'carbs': 0.0, 'fats': 0.0},
   });
 
   factory PlanModel.fromFirestore(DocumentSnapshot doc) {
@@ -33,6 +37,10 @@ class PlanModel {
       details: Map<String, dynamic>.from(data['details'] ?? {}),
       isFavorite: data['isFavorite'] ?? false,
       createdAt: data['createdAt'] as Timestamp? ?? Timestamp.now(),
+      totalCalories: data['totalCalories'] ?? 0,
+      totalMacronutrients: Map<String, double>.from(
+        data['totalMacronutrients'] ?? {'protein': 0.0, 'carbs': 0.0, 'fats': 0.0},
+      ),
     );
   }
 
@@ -46,6 +54,8 @@ class PlanModel {
       'details': details,
       'isFavorite': isFavorite,
       'createdAt': createdAt,
+      'totalCalories': totalCalories,
+      'totalMacronutrients': totalMacronutrients,
     };
   }
 }

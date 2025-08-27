@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:yeetfit/shared/theme/theme.dart';
 import 'login_form.dart';
 import 'login_header.dart';
 import 'login_options_divider.dart';
@@ -13,14 +15,20 @@ class LoginBody extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Sign in', style: Theme.of(context).textTheme.titleMedium),
-        backgroundColor: Colors.transparent,
+        title: Text(
+          'Sign in',
+          style: AppTheme.textStyles['titleMedium']!.copyWith(
+            fontSize: (kIsWeb ? 22.sp : 20.sp).clamp(18.0, 22.0),
+            color: AppTheme.colors['primaryText'],
+          ),
+        ),
+        backgroundColor: AppTheme.colors['transparent']!,
         elevation: 0,
       ),
       body: Column(
         children: [
-          const LoginHeader(),
-          SizedBox(height: 70.h),
+          LoginHeader(),
+          SizedBox(height: kIsWeb ? 40.h : 30.h),
           Expanded(
             child: Container(
               decoration: BoxDecoration(
@@ -30,11 +38,14 @@ class LoginBody extends StatelessWidget {
                   topRight: Radius.circular(30.r),
                 ),
               ),
-              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
+              padding: EdgeInsets.symmetric(
+                horizontal: kIsWeb ? 40.w : 24.w,
+                vertical: kIsWeb ? 24.h : 16.h,
+              ),
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const LoginForm(),
                     SizedBox(height: 30.h),

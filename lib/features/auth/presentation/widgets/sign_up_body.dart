@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:yeetfit/shared/theme/theme.dart';
 import 'login_options_divider.dart';
 import 'login_social_buttons.dart';
 import 'sign_in_redirect.dart';
@@ -15,17 +17,18 @@ class SignUpBody extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           'User Registration',
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontSize: 22.sp),
+          style: AppTheme.textStyles['titleMedium']!.copyWith(
+            fontSize: (kIsWeb ? 22.sp : 20.sp).clamp(18.0, 22.0),
+            color: AppTheme.colors['primaryText'],
+          ),
         ),
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppTheme.colors['transparent']!,
         elevation: 0,
       ),
       body: Column(
         children: [
-          const SignUpHeader(),
-          SizedBox(height: 40.h),
+          SignUpHeader(),
+          SizedBox(height: kIsWeb ? 30.h : 20.h),
           Expanded(
             child: Container(
               decoration: BoxDecoration(
@@ -35,15 +38,28 @@ class SignUpBody extends StatelessWidget {
                   topRight: Radius.circular(30.r),
                 ),
               ),
-              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
+              padding: EdgeInsets.symmetric(
+                horizontal: kIsWeb ? 40.w : 24.w,
+                vertical: kIsWeb ? 24.h : 16.h,
+              ),
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const SignUpForm(),
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: kIsWeb ? 400.w : 350.w,
+                      ),
+                      child: const SignUpForm(),
+                    ),
                     SizedBox(height: 30.h),
-                    const LoginOptionsDivider(),
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: kIsWeb ? 400.w : 350.w,
+                      ),
+                      child: const LoginOptionsDivider(),
+                    ),
                     SizedBox(height: 30.h),
                     const LoginSocialButtons(),
                     SizedBox(height: 30.h),

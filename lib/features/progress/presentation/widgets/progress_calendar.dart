@@ -1,101 +1,48 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-
-import '../../../../shared/widgets/glassmorphic_container.dart';
+import 'package:flutter_heatmap_calendar/flutter_heatmap_calendar.dart';
 
 class ProgressCalendar extends StatelessWidget {
-  const ProgressCalendar({super.key});
+  final Map<DateTime, int> dataset;
+  final Color baseColor;
+
+  const ProgressCalendar({
+    super.key,
+    required this.dataset,
+    this.baseColor = Colors.green,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final List<double> activityData = List.generate(30, (index) => index % 5 / 4.0);
-
-    return GlassmorphicContainer(
-      color: const Color(0xFF26A69A),
-      padding: EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Last 30 Days',
-            style: GoogleFonts.roboto(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 16),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 7,
-              crossAxisSpacing: 4,
-              mainAxisSpacing: 4,
-              childAspectRatio: 1,
-            ),
-            itemCount: 30,
-            itemBuilder: (context, index) {
-              final intensity = activityData[index];
-              final color = _getColorForIntensity(intensity);
-              return Tooltip(
-                message: 'Day ${index + 1}: ${intensity.toStringAsFixed(2)}',
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: Colors.white.withOpacity(0.3)),
-                  ),
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              _buildLegendItem('Low', Colors.red.withOpacity(0.5)),
-              const SizedBox(width: 8),
-              _buildLegendItem('Medium', Colors.yellow.withOpacity(0.5)),
-              const SizedBox(width: 8),
-              _buildLegendItem('High', Colors.green.withOpacity(0.5)),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Color _getColorForIntensity(double intensity) {
-    if (intensity < 0.3) {
-      return Colors.red.withOpacity(0.5);
-    } else if (intensity < 0.7) {
-      return Colors.yellow.withOpacity(0.5);
-    } else {
-      return Colors.green.withOpacity(0.5);
+    if (dataset.isNotEmpty) {
+      final sample = dataset.entries.take(8).map((e) => '${e.key.toIso8601String().substring(0,10)}:${e.value}').join(', ');
     }
-  }
 
-  Widget _buildLegendItem(String label, Color color,) {
-    return Row(
-      children: [
-        Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(4),
-          ),
-        ),
-        const SizedBox(width: 4),
-        Text(
-          label,
-          style: GoogleFonts.roboto(
-            fontSize: 12,
-            color: Colors.white70,
-          ),
-        ),
-      ],
+    if (dataset.isEmpty) {
+      return const Center(child: Text("No data available"));
+    }
+
+    final normalizedDataset = dataset.map((date, value) {
+      final safeValue = value < 0 ? 0 : value;
+      return MapEntry(date, safeValue);
+    });
+
+    final hasNonZero = normalizedDataset.values.any((v) => v > 0);
+    final safeDataset = hasNonZero ? normalizedDataset : {DateTime.now(): 1};
+
+
+    return HeatMapCalendar(
+      datasets: safeDataset,
+      colorMode: ColorMode.opacity,
+      colorsets: {1: baseColor},
+      showColorTip: true,
+      monthFontSize: 16,
+      weekFontSize: 12,
+      textColor: Colors.black,
+      defaultColor: Colors.grey[200]!,
+      size: 32,
+      margin: const EdgeInsets.all(4),
+      onClick: (date) {
+      },
     );
   }
 }
