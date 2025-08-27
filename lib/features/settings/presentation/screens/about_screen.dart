@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../widgets/about_body.dart';
 
 class AboutScreen extends StatelessWidget {
@@ -12,7 +13,10 @@ class AboutScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           'About',
-          style: AppTheme.textStyles['title']!.copyWith(color: AppTheme.colors['primaryText']),
+          style: AppTheme.textStyles['title']!.copyWith(
+            color: AppTheme.colors['primaryText'],
+            fontSize: FixedSizes.font18(context),
+          ),
         ),
         backgroundColor: AppTheme.colors['lightBackground'],
         elevation: 0,

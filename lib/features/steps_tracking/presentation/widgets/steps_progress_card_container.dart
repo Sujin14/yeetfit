@@ -22,8 +22,7 @@ class StepsProgressCardContainer extends ConsumerWidget {
     return stepsAsync.when(
       data: (steps) => StepsProgressCard(
         steps: steps,
-        goalSteps: goalSteps,
-        progressColor: progressColor,
+        goal: goalSteps,
       ),
       loading: () => const CircularProgressIndicator(),
       error: (e, _) => Text('Error: $e'),

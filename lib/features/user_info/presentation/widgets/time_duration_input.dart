@@ -1,16 +1,14 @@
+// time_duration_input.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../domain/validators/user_info_validators.dart';
 import '../providers/user_info_provider.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class TimeDurationInput extends ConsumerStatefulWidget {
   final GlobalKey<FormState> formKey;
 
-  const TimeDurationInput({
-    super.key,
-    required this.formKey,
-  });
+  const TimeDurationInput({super.key, required this.formKey});
 
   @override
   _TimeDurationInputState createState() => _TimeDurationInputState();
@@ -24,7 +22,9 @@ class _TimeDurationInputState extends ConsumerState<TimeDurationInput> {
     super.initState();
     final userInfo = ref.read(userInfoControllerProvider);
     _timeDurationController = TextEditingController(
-      text: userInfo.value?.timeDurationWeeks == null ? '' : userInfo.value?.timeDurationWeeks.toString(),
+      text: userInfo.value?.timeDurationWeeks == null
+          ? ''
+          : userInfo.value?.timeDurationWeeks.toString(),
     );
   }
 
@@ -45,15 +45,18 @@ class _TimeDurationInputState extends ConsumerState<TimeDurationInput> {
         children: [
           Text(
             "In how many weeks do you want to achieve your goal?",
-            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
+            style: TextStyle(
+              fontSize: FixedSizes.font16(context),
+              fontWeight: FontWeight.w600,
+            ),
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: FixedSizes.spacing(context) / 2),
           TextFormField(
             controller: _timeDurationController,
             decoration: InputDecoration(
               hintText: "Enter duration (weeks)",
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.r),
+                borderRadius: BorderRadius.circular(12),
               ),
               filled: true,
               fillColor: Colors.grey[100],

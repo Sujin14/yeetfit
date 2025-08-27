@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/custom_appbar.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../../data/models/plan_model.dart';
 import '../providers/plan_provider.dart';
 import '../widgets/plan_details_display.dart';
@@ -38,7 +38,7 @@ class PlanDetailPage extends ConsumerWidget {
                 'Plan not found',
                 style: AppTheme.textStyles['body']?.copyWith(
                   color: AppTheme.colors['error'],
-                  fontSize: 16.sp,
+                  fontSize: FixedSizes.font16(context),
                 ),
               ),
             ),
@@ -70,7 +70,7 @@ class PlanDetailPage extends ConsumerWidget {
                           : 'Added to favorites',
                       style: AppTheme.textStyles['body']?.copyWith(
                         color: AppTheme.colors['primaryText'],
-                      ) ?? TextStyle(color: AppTheme.colors['black']),
+                      ),
                     ),
                     backgroundColor: AppTheme.colors['primaryButton'],
                   ),
@@ -87,7 +87,7 @@ class PlanDetailPage extends ConsumerWidget {
                           : 'Error: $e',
                       style: AppTheme.textStyles['body']?.copyWith(
                         color: AppTheme.colors['primaryText'],
-                      ) ?? TextStyle(color: AppTheme.colors['black']),
+                      ),
                     ),
                     backgroundColor: AppTheme.colors['error'],
                   ),
@@ -97,7 +97,10 @@ class PlanDetailPage extends ConsumerWidget {
           ),
           body: SafeArea(
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+              padding: EdgeInsets.symmetric(
+                horizontal: FixedSizes.box16(context),
+                vertical: FixedSizes.box16(context),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -131,7 +134,7 @@ class PlanDetailPage extends ConsumerWidget {
             'Error: $error',
             style: AppTheme.textStyles['body']?.copyWith(
               color: AppTheme.colors['error'],
-              fontSize: 16.sp,
+              fontSize: FixedSizes.font16(context),
             ),
           ),
         ),

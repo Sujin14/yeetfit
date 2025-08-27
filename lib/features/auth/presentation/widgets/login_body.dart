@@ -1,7 +1,7 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
+// login_body.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:yeetfit/shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 import 'login_form.dart';
 import 'login_header.dart';
 import 'login_options_divider.dart';
@@ -18,7 +18,7 @@ class LoginBody extends StatelessWidget {
         title: Text(
           'Sign in',
           style: AppTheme.textStyles['titleMedium']!.copyWith(
-            fontSize: (kIsWeb ? 22.sp : 20.sp).clamp(18.0, 22.0),
+            fontSize: FixedSizes.fontTitle(context),
             color: AppTheme.colors['primaryText'],
           ),
         ),
@@ -27,20 +27,20 @@ class LoginBody extends StatelessWidget {
       ),
       body: Column(
         children: [
-          LoginHeader(),
-          SizedBox(height: kIsWeb ? 40.h : 30.h),
+          const LoginHeader(),
+          SizedBox(height: FixedSizes.box40(context)),
           Expanded(
             child: Container(
               decoration: BoxDecoration(
                 color: Theme.of(context).highlightColor,
                 borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(30.r),
-                  topRight: Radius.circular(30.r),
+                  topLeft: Radius.circular(FixedSizes.borderRadius(context)),
+                  topRight: Radius.circular(FixedSizes.borderRadius(context)),
                 ),
               ),
               padding: EdgeInsets.symmetric(
-                horizontal: kIsWeb ? 40.w : 24.w,
-                vertical: kIsWeb ? 24.h : 16.h,
+                horizontal: FixedSizes.box24(context),
+                vertical: FixedSizes.box20(context),
               ),
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
@@ -48,11 +48,11 @@ class LoginBody extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const LoginForm(),
-                    SizedBox(height: 30.h),
+                    SizedBox(height: FixedSizes.box30(context)),
                     const LoginOptionsDivider(),
-                    SizedBox(height: 30.h),
+                    SizedBox(height: FixedSizes.box30(context)),
                     const LoginSocialButtons(),
-                    SizedBox(height: 30.h),
+                    SizedBox(height: FixedSizes.box30(context)),
                     const Center(child: SignupRedirect()),
                   ],
                 ),

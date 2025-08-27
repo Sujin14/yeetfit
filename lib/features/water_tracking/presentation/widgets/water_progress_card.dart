@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../providers/water_provider.dart';
 
 class WaterProgressCard extends ConsumerWidget {
@@ -15,12 +15,8 @@ class WaterProgressCard extends ConsumerWidget {
     final userId = ref.watch(firebaseAuthProvider).currentUser?.uid;
     if (userId == null) return const SizedBox.shrink();
 
-    final glassesConsumed = ref.watch(
-      glassesConsumedProvider(userId).select((value) => value.value ?? 0),
-    );
-    final goalGlasses = ref.watch(
-      waterGoalProvider(userId).select((value) => value.value ?? 8),
-    );
+    final glassesConsumed = ref.watch(glassesConsumedProvider(userId)).value ?? 0;
+    final goalGlasses = ref.watch(waterGoalProvider(userId)).value ?? 8;
 
     return GlassmorphicContainer(
       color: AppTheme.colors['navBarActive'] ?? Colors.grey,
@@ -33,10 +29,8 @@ class WaterProgressCard extends ConsumerWidget {
                 '$glassesConsumed / $goalGlasses Glasses',
                 style: GoogleFonts.roboto(
                   fontWeight: FontWeight.bold,
-                  fontSize: 18.sp,
-                  color:
-                      AppTheme.colors['primaryText']?.withOpacity(0.7) ??
-                      Colors.grey,
+                  fontSize: FixedSizes.font18(context),
+                  color: AppTheme.colors['primaryText']?.withOpacity(0.7),
                 ),
               ),
               const Spacer(),
@@ -47,33 +41,30 @@ class WaterProgressCard extends ConsumerWidget {
                 ),
                 icon: Icon(
                   Icons.edit,
-                  size: 20.sp,
-                  color:
-                      AppTheme.colors['primaryText']?.withOpacity(0.7) ??
-                      Colors.grey,
+                  size: FixedSizes.icon20(context),
+                  color: AppTheme.colors['primaryText']?.withOpacity(0.7),
                 ),
                 tooltip: 'Edit Goal',
               ),
             ],
           ),
-          SizedBox(height: 10.h),
+          SizedBox(height: FixedSizes.box10(context)),
           Stack(
             alignment: Alignment.centerRight,
             children: [
               LinearProgressIndicator(
                 value: goalGlasses > 0 ? glassesConsumed / goalGlasses : 0.0,
-                minHeight: 18.h,
-                borderRadius: BorderRadius.circular(10.r),
+                minHeight: FixedSizes.box18(context),
                 color: AppTheme.colors['aquaBlue'] ?? Colors.blue,
                 backgroundColor: Colors.white.withOpacity(0.2),
               ),
               Padding(
-                padding: EdgeInsets.only(right: 12.w),
+                padding: EdgeInsets.only(right: FixedSizes.box12(context)),
                 child: Text(
                   '${goalGlasses > 0 ? ((glassesConsumed / goalGlasses) * 100).toInt() : 0}%',
                   style: GoogleFonts.roboto(
-                    fontSize: 14.sp,
-                    color: AppTheme.colors['white'] ?? Colors.white,
+                    fontSize: FixedSizes.font14(context),
+                    color: AppTheme.colors['white'],
                   ),
                 ),
               ),
@@ -98,9 +89,7 @@ class WaterGoalDialog extends ConsumerWidget {
     return AlertDialog(
       title: Text(
         'Edit Water Goal',
-        style: GoogleFonts.roboto(
-          color: AppTheme.colors['white'] ?? Colors.white,
-        ),
+        style: GoogleFonts.roboto(color: AppTheme.colors['white']),
       ),
       content: TextField(
         controller: state.controller,
@@ -109,37 +98,23 @@ class WaterGoalDialog extends ConsumerWidget {
           labelText: 'Glasses per Day',
           hintText: 'Enter number of glasses',
           labelStyle: GoogleFonts.roboto(
-            color: AppTheme.colors['white']?.withOpacity(0.7) ?? Colors.white70,
-          ),
+              color: AppTheme.colors['white']?.withOpacity(0.7)),
           hintStyle: GoogleFonts.roboto(
-            color: AppTheme.colors['white']?.withOpacity(0.5) ?? Colors.white70,
-          ),
+              color: AppTheme.colors['white']?.withOpacity(0.5)),
         ),
-        style: GoogleFonts.roboto(
-          color: AppTheme.colors['white'] ?? Colors.white,
-        ),
+        style: GoogleFonts.roboto(color: AppTheme.colors['white']),
       ),
       actions: [
         TextButton(
           onPressed: () => context.pop(),
-          child: Text(
-            'Cancel',
-            style: GoogleFonts.roboto(
-              color: AppTheme.colors['white'] ?? Colors.white,
-            ),
-          ),
+          child: Text('Cancel', style: GoogleFonts.roboto(color: AppTheme.colors['white'])),
         ),
         ElevatedButton(
           onPressed: () => state.submitGoal(context),
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppTheme.colors['navBarActive'] ?? Colors.grey,
+            backgroundColor: AppTheme.colors['navBarActive'],
           ),
-          child: Text(
-            'Save',
-            style: GoogleFonts.roboto(
-              color: AppTheme.colors['white'] ?? Colors.white,
-            ),
-          ),
+          child: Text('Save', style: GoogleFonts.roboto(color: AppTheme.colors['white'])),
         ),
       ],
     );

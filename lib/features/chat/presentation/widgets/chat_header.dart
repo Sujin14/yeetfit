@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../controllers/chat_controller.dart';
 import '../providers/chat_provider.dart';
 
@@ -19,26 +19,29 @@ class ChatHeader extends ConsumerWidget {
     return SafeArea(
       bottom: false,
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+        padding: EdgeInsets.symmetric(
+          horizontal: FixedSizes.box16(context),
+          vertical: FixedSizes.box8(context),
+        ),
         color: AppTheme.colors['lightBackground'],
         child: Row(
           children: [
             IconButton(
-              icon: Icon(Icons.arrow_back, color: AppTheme.colors['primaryAccent'], size: 30),
+              icon: Icon(Icons.arrow_back, color: AppTheme.colors['primaryAccent'], size: FixedSizes.iconSize(context)),
               onPressed: () => context.go('/user-dashboard'),
             ),
             CircleAvatar(
-              radius: 25.r,
+              radius: FixedSizes.box25(context),
               backgroundImage: CachedNetworkImageProvider(
                 chatState.participantImage.isNotEmpty
                     ? chatState.participantImage
                     : 'https://t3.ftcdn.net/jpg/02/43/12/34/360_F_243123463_zTooub557xEWABDLk0jJklDyLSGl2jrr.jpg',
               ),
             ),
-            SizedBox(width: 12.w),
+            SizedBox(width: FixedSizes.box12(context)),
             Text(
               chatState.participantName,
-              style: AppTheme.textStyles['heading']!.copyWith(
+              style: AppTheme.textStyles['heading']?.copyWith(
                 color: AppTheme.colors['onSurface'],
               ),
             ),
@@ -68,7 +71,7 @@ class ChatHeader extends ConsumerWidget {
                           },
                           child: Text(
                             'Delete',
-                            style: AppTheme.textStyles['bodyMedium']!.copyWith(
+                            style: AppTheme.textStyles['bodyMedium']?.copyWith(
                               color: AppTheme.colors['error'],
                             ),
                           ),

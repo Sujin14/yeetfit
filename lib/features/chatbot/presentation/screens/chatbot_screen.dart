@@ -3,9 +3,9 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../widgets/chatbot_message_input.dart';
 import '../widgets/chatbot_message_list.dart';
-
 
 class ChatbotScreen extends ConsumerWidget {
   const ChatbotScreen({super.key});
@@ -26,6 +26,7 @@ class ChatbotScreen extends ConsumerWidget {
           'YeetFit Coach',
           style: AppTheme.textStyles['title']!.copyWith(
             color: AppTheme.colors['primaryText'],
+            fontSize: FixedSizes.font18(context),
           ),
         ),
         backgroundColor: AppTheme.colors['lightBackground'],

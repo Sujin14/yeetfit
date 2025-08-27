@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:glassmorphism/glassmorphism.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class ErrorCardWidget extends StatelessWidget {
   final String error;
-
   const ErrorCardWidget({super.key, required this.error});
 
   @override
   Widget build(BuildContext context) {
     return GlassmorphicContainer(
       width: double.infinity,
-      height: 200.h,
-      borderRadius: 20.r,
+      height: FixedSizes.box200(context),
+      borderRadius: FixedSizes.borderRadius(context),
       blur: 20,
       alignment: Alignment.center,
       border: 1.5,
@@ -32,12 +31,12 @@ class ErrorCardWidget extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: EdgeInsets.all(16.w),
+        padding: EdgeInsets.all(FixedSizes.box16(context)),
         child: Text(
           'Error: $error',
-          style: AppTheme.textStyles['body']!.copyWith(
+          style: AppTheme.textStyles['body']?.copyWith(
             color: AppTheme.colors['error'],
-            fontSize: 16.sp,
+            fontSize: FixedSizes.font16(context),
           ),
           textAlign: TextAlign.center,
         ),

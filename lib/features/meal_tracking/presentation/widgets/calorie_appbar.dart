@@ -1,7 +1,9 @@
+// calorie_appbar.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class CalorieAppBar extends StatelessWidget implements PreferredSizeWidget {
   const CalorieAppBar({super.key});
@@ -22,7 +24,7 @@ class CalorieAppBar extends StatelessWidget implements PreferredSizeWidget {
         "Meal Tracking",
         style: GoogleFonts.roboto(
           color: AppTheme.colors['onSurface'],
-          fontSize: 20,
+          fontSize: FixedSizes.font20(context),
           fontWeight: FontWeight.bold,
         ),
       ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../../../user_info/domain/validators/user_info_validators.dart';
 
 class GenderDropdown extends StatelessWidget {
@@ -23,15 +23,30 @@ class GenderDropdown extends StatelessWidget {
           labelText: 'Gender',
           labelStyle: AppTheme.textStyles['body']!.copyWith(
             color: AppTheme.colors['secondaryText'],
+            fontSize: FixedSizes.font14(context),
           ),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r)),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(FixedSizes.radius8(context)),
+          ),
         ),
         items: ['Male', 'Female']
-            .map((gender) => DropdownMenuItem(value: gender, child: Text(gender)))
+            .map(
+              (gender) => DropdownMenuItem(
+                value: gender,
+                child: Text(
+                  gender,
+                  style: AppTheme.textStyles['body']!.copyWith(
+                    color: AppTheme.colors['primaryText'],
+                    fontSize: FixedSizes.font14(context),
+                  ),
+                ),
+              ),
+            )
             .toList(),
         onChanged: onChanged,
         style: AppTheme.textStyles['body']!.copyWith(
           color: AppTheme.colors['primaryText'],
+          fontSize: FixedSizes.font14(context),
         ),
         validator: UserInfoValidators.validateGender,
       ),

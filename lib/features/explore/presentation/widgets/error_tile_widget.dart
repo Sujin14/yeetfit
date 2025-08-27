@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class ErrorTileWidget extends StatelessWidget {
   final String message;
@@ -10,28 +10,33 @@ class ErrorTileWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
+      padding: EdgeInsets.symmetric(
+        vertical: FixedSizes.box12(context),
+        horizontal: FixedSizes.box16(context),
+      ),
       decoration: BoxDecoration(
-        color: (AppTheme.colors['error'] ?? Colors.red).withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12.r),
+        color: (AppTheme.colors['error'])!.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(FixedSizes.radius12(context)),
       ),
       child: Row(
         children: [
           Icon(
             Icons.error_outline,
-            size: 24.sp,
-            color: AppTheme.colors['error'] ?? Colors.red,
+            size: FixedSizes.icon20(context),
+            color: AppTheme.colors['error'],
           ),
-          SizedBox(width: 16.w),
+          SizedBox(width: FixedSizes.box16(context)),
           Expanded(
             child: Text(
               message,
-              style:
-                  AppTheme.textStyles['body']?.copyWith(
-                    color: AppTheme.colors['error'] ?? Colors.red,
-                    fontSize: 16.sp,
+              style: AppTheme.textStyles['body']?.copyWith(
+                    color: AppTheme.colors['error'],
+                    fontSize: FixedSizes.font16(context),
                   ) ??
-                  TextStyle(fontSize: 16.sp, color: Colors.red),
+                  TextStyle(
+                    fontSize: FixedSizes.font16(context),
+                    color: AppTheme.colors['error'],
+                  ),
             ),
           ),
         ],

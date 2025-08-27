@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../../../user_info/data/models/user_info_model.dart';
 
 class ProfileCard extends StatelessWidget {
@@ -17,10 +17,13 @@ class ProfileCard extends StatelessWidget {
           alignment: Alignment.bottomRight,
           children: [
             CircleAvatar(
-              radius: 50.r,
+              radius: FixedSizes.radius50(context),
               backgroundImage: userInfo.profileImageUrl != null
                   ? NetworkImage(userInfo.profileImageUrl!)
-                  : const AssetImage('assets/images/profile_image_placeholder.png') as ImageProvider,
+                  : const AssetImage(
+                          'assets/images/profile_image_placeholder.png',
+                        )
+                        as ImageProvider,
             ),
             Positioned(
               bottom: 0,
@@ -28,26 +31,31 @@ class ProfileCard extends StatelessWidget {
               child: GestureDetector(
                 onTap: onEdit,
                 child: Container(
-                  padding: EdgeInsets.all(4.w),
+                  padding: EdgeInsets.all(FixedSizes.box4(context)),
                   decoration: BoxDecoration(
                     color: AppTheme.colors['primaryButton'],
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppTheme.colors['lightBackground']!, width: 2.w),
+                    border: Border.all(
+                      color: AppTheme.colors['lightBackground']!,
+                      width: FixedSizes.box2(context),
+                    ),
                   ),
                   child: Icon(
                     Icons.edit,
                     color: AppTheme.colors['onSurfaceDark'],
-                    size: 16.sp,
+                    size: FixedSizes.font16(context),
                   ),
                 ),
               ),
             ),
           ],
         ),
-        SizedBox(height: 8.h),
+        SizedBox(height: FixedSizes.box8(context)),
         Text(
           userInfo.name.isNotEmpty ? userInfo.name : 'User',
-          style: AppTheme.textStyles['heading']!.copyWith(color: AppTheme.colors['primaryText']),
+          style: AppTheme.textStyles['heading']!.copyWith(
+            color: AppTheme.colors['primaryText'],
+          ),
         ),
       ],
     );

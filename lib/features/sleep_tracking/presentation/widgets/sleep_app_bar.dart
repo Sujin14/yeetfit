@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class SleepAppBar extends StatelessWidget implements PreferredSizeWidget {
   const SleepAppBar({super.key});
@@ -17,7 +18,7 @@ class SleepAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Text(
         'Sleep Tracker',
         style: GoogleFonts.roboto(
-          fontSize: 26,
+          fontSize: FixedSizes.font28(context),
           color: AppTheme.colors['onSurface'],
           fontWeight: FontWeight.bold,
         ),

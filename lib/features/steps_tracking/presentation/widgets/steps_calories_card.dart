@@ -1,78 +1,74 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../shared/theme/theme.dart';
-import '../../../../shared/widgets/glassmorphic_container.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class StepsCaloriesCard extends StatelessWidget {
-  final double caloriesBurned;
-  final double goalCalories;
+  final int steps;
+  final double calories;
 
-  const StepsCaloriesCard({
-    super.key,
-    required this.caloriesBurned,
-    required this.goalCalories,
-  });
+  const StepsCaloriesCard({super.key, required this.steps, required this.calories});
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = ScreenUtil().screenWidth >= 600.w;
-    return GlassmorphicContainer(
-      color: AppTheme.colors['indigo']!,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Calories Burned',
-            style: GoogleFonts.roboto(
-              fontWeight: FontWeight.bold,
-              fontSize: isDesktop ? 16.sp : 18.sp,
-              color: AppTheme.colors['primaryText']!.withOpacity(0.8),
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(FixedSizes.radius16(context)),
+      ),
+      elevation: 3,
+      margin: EdgeInsets.symmetric(
+        horizontal: FixedSizes.spacing(context),
+        vertical: FixedSizes.box8(context),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(FixedSizes.spacing(context)),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            Column(
+              children: [
+                Text(
+                  'Steps',
+                  style: GoogleFonts.roboto(
+                    fontSize: FixedSizes.font14(context),
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.colors['onSurface'],
+                  ),
+                ),
+                SizedBox(height: FixedSizes.box6(context)),
+                Text(
+                  steps.toString(),
+                  style: GoogleFonts.roboto(
+                    fontSize: FixedSizes.font18(context),
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.colors['teal'],
+                  ),
+                ),
+              ],
             ),
-          ),
-          SizedBox(height: 8.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Your Goal:',
-                style: GoogleFonts.roboto(
-                  fontSize: isDesktop ? 14.sp : 14.sp,
-                  color: AppTheme.colors['primaryText']!.withOpacity(0.7),
+            Column(
+              children: [
+                Text(
+                  'Calories',
+                  style: GoogleFonts.roboto(
+                    fontSize: FixedSizes.font14(context),
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.colors['onSurface'],
+                  ),
                 ),
-              ),
-              Text(
-                '${goalCalories.toStringAsFixed(0)} Cal 🔥',
-                style: GoogleFonts.roboto(
-                  fontWeight: FontWeight.bold,
-                  fontSize: isDesktop ? 14.sp : 14.sp,
-                  color: AppTheme.colors['primaryText']!.withOpacity(0.7),
+                SizedBox(height: FixedSizes.box6(context)),
+                Text(
+                  calories.toStringAsFixed(1),
+                  style: GoogleFonts.roboto(
+                    fontSize: FixedSizes.font18(context),
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.colors['indigo'],
+                  ),
                 ),
-              ),
-            ],
-          ),
-          SizedBox(height: 4.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Today\'s Burn:',
-                style: GoogleFonts.roboto(
-                  fontSize: isDesktop ? 14.sp : 14.sp,
-                  color: AppTheme.colors['primaryText']!.withOpacity(0.7),
-                ),
-              ),
-              Text(
-                '${caloriesBurned.toStringAsFixed(0)} Cal 🔥',
-                style: GoogleFonts.roboto(
-                  fontWeight: FontWeight.bold,
-                  fontSize: isDesktop ? 14.sp : 14.sp,
-                  color: AppTheme.colors['primaryText']!.withOpacity(0.7),
-                ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

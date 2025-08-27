@@ -1,8 +1,9 @@
+// activity_level_dropdown.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../domain/validators/user_info_validators.dart';
 import '../providers/user_info_provider.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class ActivityLevelDropdown extends ConsumerWidget {
   final GlobalKey<FormState> formKey;
@@ -31,9 +32,12 @@ class ActivityLevelDropdown extends ConsumerWidget {
         children: [
           Text(
             "What is your activity level?",
-            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
+            style: TextStyle(
+              fontSize: FixedSizes.font16(context),
+              fontWeight: FontWeight.w600,
+            ),
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: FixedSizes.spacing(context) / 2),
           DropdownButtonFormField<String>(
             value: userInfo.value?.activityLevel.isEmpty ?? true
                 ? null
@@ -41,7 +45,7 @@ class ActivityLevelDropdown extends ConsumerWidget {
             decoration: InputDecoration(
               hintText: "Select activity level",
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.r),
+                borderRadius: BorderRadius.circular(12),
               ),
               filled: true,
               fillColor: Colors.grey[100],

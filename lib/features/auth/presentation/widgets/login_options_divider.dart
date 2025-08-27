@@ -1,7 +1,7 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
+// login_options_divider.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class LoginOptionsDivider extends StatelessWidget {
   const LoginOptionsDivider({super.key});
@@ -10,22 +10,18 @@ class LoginOptionsDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(
-          child: Divider(color: AppTheme.colors['secondaryText']),
-        ),
+        const Expanded(child: Divider()),
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: kIsWeb ? 16.w : 12.w),
+          padding: EdgeInsets.symmetric(horizontal: FixedSizes.box16(context)),
           child: Text(
             "or continue with",
             style: AppTheme.textStyles['body']!.copyWith(
-              fontSize: (kIsWeb ? 14.sp : 12.sp).clamp(10.0, 14.0),
+              fontSize: FixedSizes.fontSmall(context),
               color: AppTheme.colors['secondaryText'],
             ),
           ),
         ),
-        Expanded(
-          child: Divider(color: AppTheme.colors['secondaryText']),
-        ),
+        const Expanded(child: Divider()),
       ],
     );
   }

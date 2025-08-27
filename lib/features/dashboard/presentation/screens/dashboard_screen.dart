@@ -1,9 +1,10 @@
+// features/dashboard/presentation/screens/dashboard_screen.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../../../payment/presentation/providers/payment_provider.dart';
 import '../providers/dashboard_provider.dart';
 import '../widgets/dashboard_body.dart';
@@ -23,6 +24,7 @@ class DashboardScreen extends ConsumerWidget {
       );
     }
 
+    // Single source of truth for the BMI stream — pass down the value.
     final bmiAsync = ref.watch(bmiStreamProvider(userId));
     final userDataAsync = ref.watch(userDataFutureProvider(userId));
     final paymentStatusAsync = ref.watch(paymentStatusProvider);
@@ -31,8 +33,10 @@ class DashboardScreen extends ConsumerWidget {
       backgroundColor: AppTheme.colors['lightBackground'],
       body: Stack(
         children: [
+          // BMI header / suggestions (uses bmiAsync directly)
           bmiAsync.when(
             data: (bmi) => BMISuggestions(
+              bmi: bmi,
               userData: userDataAsync,
               userId: userId,
             ),
@@ -45,6 +49,8 @@ class DashboardScreen extends ConsumerWidget {
               child: Center(child: Text('Error loading BMI: $error')),
             ),
           ),
+
+          // Draggable sheet containing the rest of dashboard body (progress cards, meal card, etc.)
           DraggableScrollableSheet(
             initialChildSize: 0.7,
             minChildSize: 0.7,
@@ -52,7 +58,9 @@ class DashboardScreen extends ConsumerWidget {
             builder: (context, scrollController) => Container(
               decoration: BoxDecoration(
                 color: AppTheme.colors['lightBackground'],
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(FixedSizes.borderRadius(context) / 2),
+                ),
               ),
               child: SingleChildScrollView(
                 controller: scrollController,
@@ -60,22 +68,26 @@ class DashboardScreen extends ConsumerWidget {
               ),
             ),
           ),
+
+          // Chatbot shortcut
           Positioned(
-            bottom: 90.h,
-            right: 16.w,
+            bottom: FixedSizes.box100(context) * 0.9, // similar to bottom: 90.h
+            right: FixedSizes.box16(context),
             child: GestureDetector(
               onTap: () => context.go('/chatbot'),
               child: Image.asset(
                 'assets/images/chatbot.png',
-                width: 56.w,
-                height: 56.w,
+                width: FixedSizes.box50(context) * 1.12, // ~56
+                height: FixedSizes.box50(context) * 1.12,
                 fit: BoxFit.contain,
               ),
             ),
           ),
+
+          // Floating action button that checks payment status before navigating
           Positioned(
-            bottom: 16.h,
-            right: 16.w,
+            bottom: FixedSizes.box16(context),
+            right: FixedSizes.box16(context),
             child: FloatingActionButton(
               backgroundColor: AppTheme.colors['primaryAccent'],
               foregroundColor: AppTheme.colors['onSurfaceDark'],
@@ -96,14 +108,14 @@ class DashboardScreen extends ConsumerWidget {
                     );
                   },
                   error: (e, _) {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error: $e')),
+                    );
                   },
                 );
               },
               heroTag: 'chat_fab',
-              child: Icon(Icons.chat, size: 24.sp),
+              child: Icon(Icons.chat, size: FixedSizes.font16(context) * 1.5),
             ),
           ),
         ],

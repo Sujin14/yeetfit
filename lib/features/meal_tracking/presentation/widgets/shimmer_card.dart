@@ -1,14 +1,15 @@
+// shimmer_card.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class ShimmerCard extends StatelessWidget {
-  final bool isListTile; // For ListTile-style cards (e.g., FoodList, MealSection)
-  final bool isChart; // For CalorieChartCard
-  final bool isSummary; // For CalorieSummary
-  final double height; // Custom height for specific use cases
+  final bool isListTile;
+  final bool isChart;
+  final bool isSummary;
+  final double height;
 
   const ShimmerCard({
     super.key,
@@ -25,10 +26,10 @@ class ShimmerCard extends StatelessWidget {
 
     if (isChart) {
       return SizedBox(
-        height: 350.h,
+        height: FixedSizes.box350(context),
         child: GlassmorphicContainer(
           color: AppTheme.colors['indigo']!,
-          padding: EdgeInsets.all(24.w),
+          padding: EdgeInsets.all(FixedSizes.box24(context)),
           child: Shimmer.fromColors(
             baseColor: baseColor,
             highlightColor: highlightColor,
@@ -36,13 +37,13 @@ class ShimmerCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Container(
-                  height: 20.h,
+                  height: FixedSizes.box20(context),
                   width: double.infinity,
                   color: baseColor,
                 ),
-                SizedBox(height: 24.h),
+                SizedBox(height: FixedSizes.box24(context)),
                 Container(
-                  height: 220.h,
+                  height: FixedSizes.box220(context),
                   color: baseColor,
                 ),
               ],
@@ -63,54 +64,57 @@ class ShimmerCard extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    height: 60.h,
-                    width: 60.h,
+                    height: FixedSizes.box60(context),
+                    width: FixedSizes.box60(context),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: baseColor,
                     ),
                   ),
-                  SizedBox(width: 16.w),
+                  SizedBox(width: FixedSizes.box16(context)),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        height: 18.h,
-                        width: 120.w,
+                        height: FixedSizes.box18(context),
+                        width: FixedSizes.box120(context),
                         color: baseColor,
                       ),
                     ],
                   ),
                   const Spacer(),
                   Container(
-                    height: 28.h,
-                    width: 28.w,
+                    height: FixedSizes.box28(context),
+                    width: FixedSizes.box28(context),
                     color: baseColor,
                   ),
                 ],
               ),
-              SizedBox(height: 16.h),
+              SizedBox(height: FixedSizes.box16(context)),
               Wrap(
-                spacing: 8.w,
-                runSpacing: 8.h,
-                children: List.generate(4, (index) => SizedBox(
-                  width: 150.w,
-                  child: Column(
-                    children: [
-                      Container(
-                        height: 14.h,
-                        width: 100.w,
-                        color: baseColor,
-                      ),
-                      SizedBox(height: 4.h),
-                      Container(
-                        height: 4.h,
-                        width: double.infinity,
-                        color: baseColor,
-                      ),
-                    ],
+                spacing: FixedSizes.box8(context),
+                runSpacing: FixedSizes.box8(context),
+                children: List.generate(
+                  4,
+                  (index) => SizedBox(
+                    width: FixedSizes.box150(context),
+                    child: Column(
+                      children: [
+                        Container(
+                          height: FixedSizes.box14(context),
+                          width: FixedSizes.box100(context),
+                          color: baseColor,
+                        ),
+                        SizedBox(height: FixedSizes.box4(context)),
+                        Container(
+                          height: FixedSizes.box4(context),
+                          width: double.infinity,
+                          color: baseColor,
+                        ),
+                      ],
+                    ),
                   ),
-                )),
+                ),
               ),
             ],
           ),
@@ -120,7 +124,7 @@ class ShimmerCard extends StatelessWidget {
 
     return GlassmorphicContainer(
       color: AppTheme.colors['deepOrange']!,
-      padding: EdgeInsets.all(12.w),
+      padding: EdgeInsets.all(FixedSizes.box12(context)),
       child: Shimmer.fromColors(
         baseColor: baseColor,
         highlightColor: highlightColor,
@@ -128,23 +132,23 @@ class ShimmerCard extends StatelessWidget {
             ? ListTile(
                 contentPadding: EdgeInsets.zero,
                 title: Container(
-                  height: 16.h,
-                  width: 100.w,
+                  height: FixedSizes.box16(context),
+                  width: FixedSizes.box100(context),
                   color: baseColor,
                 ),
                 subtitle: Container(
-                  height: 14.h,
-                  width: 80.w,
+                  height: FixedSizes.box14(context),
+                  width: FixedSizes.box80(context),
                   color: baseColor,
                 ),
                 trailing: Container(
-                  height: 24.h,
-                  width: 24.w,
+                  height: FixedSizes.box24(context),
+                  width: FixedSizes.box24(context),
                   color: baseColor,
                 ),
               )
             : Container(
-                height: height.h,
+                height: FixedSizes.custom(height, height + 20, height + 40, context),
                 color: baseColor,
               ),
       ),

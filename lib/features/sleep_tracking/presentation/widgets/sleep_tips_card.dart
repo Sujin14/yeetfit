@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:yeetfit/shared/theme/theme.dart';
-
+import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class SleepTipsCard extends StatelessWidget {
   const SleepTipsCard({super.key});
@@ -20,15 +20,15 @@ class SleepTipsCard extends StatelessWidget {
             'Tips to Sleep Better',
             style: GoogleFonts.roboto(
               fontWeight: FontWeight.bold,
-              fontSize: isDesktop ? 5 : 18,
+              fontSize: FixedSizes.font16(context),
               color: AppTheme.colors['onSurface'],
             ),
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: FixedSizes.box6(context)),
           Text(
             'To improve your sleep quality, exercise daily. Vigorous exercise is best, but even light exercise is better than no activity.',
             style: GoogleFonts.roboto(
-              fontSize: isDesktop ? 4 : 14,
+              fontSize: FixedSizes.font14(context),
               color: AppTheme.colors['onSurface']!.withOpacity(0.7),
             ),
           ),

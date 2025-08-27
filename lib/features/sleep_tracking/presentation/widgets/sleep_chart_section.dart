@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../shared/widgets/glassmorphic_container.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../../data/model/sleep_model.dart';
 import '../providers/sleep_provider.dart';
-import '../../../../shared/widgets/glassmorphic_container.dart';
-import 'sleep_chart_shimmer.dart';
+import '../widgets/sleep_chart_shimmer.dart';
 
 class SleepChartSection extends ConsumerWidget {
   final String userId;
-
   const SleepChartSection({super.key, required this.userId});
 
   @override
@@ -20,7 +19,7 @@ class SleepChartSection extends ConsumerWidget {
 
     return GlassmorphicContainer(
       color: AppTheme.colors['indigo']!,
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(FixedSizes.box16(context)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -28,18 +27,18 @@ class SleepChartSection extends ConsumerWidget {
             'Sleep Analysis',
             style: GoogleFonts.roboto(
               fontWeight: FontWeight.bold,
-              fontSize: 20.sp,
+              fontSize: FixedSizes.font20(context),
               color: AppTheme.colors['onSurface'],
             ),
           ),
-          SizedBox(height: 10.h),
+          SizedBox(height: FixedSizes.box10(context)),
           SizedBox(
-            height: 220.h,
+            height: FixedSizes.box220(context),
             child: weeklyDataAsync.when(
               data: (weeklyData) => _buildBarChart(context, ref, weeklyData),
               loading: () => const SleepChartShimmer(),
-              error: (error, _) => Text(
-                'Error: $error',
+              error: (e, _) => Text(
+                'Error: $e',
                 style: TextStyle(color: AppTheme.colors['white']),
               ),
             ),
@@ -49,14 +48,8 @@ class SleepChartSection extends ConsumerWidget {
     );
   }
 
-  Widget _buildBarChart(
-    BuildContext context,
-    WidgetRef ref,
-    List<SleepData> weeklyData,
-  ) {
-    final maxGoal = weeklyData
-        .map((d) => d.goalHours)
-        .fold<double>(0.0, (a, b) => a > b ? a : b);
+  Widget _buildBarChart(BuildContext context, WidgetRef ref, List<SleepData> weeklyData) {
+    final maxGoal = weeklyData.map((d) => d.goalHours).fold<double>(0.0, (a, b) => a > b ? a : b);
     final interval = maxGoal <= 10 ? 2.0 : 4.0;
 
     return BarChart(
@@ -72,14 +65,13 @@ class SleepChartSection extends ConsumerWidget {
               final dateString = date.toIso8601String().split('T')[0];
               final data = weeklyData.firstWhere(
                 (entry) => entry.date == dateString,
-                orElse: () =>
-                    SleepData(date: dateString, duration: 0.0, goalHours: 8.0),
+                orElse: () => SleepData(date: dateString, duration: 0.0, goalHours: 8.0),
               );
               return BarTooltipItem(
                 '${data.duration.toStringAsFixed(1)} hrs',
                 GoogleFonts.roboto(
                   color: AppTheme.colors['white'],
-                  fontSize: 12.sp,
+                  fontSize: FixedSizes.font12(context),
                   fontWeight: FontWeight.w500,
                 ),
               );
@@ -93,12 +85,9 @@ class SleepChartSection extends ConsumerWidget {
           final dateString = date.toIso8601String().split('T')[0];
           final data = weeklyData.firstWhere(
             (entry) => entry.date == dateString,
-            orElse: () =>
-                SleepData(date: dateString, duration: 0.0, goalHours: 8.0),
+            orElse: () => SleepData(date: dateString, duration: 0.0, goalHours: 8.0),
           );
-          final progressColor = ref.watch(
-            dailySleepProgressColorProvider('$userId|$dateString'),
-          );
+          final progressColor = ref.watch(dailySleepProgressColorProvider('$userId|$dateString'));
 
           return BarChartGroupData(
             x: index,
@@ -106,8 +95,8 @@ class SleepChartSection extends ConsumerWidget {
               BarChartRodData(
                 toY: data.duration.clamp(0.0, data.goalHours),
                 color: progressColor,
-                width: 20.w,
-                borderRadius: BorderRadius.circular(6.r),
+                width: FixedSizes.box20(context),
+                borderRadius: BorderRadius.circular(FixedSizes.radius8(context)),
                 backDrawRodData: BackgroundBarChartRodData(
                   show: true,
                   toY: data.goalHours,
@@ -125,47 +114,35 @@ class SleepChartSection extends ConsumerWidget {
             sideTitles: SideTitles(
               showTitles: true,
               interval: interval,
-              reservedSize: 30.w,
-              getTitlesWidget: (value, _) {
-                return Padding(
-                  padding: EdgeInsets.only(right: 4.w),
-                  child: Text(
-                    value.toInt().toString(),
-                    style: GoogleFonts.roboto(
-                      fontSize: 12.sp,
-                      color: AppTheme.colors['onSurface']!.withOpacity(0.8),
-                    ),
+              reservedSize: FixedSizes.box30(context),
+              getTitlesWidget: (value, _) => Padding(
+                padding: EdgeInsets.only(right: FixedSizes.box4(context)),
+                child: Text(
+                  value.toInt().toString(),
+                  style: GoogleFonts.roboto(
+                    fontSize: FixedSizes.font12(context),
+                    color: AppTheme.colors['onSurface']!.withOpacity(0.8),
                   ),
-                );
-              },
+                ),
+              ),
             ),
           ),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 30.h,
+              reservedSize: FixedSizes.box30(context),
               getTitlesWidget: (index, _) {
-                final weekdays = [
-                  'Sun',
-                  'Mon',
-                  'Tue',
-                  'Wed',
-                  'Thu',
-                  'Fri',
-                  'Sat',
-                ];
+                final weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
                 return Text(
                   weekdays[index.toInt()],
                   style: GoogleFonts.roboto(
-                    fontSize: 14.sp,
+                    fontSize: FixedSizes.font14(context),
                     color: AppTheme.colors['onSurface']!.withOpacity(0.8),
                   ),
                 );
               },
             ),
           ),
-          topTitles: AxisTitles(),
-          rightTitles: AxisTitles(),
         ),
       ),
     );

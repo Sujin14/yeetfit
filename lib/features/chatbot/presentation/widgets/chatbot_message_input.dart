@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../providers/chatbot_provider.dart';
 
 class ChatbotMessageInput extends ConsumerStatefulWidget {
   final String userId;
-
   const ChatbotMessageInput({super.key, required this.userId});
 
   @override
@@ -37,7 +36,10 @@ class _ChatbotMessageInputState extends ConsumerState<ChatbotMessageInput> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      padding: EdgeInsets.symmetric(
+        horizontal: FixedSizes.box16(context),
+        vertical: FixedSizes.box12(context),
+      ),
       decoration: BoxDecoration(
         color: AppTheme.colors['lightBackground'],
         border: Border(
@@ -59,27 +61,23 @@ class _ChatbotMessageInputState extends ConsumerState<ChatbotMessageInput> {
                   color: AppTheme.colors['secondaryText']!.withOpacity(0.7),
                 ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16.r),
-                  borderSide: BorderSide(
-                    color: AppTheme.colors['borderGradientStart']!,
-                  ),
+                  borderRadius: BorderRadius.circular(FixedSizes.radius16(context)),
+                  borderSide: BorderSide(color: AppTheme.colors['borderGradientStart']!),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16.r),
-                  borderSide: BorderSide(
-                    color: AppTheme.colors['primaryAccent']!,
-                  ),
+                  borderRadius: BorderRadius.circular(FixedSizes.radius16(context)),
+                  borderSide: BorderSide(color: AppTheme.colors['primaryAccent']!),
                 ),
               ),
               onSubmitted: (_) => _sendMessage(),
             ),
           ),
-          SizedBox(width: 8.w),
+          SizedBox(width: FixedSizes.box8(context)),
           IconButton(
             icon: Icon(
               Icons.send,
               color: AppTheme.colors['primaryAccent'],
-              size: 24.sp,
+              size: FixedSizes.icon20(context),
             ),
             onPressed: _sendMessage,
           ),

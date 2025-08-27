@@ -1,16 +1,14 @@
+// height_input.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../domain/validators/user_info_validators.dart';
 import '../providers/user_info_provider.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class HeightInput extends ConsumerStatefulWidget {
   final GlobalKey<FormState> formKey;
 
-  const HeightInput({
-    super.key,
-    required this.formKey,
-  });
+  const HeightInput({super.key, required this.formKey});
 
   @override
   _HeightInputState createState() => _HeightInputState();
@@ -24,7 +22,9 @@ class _HeightInputState extends ConsumerState<HeightInput> {
     super.initState();
     final userInfo = ref.read(userInfoControllerProvider);
     _heightController = TextEditingController(
-      text: userInfo.value?.height == 0 ? '' : userInfo.value!.height.toString(),
+      text: userInfo.value?.height == 0
+          ? ''
+          : userInfo.value!.height.toString(),
     );
   }
 
@@ -45,15 +45,18 @@ class _HeightInputState extends ConsumerState<HeightInput> {
         children: [
           Text(
             "What is your height?",
-            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
+            style: TextStyle(
+              fontSize: FixedSizes.font16(context),
+              fontWeight: FontWeight.w600,
+            ),
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: FixedSizes.spacing(context) / 2),
           TextFormField(
             controller: _heightController,
             decoration: InputDecoration(
               hintText: "Enter height (cm)",
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.r),
+                borderRadius: BorderRadius.circular(12),
               ),
               filled: true,
               fillColor: Colors.grey[100],

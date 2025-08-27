@@ -1,8 +1,9 @@
+// nutrition_details_screen.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:yeetfit/shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../../data/model/food_model.dart';
 import '../widgets/nutrition_header.dart';
 import '../widgets/nutrition_back_button.dart';
@@ -25,14 +26,14 @@ class NutritionDetailsScreen extends StatelessWidget {
       body: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.symmetric(
-            horizontal: isWide ? 80.w : 16.w,
-            vertical: 24.h,
+            horizontal: isWide ? FixedSizes.box80(context) : FixedSizes.box16(context),
+            vertical: FixedSizes.box24(context),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               NutritionHeader(foodItem: foodItem),
-              SizedBox(height: 24.h),
+              SizedBox(height: FixedSizes.box24(context)),
               NutritionCards(foodItem: foodItem),
             ],
           ),
@@ -51,8 +52,8 @@ class NutritionCards extends StatelessWidget {
   Widget build(BuildContext context) {
     final isWide = MediaQuery.of(context).size.width > 700;
     return Wrap(
-      spacing: 16.w,
-      runSpacing: 16.h,
+      spacing: FixedSizes.box16(context),
+      runSpacing: FixedSizes.box16(context),
       alignment: WrapAlignment.center,
       children: [
         _buildNutritionCard(
@@ -60,6 +61,7 @@ class NutritionCards extends StatelessWidget {
           foodItem.calories,
           Icons.local_fire_department,
           AppTheme.colors['deepOrange']!,
+          context,
           isWide,
         ),
         _buildNutritionCard(
@@ -67,6 +69,7 @@ class NutritionCards extends StatelessWidget {
           foodItem.protein,
           Icons.fitness_center,
           AppTheme.colors['navBarActive']!,
+          context,
           isWide,
         ),
         _buildNutritionCard(
@@ -74,6 +77,7 @@ class NutritionCards extends StatelessWidget {
           foodItem.fat,
           Icons.oil_barrel,
           AppTheme.colors['error']!,
+          context,
           isWide,
         ),
         _buildNutritionCard(
@@ -81,6 +85,7 @@ class NutritionCards extends StatelessWidget {
           foodItem.carbs,
           Icons.bubble_chart,
           AppTheme.colors['fullProgress']!,
+          context,
           isWide,
         ),
         _buildNutritionCard(
@@ -88,6 +93,7 @@ class NutritionCards extends StatelessWidget {
           foodItem.fiber,
           Icons.grass,
           AppTheme.colors['indigo']!,
+          context,
           isWide,
         ),
       ],
@@ -99,28 +105,35 @@ class NutritionCards extends StatelessWidget {
     double value,
     IconData icon,
     Color color,
+    BuildContext context,
     bool isWide,
   ) {
     return SizedBox(
-      width: isWide ? 300.w : double.infinity,
+      width: isWide ? FixedSizes.box300(context) : double.infinity,
       child: GlassmorphicContainer(
         color: const Color(0xFFFF5722),
         child: ListTile(
+          contentPadding: EdgeInsets.symmetric(
+            vertical: FixedSizes.box12(context),
+            horizontal: FixedSizes.box16(context),
+          ),
           leading: CircleAvatar(
+            radius: FixedSizes.avatarRadius(context) / 2,
             backgroundColor: color.withOpacity(0.15),
-            child: Icon(icon, color: color),
+            child: Icon(icon, color: color, size: FixedSizes.icon20(context)),
           ),
           title: Text(
             label,
             style: GoogleFonts.roboto(
               fontWeight: FontWeight.bold,
+              fontSize: FixedSizes.font16(context),
               color: Colors.white,
             ),
           ),
           trailing: Text(
             value.toStringAsFixed(1),
             style: GoogleFonts.roboto(
-              fontSize: 18.sp,
+              fontSize: FixedSizes.font18(context),
               fontWeight: FontWeight.bold,
               color: color,
             ),

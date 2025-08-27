@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class ContactUsBody extends StatelessWidget {
   const ContactUsBody({super.key});
@@ -8,33 +8,36 @@ class ContactUsBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
+      padding: EdgeInsets.symmetric(
+        horizontal: FixedSizes.box24(context),
+        vertical: FixedSizes.box24(context),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
             'Contact Us',
             style: AppTheme.textStyles['subtitle']!.copyWith(
-              fontSize: 24.sp,
+              fontSize: FixedSizes.font24(context),
               color: AppTheme.colors['primaryText'],
             ),
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: FixedSizes.box16(context)),
           Text(
             'We’re here to help! Reach out to our support team for any questions or issues.',
             style: AppTheme.textStyles['body']!.copyWith(
               color: AppTheme.colors['primaryText'],
             ),
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: FixedSizes.box16(context)),
           Text(
             'Contact Information',
             style: AppTheme.textStyles['subtitle']!.copyWith(
-              fontSize: 18.sp,
+              fontSize: FixedSizes.font18(context),
               color: AppTheme.colors['primaryText'],
             ),
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: FixedSizes.box8(context)),
           Text(
             'Email: support@oyeetfit.com\n'
             'Phone: +1-800-555-1234\n'

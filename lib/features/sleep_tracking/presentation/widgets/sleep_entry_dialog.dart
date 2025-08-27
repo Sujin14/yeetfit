@@ -3,11 +3,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../providers/sleep_provider.dart';
 
 class SleepEntryDialog extends ConsumerWidget {
   final String userId;
-
   const SleepEntryDialog({super.key, required this.userId});
 
   @override
@@ -21,6 +21,7 @@ class SleepEntryDialog extends ConsumerWidget {
         'Add Sleep Entry',
         style: GoogleFonts.roboto(
           fontWeight: FontWeight.bold,
+          fontSize: FixedSizes.font18(context),
           color: AppTheme.colors['white']!,
         ),
       ),
@@ -30,26 +31,38 @@ class SleepEntryDialog extends ConsumerWidget {
           ListTile(
             title: Text(
               'Bed Time',
-              style: GoogleFonts.roboto(color: AppTheme.colors['white']!),
+              style: GoogleFonts.roboto(
+                fontSize: FixedSizes.font16(context),
+                color: AppTheme.colors['white']!,
+              ),
             ),
             trailing: Text(
               state.bedtime != null
                   ? DateFormat('h:mm a').format(state.bedtime!)
                   : 'Select',
-              style: GoogleFonts.roboto(color: AppTheme.colors['white']!),
+              style: GoogleFonts.roboto(
+                fontSize: FixedSizes.font16(context),
+                color: AppTheme.colors['white']!,
+              ),
             ),
             onTap: () => state.pickBedtime(context),
           ),
           ListTile(
             title: Text(
               'Wake Up Time',
-              style: GoogleFonts.roboto(color: AppTheme.colors['white']!),
+              style: GoogleFonts.roboto(
+                fontSize: FixedSizes.font16(context),
+                color: AppTheme.colors['white']!,
+              ),
             ),
             trailing: Text(
               state.wakeUpTime != null
                   ? DateFormat('h:mm a').format(state.wakeUpTime!)
                   : 'Select',
-              style: GoogleFonts.roboto(color: AppTheme.colors['white']!),
+              style: GoogleFonts.roboto(
+                fontSize: FixedSizes.font16(context),
+                color: AppTheme.colors['white']!,
+              ),
             ),
             onTap: () => state.pickWakeUpTime(context),
           ),
@@ -60,7 +73,10 @@ class SleepEntryDialog extends ConsumerWidget {
           onPressed: () => Navigator.pop(context),
           child: Text(
             'Cancel',
-            style: GoogleFonts.roboto(color: AppTheme.colors['white']!),
+            style: GoogleFonts.roboto(
+              fontSize: FixedSizes.font14(context),
+              color: AppTheme.colors['white']!,
+            ),
           ),
         ),
         ElevatedButton(
@@ -68,7 +84,13 @@ class SleepEntryDialog extends ConsumerWidget {
           style: ElevatedButton.styleFrom(
             backgroundColor: AppTheme.colors['navBarActive']!.withOpacity(0.6),
           ),
-          child: Text('Add', style: GoogleFonts.roboto(color: AppTheme.colors['white']!)),
+          child: Text(
+            'Add',
+            style: GoogleFonts.roboto(
+              fontSize: FixedSizes.font14(context),
+              color: AppTheme.colors['white']!,
+            ),
+          ),
         ),
       ],
     );

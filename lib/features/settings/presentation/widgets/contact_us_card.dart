@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class ContactUsCard extends StatelessWidget {
   final VoidCallback onTap;
@@ -15,7 +15,7 @@ class ContactUsCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: EdgeInsets.symmetric(vertical: 8.h),
+            padding: EdgeInsets.symmetric(vertical: FixedSizes.box8(context)),
             child: Row(
               children: [
                 Expanded(
@@ -25,15 +25,15 @@ class ContactUsCard extends StatelessWidget {
                       Text(
                         'Contact Us',
                         style: AppTheme.textStyles['subtitle']!.copyWith(
-                          fontSize: 18.sp,
+                          fontSize: FixedSizes.font18(context),
                           color: AppTheme.colors['primaryText'],
                         ),
                       ),
-                      SizedBox(height: 8.h),
+                      SizedBox(height: FixedSizes.box8(context)),
                       Text(
                         'Get in touch with our support team',
                         style: AppTheme.textStyles['body']!.copyWith(
-                          fontSize: 14.sp,
+                          fontSize: FixedSizes.font14(context),
                           color: AppTheme.colors['secondaryText'],
                         ),
                       ),
@@ -43,7 +43,7 @@ class ContactUsCard extends StatelessWidget {
                 Icon(
                   Icons.arrow_forward_ios,
                   color: AppTheme.colors['primaryText'],
-                  size: 16.sp,
+                  size: FixedSizes.font16(context),
                 ),
               ],
             ),

@@ -1,11 +1,10 @@
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../providers/steps_provider.dart';
 import '../widgets/steps_action_button.dart';
 import '../widgets/steps_animation.dart';
@@ -25,8 +24,8 @@ class StepCounterScreen extends ConsumerStatefulWidget {
 }
 
 class _StepCounterScreenState extends ConsumerState<StepCounterScreen> {
-  bool _usePedometer = true; // Initialize pedometer as active by default
-  bool _hasNavigated = false; // Flag to prevent multiple navigations
+  bool _usePedometer = true;
+  bool _hasNavigated = false;
 
   @override
   Widget build(BuildContext context) {
@@ -43,29 +42,20 @@ class _StepCounterScreenState extends ConsumerState<StepCounterScreen> {
     }
 
     final today = DateTime.now().toIso8601String().split('T')[0];
-    final isDesktop = ScreenUtil().screenWidth >= 600.w;
 
     return Scaffold(
       appBar: const StepsAppBar(),
       body: Consumer(
         builder: (context, ref, child) {
-          // Listen to stepsCountProvider to detect goal achievement
           ref.listen(stepsCountProvider(userId), (previous, next) {
             next.whenData((steps) {
               final goalAsync = ref.watch(stepsGoalProvider(userId));
               goalAsync.whenData((goalSteps) {
                 if (steps >= goalSteps && !_hasNavigated) {
-                  if (kDebugMode) {
-                    print('StepCounterScreen: Goal steps achieved for userId=$userId, navigating to StepsSuccessPage');
-                  }
-                  _hasNavigated = true; // Set flag to prevent multiple navigations
+                  if (kDebugMode) print('Goal reached, navigating...');
+                  _hasNavigated = true;
                   context.push('/steps-success/$goalSteps').then((_) {
-                    // Reset flag when returning from StepsSuccessPage
-                    if (mounted) {
-                      setState(() {
-                        _hasNavigated = false;
-                      });
-                    }
+                    if (mounted) setState(() => _hasNavigated = false);
                   });
                 }
               });
@@ -75,7 +65,6 @@ class _StepCounterScreenState extends ConsumerState<StepCounterScreen> {
           return RefreshIndicator(
             onRefresh: () async => ref.invalidate(stepsCountProvider(userId)),
             child: SingleChildScrollView(
-              padding: EdgeInsets.all(isDesktop ? 24.w : 16.w),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -85,22 +74,22 @@ class _StepCounterScreenState extends ConsumerState<StepCounterScreen> {
                     onToggle: (value) {
                       setState(() {
                         _usePedometer = value;
-                        ref.read(stepsCountProvider(userId).notifier).togglePedometer(value);
-                        if (value) {
-                          ref.invalidate(stepsCountProvider(userId));
-                        }
+                        ref
+                            .read(stepsCountProvider(userId).notifier)
+                            .togglePedometer(value);
+                        if (value) ref.invalidate(stepsCountProvider(userId));
                       });
                     },
                   ),
-                  SizedBox(height: 16.h),
+                  SizedBox(height: FixedSizes.box16(context)),
                   StepsProgressCardContainer(userId: userId, today: today),
-                  SizedBox(height: 18.h),
+                  SizedBox(height: FixedSizes.box18(context)),
                   StepsCaloriesCardContainer(userId: userId),
-                  SizedBox(height: 18.h),
+                  SizedBox(height: FixedSizes.box18(context)),
                   const StepsTipCard(),
-                  SizedBox(height: 18.h),
-                  StepsChartSection(userId: userId),
-                  SizedBox(height: 60.h),
+                  SizedBox(height: FixedSizes.box18(context)),
+                  StepsChartSection(barGroups: []),
+                  SizedBox(height: FixedSizes.box60(context)),
                 ],
               ),
             ),
@@ -111,7 +100,8 @@ class _StepCounterScreenState extends ConsumerState<StepCounterScreen> {
         onPressed: () => showModalBottomSheet(
           context: context,
           backgroundColor: AppTheme.colors['transparent'],
-          builder: (context) => StepsActionSheet(userId: userId),
+          builder: (context) =>
+              StepsActionSheet(onSetGoal: () {}, onReset: () {}),
         ),
       ),
     );

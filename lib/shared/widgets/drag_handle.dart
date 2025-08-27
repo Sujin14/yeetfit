@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:yeetfit/shared/theme/theme.dart';
+import '../../utils/fixed_sizes.dart';
+import '../theme/theme.dart';
 
 class DragHandle extends StatelessWidget {
   const DragHandle({super.key});
@@ -9,12 +9,13 @@ class DragHandle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Container(
-        width: 40.w,
-        height: 6.h,
-        margin: EdgeInsets.only(bottom: 16.h),
+        width: FixedSizes.box40(context),
+        height: FixedSizes.box6(context),
+        margin: EdgeInsets.only(bottom: FixedSizes.box16(context)),
         decoration: BoxDecoration(
-          color: AppTheme.colors['onSurface']?.withOpacity(0.5) ?? Colors.grey,
-          borderRadius: BorderRadius.circular(2.r),
+          color:
+              AppTheme.colors['onSurface']?.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(FixedSizes.box2(context)),
         ),
       ),
     );

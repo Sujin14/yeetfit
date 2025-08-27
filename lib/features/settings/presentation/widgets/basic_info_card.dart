@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:glassmorphism/glassmorphism.dart';
-import '../../../../../shared/theme/theme.dart';
+import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class BasicInfoCard extends StatelessWidget {
   final VoidCallback onTap;
@@ -14,8 +14,8 @@ class BasicInfoCard extends StatelessWidget {
       onTap: onTap,
       child: GlassmorphicContainer(
         width: double.infinity,
-        height: 100.h,
-        borderRadius: 16.r,
+        height: FixedSizes.box100(context),
+        borderRadius: FixedSizes.radius16(context),
         blur: 10,
         alignment: Alignment.center,
         border: 1.5,
@@ -32,7 +32,7 @@ class BasicInfoCard extends StatelessWidget {
           ],
         ),
         child: Padding(
-          padding: EdgeInsets.all(16.w),
+          padding: EdgeInsets.all(FixedSizes.box16(context)),
           child: Row(
             children: [
               Column(
@@ -42,15 +42,15 @@ class BasicInfoCard extends StatelessWidget {
                   Text(
                     'Basic Information',
                     style: AppTheme.textStyles['subtitle']!.copyWith(
-                      fontSize: 18.sp,
+                      fontSize: FixedSizes.font18(context),
                       color: AppTheme.colors['primaryText'],
                     ),
                   ),
-                  SizedBox(height: 8.h),
+                  SizedBox(height: FixedSizes.box8(context)),
                   Text(
                     'Height, Weight, Age, Gender, Activity',
                     style: AppTheme.textStyles['body']!.copyWith(
-                      fontSize: 14.sp,
+                      fontSize: FixedSizes.font14(context),
                       color: AppTheme.colors['secondaryText'],
                     ),
                   ),

@@ -1,9 +1,9 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
+// google_button.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../providers/google_auth_controller.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class GoogleButton extends ConsumerWidget {
   const GoogleButton({super.key});
@@ -11,14 +11,13 @@ class GoogleButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isLoading = ref.watch(googleAuthControllerProvider);
-    final maxButtonWidth = kIsWeb ? 300.w : 250.w;
 
     return ConstrainedBox(
-      constraints: BoxConstraints(maxWidth: maxButtonWidth),
+      constraints: BoxConstraints(maxWidth: FixedSizes.authButtonWidth(context)),
       child: IconButton(
         icon: Image.asset(
           'assets/icons/google.png',
-          height: (kIsWeb ? 100.h : 80.h).clamp(60.0, 100.0),
+          height: FixedSizes.googleIcon(context),
         ),
         onPressed: isLoading
             ? null
@@ -26,9 +25,9 @@ class GoogleButton extends ConsumerWidget {
                   .read(googleAuthControllerProvider.notifier)
                   .login(context),
         style: OutlinedButton.styleFrom(
-          padding: EdgeInsets.symmetric(vertical: kIsWeb ? 16.h : 14.h),
+          padding: EdgeInsets.symmetric(vertical: FixedSizes.box16(context)),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.r),
+            borderRadius: BorderRadius.circular(FixedSizes.borderRadius(context)),
           ),
           side: BorderSide(color: AppTheme.colors['transparent']!),
         ),

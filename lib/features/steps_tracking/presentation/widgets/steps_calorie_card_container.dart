@@ -13,8 +13,8 @@ class StepsCaloriesCardContainer extends ConsumerWidget {
     final caloriesBurned = ref.watch(caloriesBurnedProvider(userId));
     final goalCalories = ref.watch(goalCaloriesProvider(userId));
     return StepsCaloriesCard(
-      caloriesBurned: caloriesBurned,
-      goalCalories: goalCalories,
+      steps: caloriesBurned.toInt(),
+      calories: goalCalories,
     );
   }
 }

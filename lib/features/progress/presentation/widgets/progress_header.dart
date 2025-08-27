@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../providers/progress_provider.dart';
 
 class ProgressHeader extends ConsumerWidget {
@@ -14,10 +14,12 @@ class ProgressHeader extends ConsumerWidget {
     final selected = ref.watch(selectedMetricProvider) ?? 'All Metrics';
 
     return Container(
-      padding: EdgeInsets.all(isDesktop ? 20.w : 16.w),
+      padding: EdgeInsets.all(isDesktop
+          ? FixedSizes.box20(context)
+          : FixedSizes.box16(context)),
       decoration: BoxDecoration(
         color: AppTheme.colors['indigo']!,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(FixedSizes.borderRadius(context)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -25,7 +27,7 @@ class ProgressHeader extends ConsumerWidget {
           Text(
             'Progress Heatmap',
             style: AppTheme.textStyles['title']!.copyWith(
-              fontSize: 20.sp,
+              fontSize: FixedSizes.font20(context),
               color: AppTheme.colors['primaryText'],
             ),
           ),
@@ -34,7 +36,9 @@ class ProgressHeader extends ConsumerWidget {
             dropdownColor: AppTheme.colors['indigo']!.withOpacity(0.5),
             style: AppTheme.textStyles['body']!.copyWith(
               color: AppTheme.colors['primaryText'],
-              fontSize: isDesktop ? 16.sp : 14.sp,
+              fontSize: isDesktop
+                  ? FixedSizes.font16(context)
+                  : FixedSizes.font14(context),
             ),
             icon: Icon(
               Icons.arrow_drop_down,

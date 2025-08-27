@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../controllers/chat_controller.dart';
 
 class MessageInput extends StatelessWidget {
@@ -12,7 +11,10 @@ class MessageInput extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      padding: EdgeInsets.symmetric(
+        horizontal: FixedSizes.box16(context),
+        vertical: FixedSizes.box8(context),
+      ),
       child: Row(
         children: [
           Expanded(
@@ -30,25 +32,23 @@ class MessageInput extends StatelessWidget {
                 fillColor: AppTheme.colors['primaryAccent']!.withOpacity(0.2),
                 filled: true,
                 contentPadding: EdgeInsets.symmetric(
-                  horizontal: 16.w,
-                  vertical: 12.h,
+                  horizontal: FixedSizes.box16(context),
+                  vertical: FixedSizes.box12(context),
                 ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24.r),
+                  borderRadius: BorderRadius.circular(FixedSizes.radius24(context)),
                   borderSide: BorderSide(
-                    color:
-                        AppTheme.colors['borderGradientStart']!,
+                    color: AppTheme.colors['borderGradientStart']!,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24.r),
+                  borderRadius: BorderRadius.circular(FixedSizes.radius24(context)),
                   borderSide: BorderSide(
-                    color:
-                        AppTheme.colors['borderGradientStart']!,
+                    color: AppTheme.colors['borderGradientStart']!,
                   ),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24.r),
+                  borderRadius: BorderRadius.circular(FixedSizes.radius24(context)),
                   borderSide: BorderSide(
                     color: AppTheme.colors['borderGradientEnd']!,
                   ),
@@ -56,12 +56,12 @@ class MessageInput extends StatelessWidget {
               ),
             ),
           ),
-          SizedBox(width: 8.w),
+          SizedBox(width: FixedSizes.box8(context)),
           IconButton(
             icon: Icon(
               Icons.send_rounded,
               color: AppTheme.colors['navBarActive'],
-              size: 45.sp,
+              size: FixedSizes.iconSize(context),
             ),
             onPressed: () => controller.sendMessages(context),
           ),

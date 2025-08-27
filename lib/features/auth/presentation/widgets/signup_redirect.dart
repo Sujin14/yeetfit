@@ -1,8 +1,8 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
+// signup_redirect.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class SignupRedirect extends StatelessWidget {
   const SignupRedirect({super.key});
@@ -14,7 +14,7 @@ class SignupRedirect extends StatelessWidget {
       child: Text(
         "Don't have an account? Sign up",
         style: AppTheme.textStyles['body']!.copyWith(
-          fontSize: (kIsWeb ? 14.sp : 12.sp).clamp(10.0, 14.0),
+          fontSize: FixedSizes.fontSmall(context),
           fontWeight: FontWeight.bold,
           color: AppTheme.colors['primaryAccent'],
         ),

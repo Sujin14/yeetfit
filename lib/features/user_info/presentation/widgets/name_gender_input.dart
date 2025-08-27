@@ -1,11 +1,12 @@
+// name_gender_input.dart
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../domain/validators/user_info_validators.dart';
 import '../providers/user_info_provider.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class NameGenderInput extends ConsumerStatefulWidget {
   final GlobalKey<FormState> formKey;
@@ -72,8 +73,8 @@ class _NameGenderInputState extends ConsumerState<NameGenderInput> {
         widget.onGenderChanged(genderType);
       },
       child: Container(
-        width: 80.w,
-        height: 80.h,
+        width: FixedSizes.box80(context),
+        height: FixedSizes.box80(context),
         decoration: BoxDecoration(
           color: gender == genderType ? color : Colors.white,
           shape: BoxShape.circle,
@@ -89,7 +90,7 @@ class _NameGenderInputState extends ConsumerState<NameGenderInput> {
         child: Center(
           child: Icon(
             icon,
-            size: 40.sp,
+            size: FixedSizes.font40(context),
             color: gender == genderType ? Colors.white : Colors.grey[600],
           ),
         ),
@@ -103,7 +104,10 @@ class _NameGenderInputState extends ConsumerState<NameGenderInput> {
     final controller = ref.read(userInfoControllerProvider.notifier);
 
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      padding: EdgeInsets.symmetric(
+        horizontal: FixedSizes.spacing(context),
+        vertical: FixedSizes.spacing(context) / 2,
+      ),
       child: Form(
         key: widget.formKey,
         child: Column(
@@ -112,13 +116,13 @@ class _NameGenderInputState extends ConsumerState<NameGenderInput> {
             Text(
               "Upload a profile picture",
               style: GoogleFonts.aBeeZee(
-                fontSize: 16.sp,
+                fontSize: FixedSizes.font16(context),
                 fontWeight: FontWeight.w600,
                 color: Colors.black87,
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 12.h),
+            SizedBox(height: FixedSizes.spacing(context)),
             GestureDetector(
               onTap: _pickImage,
               child: Stack(
@@ -138,7 +142,7 @@ class _NameGenderInputState extends ConsumerState<NameGenderInput> {
                       ],
                     ),
                     child: CircleAvatar(
-                      radius: 50.r,
+                      radius: FixedSizes.box50(context),
                       backgroundColor: Colors.grey[200],
                       backgroundImage: _image != null
                           ? FileImage(File(_image!.path))
@@ -146,7 +150,8 @@ class _NameGenderInputState extends ConsumerState<NameGenderInput> {
                               ? NetworkImage(userInfo.value!.profileImageUrl!)
                               : null,
                       child: _image == null && userInfo.value?.profileImageUrl == null
-                          ? Icon(Icons.add_a_photo, size: 35.sp, color: Colors.grey[600])
+                          ? Icon(Icons.add_a_photo,
+                              size: FixedSizes.font35(context), color: Colors.grey[600])
                           : null,
                     ),
                   ),
@@ -157,23 +162,23 @@ class _NameGenderInputState extends ConsumerState<NameGenderInput> {
                 ],
               ),
             ),
-            SizedBox(height: 20.h),
+            SizedBox(height: FixedSizes.spacing(context)),
             Text(
               "What is your name?",
               style: GoogleFonts.aBeeZee(
-                fontSize: 16.sp,
+                fontSize: FixedSizes.font16(context),
                 fontWeight: FontWeight.w600,
                 color: Colors.black87,
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 12.h),
+            SizedBox(height: FixedSizes.spacing(context)),
             TextFormField(
               controller: _nameController,
               decoration: InputDecoration(
                 hintText: "Enter your name",
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.r),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 filled: true,
                 fillColor: Colors.grey[100],
@@ -185,23 +190,23 @@ class _NameGenderInputState extends ConsumerState<NameGenderInput> {
                 }
               },
             ),
-            SizedBox(height: 20.h),
+            SizedBox(height: FixedSizes.spacing(context)),
             Text(
               "Select your gender",
               style: GoogleFonts.aBeeZee(
-                fontSize: 16.sp,
+                fontSize: FixedSizes.font16(context),
                 fontWeight: FontWeight.w600,
                 color: Colors.black87,
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 12.h),
+            SizedBox(height: FixedSizes.spacing(context)),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Expanded(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8.w),
+                    padding: EdgeInsets.symmetric(horizontal: FixedSizes.spacing(context) / 2),
                     child: _buildGenderOption(
                       "Male",
                       Icons.male,
@@ -211,7 +216,7 @@ class _NameGenderInputState extends ConsumerState<NameGenderInput> {
                 ),
                 Expanded(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8.w),
+                    padding: EdgeInsets.symmetric(horizontal: FixedSizes.spacing(context) / 2),
                     child: _buildGenderOption(
                       "Female",
                       Icons.female,
@@ -242,14 +247,17 @@ class _NameGenderInputState extends ConsumerState<NameGenderInput> {
             ),
             if (_genderError != null)
               Padding(
-                padding: EdgeInsets.only(top: 8.h),
+                padding: EdgeInsets.only(top: FixedSizes.spacing(context) / 2),
                 child: Text(
                   _genderError!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 12.sp),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.error,
+                    fontSize: FixedSizes.font12(context),
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ),
-            SizedBox(height: 20.h),
+            SizedBox(height: FixedSizes.spacing(context)),
           ],
         ),
       ),

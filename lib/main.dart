@@ -49,14 +49,15 @@ class YeetFitApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
-      designSize: const Size(393, 873),
+      designSize: const Size(360, 690), // your design size
       minTextAdapt: true,
-      splitScreenMode: true,
-      builder: (context, child) => MaterialApp.router(
-        debugShowCheckedModeBanner: false,
-        routerConfig: appRouter,
-        theme: AppTheme.getLightTheme(),
-      ),
+      builder: (context, child) {
+    return MaterialApp.router(
+      debugShowCheckedModeBanner: false,
+      routerConfig: appRouter,
+      theme: AppTheme.getLightTheme(),
     );
-  }
+  },
+    );
+}
 }

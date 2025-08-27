@@ -1,18 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class PrivacyPolicyScreen extends StatelessWidget {
   const PrivacyPolicyScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final double paddingH = FixedSizes.box24(context);
+    final double paddingV = FixedSizes.box24(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
           'Privacy Policy',
-          style: AppTheme.textStyles['title']!.copyWith(color: AppTheme.colors['primaryText']),
+          style: AppTheme.textStyles['title']!.copyWith(
+            color: AppTheme.colors['primaryText'],
+            fontSize: FixedSizes.font18(context),
+          ),
         ),
         backgroundColor: AppTheme.colors['lightBackground'],
         elevation: 0,
@@ -22,25 +28,26 @@ class PrivacyPolicyScreen extends StatelessWidget {
         ),
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
+        padding: EdgeInsets.symmetric(horizontal: paddingH, vertical: paddingV),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
               'Privacy Policy',
               style: AppTheme.textStyles['subtitle']!.copyWith(
-                fontSize: 24.sp,
+                fontSize: FixedSizes.font22(context),
                 color: AppTheme.colors['primaryText'],
               ),
             ),
-            SizedBox(height: 16.h),
+            SizedBox(height: FixedSizes.box16(context)),
             Text(
               'Your privacy is important to us. This policy explains how we collect, use, and protect your personal information.',
               style: AppTheme.textStyles['body']!.copyWith(
                 color: AppTheme.colors['primaryText'],
+                fontSize: FixedSizes.font14(context),
               ),
             ),
-            SizedBox(height: 16.h),
+            SizedBox(height: FixedSizes.box16(context)),
             Text(
               '1. Data Collection\n'
               'We collect personal information such as your name, email, and health data to provide personalized services.\n\n'
@@ -52,6 +59,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
               'We do not share your personal information with third parties without your consent, except as required by law.',
               style: AppTheme.textStyles['body']!.copyWith(
                 color: AppTheme.colors['secondaryText'],
+                fontSize: FixedSizes.font14(context),
               ),
             ),
           ],

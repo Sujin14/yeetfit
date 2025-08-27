@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../providers/plan_provider.dart';
 import '../widgets/plan_list_item.dart';
 
@@ -14,7 +13,8 @@ class PlanListScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final plansAsync = ref.watch(category == 'diet' ? dietPlanProvider : workoutPlanProvider);
+    final plansAsync =
+        ref.watch(category == 'diet' ? dietPlanProvider : workoutPlanProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -23,8 +23,8 @@ class PlanListScreen extends ConsumerWidget {
         centerTitle: true,
         title: Text(
           category == 'diet' ? 'Diet Plans' : 'Workout Plans',
-          style: GoogleFonts.roboto(
-            fontSize: 28.sp,
+          style: AppTheme.textStyles['title']?.copyWith(
+            fontSize: FixedSizes.font28(context),
             fontWeight: FontWeight.bold,
             color: AppTheme.colors['primaryText'],
           ),
@@ -37,19 +37,23 @@ class PlanListScreen extends ConsumerWidget {
               return Center(
                 child: Text(
                   'No ${category == 'diet' ? 'diet' : 'workout'} plans available',
-                  style: GoogleFonts.roboto(
-                    fontSize: 16.sp,
-                    color: AppTheme.colors['onSurfaceDark']!.withOpacity(0.8),
+                  style: AppTheme.textStyles['body']?.copyWith(
+                    fontSize: FixedSizes.font16(context),
+                    color: AppTheme.colors['secondaryText']!,
                   ),
                 ),
               );
             }
+
             return ListView.builder(
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
-              itemCount: 1, // Single plan as per provider
+              padding: EdgeInsets.symmetric(
+                horizontal: FixedSizes.box20(context),
+                vertical: FixedSizes.box20(context),
+              ),
+              itemCount: 1,
               itemBuilder: (context, index) {
                 return Padding(
-                  padding: EdgeInsets.only(bottom: 16.h),
+                  padding: EdgeInsets.only(bottom: FixedSizes.box16(context)),
                   child: PlanListItem(
                     plan: plan,
                     onTap: () {
@@ -67,8 +71,8 @@ class PlanListScreen extends ConsumerWidget {
           error: (error, _) => Center(
             child: Text(
               'Error: $error',
-              style: GoogleFonts.roboto(
-                fontSize: 16.sp,
+              style: AppTheme.textStyles['body']?.copyWith(
+                fontSize: FixedSizes.font16(context),
                 color: AppTheme.colors['error'],
               ),
             ),

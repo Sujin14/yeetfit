@@ -1,7 +1,8 @@
+// calorie_tracking_screen.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../providers/food_provider.dart';
 import '../widgets/calorie_appbar.dart';
 import '../widgets/calorie_summary.dart';
@@ -23,30 +24,30 @@ class CalorieTrackingScreen extends ConsumerWidget {
     final today = DateTime.now().toIso8601String().split('T')[0];
 
     return Scaffold(
-      appBar: CalorieAppBar(),
+      appBar: const CalorieAppBar(),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 600),
           child: ListView(
-            padding: EdgeInsets.all(16.w),
+            padding: EdgeInsets.all(FixedSizes.box16(context)),
             children: [
-              SizedBox(height: 80.h),
+              SizedBox(height: FixedSizes.box80(context)),
               Consumer(
                 builder: (context, ref, _) {
-                  final totalCalories =
-                      [
-                            'Breakfast',
-                            'Morning Snack',
-                            'Lunch',
-                            'Evening Snack',
-                            'Dinner',
-                          ]
-                          .map(
-                            (mealType) => ref.watch(
-                              dailyCaloriesProvider('$userId|$mealType'),
-                            ),
-                          )
-                          .fold(0.0, (sum, calories) => sum + calories);
+                  final totalCalories = [
+                    'Breakfast',
+                    'Morning Snack',
+                    'Lunch',
+                    'Evening Snack',
+                    'Dinner',
+                  ]
+                      .map(
+                        (mealType) => ref.watch(
+                          dailyCaloriesProvider('$userId|$mealType'),
+                        ),
+                      )
+                      .fold(0.0, (sum, calories) => sum + calories);
+
                   final goalCaloriesAsync = ref.watch(
                     calorieGoalProvider(userId),
                   );
@@ -58,12 +59,12 @@ class CalorieTrackingScreen extends ConsumerWidget {
                       totalCalories: totalCalories,
                       progressColor: progressColor,
                     ),
-                    loading: () => ShimmerCard(isSummary: true),
+                    loading: () => const ShimmerCard(isSummary: true),
                     error: (error, _) => Text('Error: $error'),
                   );
                 },
               ),
-              SizedBox(height: 24.h),
+              SizedBox(height: FixedSizes.box24(context)),
               const MealSection(mealType: 'Breakfast'),
               const MealSection(mealType: 'Morning Snack'),
               const MealSection(mealType: 'Lunch'),

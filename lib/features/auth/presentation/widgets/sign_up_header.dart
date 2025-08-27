@@ -1,7 +1,7 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
+// sign_up_header.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class SignUpHeader extends StatelessWidget {
   const SignUpHeader({super.key});
@@ -9,7 +9,10 @@ class SignUpHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: kIsWeb ? 40.w : 24.w, vertical: kIsWeb ? 20.h : 16.h),
+      padding: EdgeInsets.symmetric(
+        horizontal: FixedSizes.box24(context),
+        vertical: FixedSizes.box20(context),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -18,19 +21,19 @@ class SignUpHeader extends StatelessWidget {
             child: Text(
               'Create Account',
               style: AppTheme.textStyles['heading']!.copyWith(
-                fontSize: (kIsWeb ? 28.sp : 26.sp).clamp(22.0, 28.0),
+                fontSize: FixedSizes.fontHeading(context),
                 color: AppTheme.colors['primaryText'],
               ),
               softWrap: false,
             ),
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: FixedSizes.box8(context)),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Text(
               'Join YeetFit to begin your fitness journey!',
               style: AppTheme.textStyles['subtitle']!.copyWith(
-                fontSize: (kIsWeb ? 16.sp : 14.sp).clamp(12.0, 16.0),
+                fontSize: FixedSizes.fontSubtitle(context),
                 color: AppTheme.colors['secondaryText'],
               ),
               softWrap: false,

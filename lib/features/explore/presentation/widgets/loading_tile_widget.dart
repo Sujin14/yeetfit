@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class LoadingTileWidget extends StatelessWidget {
   const LoadingTileWidget({super.key});
@@ -8,27 +8,32 @@ class LoadingTileWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
+      padding: EdgeInsets.symmetric(
+        vertical: FixedSizes.box12(context),
+        horizontal: FixedSizes.box16(context),
+      ),
       decoration: BoxDecoration(
-        color: AppTheme.colors['cardBackground'] ?? Colors.white,
-        borderRadius: BorderRadius.circular(12.r),
+        color: AppTheme.colors['cardBackground'],
+        borderRadius: BorderRadius.circular(FixedSizes.radius12(context)),
       ),
       child: Row(
         children: [
           Icon(
             Icons.hourglass_empty,
-            size: 24.sp,
-            color: AppTheme.colors['secondaryIcon'] ?? Colors.grey,
+            size: FixedSizes.icon20(context),
+            color: AppTheme.colors['secondaryIcon'],
           ),
-          SizedBox(width: 16.w),
+          SizedBox(width: FixedSizes.box16(context)),
           Text(
             'Loading...',
-            style:
-                AppTheme.textStyles['body']?.copyWith(
-                  color: AppTheme.colors['secondaryText'] ?? Colors.grey,
-                  fontSize: 16.sp,
+            style: AppTheme.textStyles['body']?.copyWith(
+                  color: AppTheme.colors['secondaryText'],
+                  fontSize: FixedSizes.font16(context),
                 ) ??
-                TextStyle(fontSize: 16.sp, color: Colors.grey),
+                TextStyle(
+                  fontSize: FixedSizes.font16(context),
+                  color: AppTheme.colors['gray'],
+                ),
           ),
         ],
       ),

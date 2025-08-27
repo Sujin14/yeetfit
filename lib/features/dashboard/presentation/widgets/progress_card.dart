@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:glassmorphism/glassmorphism.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../providers/dashboard_provider.dart';
 
 class ProgressCard extends ConsumerWidget {
@@ -56,9 +56,7 @@ class ProgressCard extends ConsumerWidget {
           )
         : GestureDetector(
             onTap: route != null
-                ? () {
-                    context.push(route!, extra: userId);
-                  }
+                ? () => GoRouter.of(context).push(route!, extra: userId)
                 : null,
             child: _buildCard(context, progressColor: progressColor),
           );
@@ -66,9 +64,9 @@ class ProgressCard extends ConsumerWidget {
 
   Widget _buildCard(BuildContext context, {required Color progressColor}) {
     return GlassmorphicContainer(
-      width: 360.w,
-      height: 200.h,
-      borderRadius: 16.r,
+      width: FixedSizes.box100(context) * 3.6, // ~360.w
+      height: FixedSizes.box100(context) * 2.0, // ~200.h
+      borderRadius: FixedSizes.borderRadius(context) / 1.5,
       blur: 10,
       alignment: Alignment.center,
       border: 1.5,
@@ -86,22 +84,22 @@ class ProgressCard extends ConsumerWidget {
           AppTheme.colors['gradientTextEnd']!,
         ],
       ),
-       padding: EdgeInsets.symmetric(horizontal: 8.w), // Added horizontal padding
+      padding: EdgeInsets.symmetric(horizontal: FixedSizes.box8(context)),
       child: Row(
         children: [
           Expanded(
             flex: 1,
             child: Padding(
-              padding: EdgeInsets.all(8.w),
+              padding: EdgeInsets.all(FixedSizes.box8(context)),
               child: isLoading
-                  ? _buildShimmerIndicator()
+                  ? _buildShimmerIndicator(context)
                   : CircularPercentIndicator(
-                      radius: 50.r,
-                      lineWidth: 8.w,
+                      radius: FixedSizes.box50(context) * 1.0,
+                      lineWidth: FixedSizes.box8(context),
                       percent: percent.clamp(0.0, 1.0),
                       center: Icon(
                         icon,
-                        size: 20.sp,
+                        size: FixedSizes.font16(context) * 1.2,
                         color: AppTheme.colors['primaryText'],
                       ),
                       progressColor: progressColor,
@@ -114,9 +112,12 @@ class ProgressCard extends ConsumerWidget {
           Expanded(
             flex: 2,
             child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 8.w),
+              padding: EdgeInsets.symmetric(
+                vertical: FixedSizes.box8(context),
+                horizontal: FixedSizes.box8(context),
+              ),
               child: isLoading
-                  ? _buildShimmerContent()
+                  ? _buildShimmerContent(context)
                   : Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,23 +125,23 @@ class ProgressCard extends ConsumerWidget {
                         Text(
                           title,
                           style: AppTheme.textStyles['subtitle']!.copyWith(
-                            fontSize: 14.sp,
+                            fontSize: FixedSizes.font14(context),
                             color: AppTheme.colors['primaryText'],
                           ),
                         ),
-                        SizedBox(height: 4.h),
+                        SizedBox(height: FixedSizes.box4(context)),
                         Text(
                           value,
                           style: AppTheme.textStyles['body']!.copyWith(
-                            fontSize: 12.sp,
+                            fontSize: FixedSizes.font12(context),
                             color: AppTheme.colors['secondaryText'],
                           ),
                         ),
-                        SizedBox(height: 4.h),
+                        SizedBox(height: FixedSizes.box4(context)),
                         Text(
                           description,
                           style: AppTheme.textStyles['body']!.copyWith(
-                            fontSize: 10.sp,
+                            fontSize: FixedSizes.font10(context),
                             color: AppTheme.colors['secondaryText']!
                                 .withOpacity(0.7),
                           ),
@@ -156,10 +157,10 @@ class ProgressCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildShimmerIndicator() {
+  Widget _buildShimmerIndicator(BuildContext context) {
     return Container(
-      width: 100.w,
-      height: 100.h,
+      width: FixedSizes.box100(context) * 0.9,
+      height: FixedSizes.box100(context) * 0.9,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: AppTheme.colors['white'],
@@ -167,15 +168,27 @@ class ProgressCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildShimmerContent() {
+  Widget _buildShimmerContent(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(width: 100.w, height: 14.h, color: AppTheme.colors['white']),
-        SizedBox(height: 4.h),
-        Container(width: 80.w, height: 12.h, color: AppTheme.colors['white']),
-        SizedBox(height: 4.h),
-        Container(width: 150.w, height: 20.h, color: AppTheme.colors['white']),
+        Container(
+          width: FixedSizes.box100(context),
+          height: FixedSizes.box12(context),
+          color: AppTheme.colors['white'],
+        ),
+        SizedBox(height: FixedSizes.box4(context)),
+        Container(
+          width: FixedSizes.box80(context),
+          height: FixedSizes.box12(context),
+          color: AppTheme.colors['white'],
+        ),
+        SizedBox(height: FixedSizes.box4(context)),
+        Container(
+          width: FixedSizes.box150(context),
+          height: FixedSizes.box20(context),
+          color: AppTheme.colors['white'],
+        ),
       ],
     );
   }

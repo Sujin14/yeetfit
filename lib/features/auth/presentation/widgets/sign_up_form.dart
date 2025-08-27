@@ -1,12 +1,12 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
+// sign_up_form.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yeetfit/shared/widgets/shimmer_widget.dart';
 import '../providers/email_auth_controller.dart';
 import '../../domain/validators/auth_validators.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class SignUpForm extends ConsumerStatefulWidget {
   const SignUpForm({super.key});
@@ -45,13 +45,12 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
   @override
   Widget build(BuildContext context) {
     final isLoading = ref.watch(emailAuthControllerProvider);
-    final maxButtonWidth = kIsWeb ? 300.w : 250.w;
 
     return Form(
       key: _formKey,
       child: Column(
         children: [
-          SizedBox(height: kIsWeb ? 20.h : 16.h),
+          SizedBox(height: FixedSizes.box20(context)),
           TextFormField(
             controller: _emailController,
             decoration: InputDecoration(
@@ -67,7 +66,7 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
             keyboardType: TextInputType.emailAddress,
             validator: AuthValidators.validateEmail,
           ),
-          SizedBox(height: kIsWeb ? 20.h : 16.h),
+          SizedBox(height: FixedSizes.box20(context)),
           TextFormField(
             controller: _passwordController,
             decoration: InputDecoration(
@@ -94,7 +93,7 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
             obscureText: _obscurePassword,
             validator: AuthValidators.validatePassword,
           ),
-          SizedBox(height: kIsWeb ? 20.h : 16.h),
+          SizedBox(height: FixedSizes.box20(context)),
           TextFormField(
             controller: _confirmPasswordController,
             decoration: InputDecoration(
@@ -124,17 +123,22 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
             validator: (value) =>
                 AuthValidators.confirmPassword(value, _passwordController.text),
           ),
-          SizedBox(height: kIsWeb ? 32.h : 24.h),
+          SizedBox(height: FixedSizes.box32(context)),
           ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: maxButtonWidth),
+            constraints: BoxConstraints(
+              maxWidth: FixedSizes.authButtonWidth(context),
+            ),
             child: isLoading
-                ? ShimmerLoading(width: 100.w, height: 20.h)
+                ? ShimmerLoading(
+                    width: FixedSizes.box100(context),
+                    height: FixedSizes.box20(context),
+                  )
                 : ElevatedButton(
                     onPressed: () => _submit(context),
                     child: Text(
                       "Sign Up",
                       style: AppTheme.textStyles['body']!.copyWith(
-                        fontSize: (kIsWeb ? 16.sp : 14.sp).clamp(12.0, 16.0),
+                        fontSize: FixedSizes.fontBody(context),
                         color: AppTheme.colors['primaryText'],
                       ),
                     ),

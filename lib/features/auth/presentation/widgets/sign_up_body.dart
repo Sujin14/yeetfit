@@ -1,7 +1,7 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
+// sign_up_body.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:yeetfit/shared/theme/theme.dart';
+import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 import 'login_options_divider.dart';
 import 'login_social_buttons.dart';
 import 'sign_in_redirect.dart';
@@ -18,7 +18,7 @@ class SignUpBody extends StatelessWidget {
         title: Text(
           'User Registration',
           style: AppTheme.textStyles['titleMedium']!.copyWith(
-            fontSize: (kIsWeb ? 22.sp : 20.sp).clamp(18.0, 22.0),
+            fontSize: FixedSizes.fontTitle(context),
             color: AppTheme.colors['primaryText'],
           ),
         ),
@@ -27,20 +27,20 @@ class SignUpBody extends StatelessWidget {
       ),
       body: Column(
         children: [
-          SignUpHeader(),
-          SizedBox(height: kIsWeb ? 30.h : 20.h),
+          const SignUpHeader(),
+          SizedBox(height: FixedSizes.box30(context)),
           Expanded(
             child: Container(
               decoration: BoxDecoration(
                 color: Theme.of(context).highlightColor,
                 borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(30.r),
-                  topRight: Radius.circular(30.r),
+                  topLeft: Radius.circular(FixedSizes.borderRadius(context)),
+                  topRight: Radius.circular(FixedSizes.borderRadius(context)),
                 ),
               ),
               padding: EdgeInsets.symmetric(
-                horizontal: kIsWeb ? 40.w : 24.w,
-                vertical: kIsWeb ? 24.h : 16.h,
+                horizontal: FixedSizes.box24(context),
+                vertical: FixedSizes.box20(context),
               ),
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
@@ -49,20 +49,20 @@ class SignUpBody extends StatelessWidget {
                   children: [
                     ConstrainedBox(
                       constraints: BoxConstraints(
-                        maxWidth: kIsWeb ? 400.w : 350.w,
+                        maxWidth: FixedSizes.formMaxWidth(context),
                       ),
                       child: const SignUpForm(),
                     ),
-                    SizedBox(height: 30.h),
+                    SizedBox(height: FixedSizes.box30(context)),
                     ConstrainedBox(
                       constraints: BoxConstraints(
-                        maxWidth: kIsWeb ? 400.w : 350.w,
+                        maxWidth: FixedSizes.formMaxWidth(context),
                       ),
                       child: const LoginOptionsDivider(),
                     ),
-                    SizedBox(height: 30.h),
+                    SizedBox(height: FixedSizes.box30(context)),
                     const LoginSocialButtons(),
-                    SizedBox(height: 30.h),
+                    SizedBox(height: FixedSizes.box30(context)),
                     const Center(child: SignInRedirect()),
                   ],
                 ),

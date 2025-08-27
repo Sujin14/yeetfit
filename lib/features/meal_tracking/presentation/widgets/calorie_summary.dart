@@ -1,10 +1,13 @@
+// calorie_summary.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../providers/food_provider.dart';
 
 class CalorieSummary extends ConsumerWidget {
@@ -30,6 +33,7 @@ class CalorieSummary extends ConsumerWidget {
       data: (goalCalories) {
         return GlassmorphicContainer(
           color: AppTheme.colors['deepOrange']!,
+          padding: EdgeInsets.all(FixedSizes.box12(context)),
           child: Column(
             children: [
               Row(
@@ -38,30 +42,33 @@ class CalorieSummary extends ConsumerWidget {
                     alignment: Alignment.center,
                     children: [
                       SizedBox(
-                        height: 60,
-                        width: 60,
+                        height: FixedSizes.box60(context),
+                        width: FixedSizes.box60(context),
                         child: CircularProgressIndicator(
-                          value: goalCalories > 0 ? totalCalories / goalCalories : 0.0,
+                          value: goalCalories > 0
+                              ? totalCalories / goalCalories
+                              : 0.0,
                           strokeWidth: 6,
-                          backgroundColor: AppTheme.colors['white']!.withOpacity(0.2),
+                          backgroundColor: AppTheme.colors['white']!
+                              .withOpacity(0.2),
                           valueColor: AlwaysStoppedAnimation(progressColor),
                         ),
                       ),
                       Icon(
                         Icons.local_dining,
-                        size: 28,
+                        size: FixedSizes.box28(context),
                         color: AppTheme.colors['indigo'],
                       ),
                     ],
                   ),
-                  const SizedBox(width: 16),
+                  SizedBox(width: FixedSizes.box16(context)),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         '${totalCalories.toStringAsFixed(0)} of ${goalCalories.toStringAsFixed(0)} Cal',
                         style: GoogleFonts.roboto(
-                          fontSize: 18,
+                          fontSize: FixedSizes.font18(context),
                           fontWeight: FontWeight.bold,
                           color: AppTheme.colors['onSurface'],
                         ),
@@ -74,20 +81,44 @@ class CalorieSummary extends ConsumerWidget {
                     child: Icon(
                       Icons.bar_chart,
                       color: AppTheme.colors['indigo'],
-                      size: 28,
+                      size: FixedSizes.box28(context),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: FixedSizes.box16(context)),
               Wrap(
-                spacing: 8,
-                runSpacing: 8,
+                spacing: FixedSizes.box8(context),
+                runSpacing: FixedSizes.box8(context),
                 children: [
-                  _buildNutrientProgress('Protein', nutrients['protein']!, nutrientGoals['protein']!, AppTheme.colors['navBarActive']!),
-                  _buildNutrientProgress('Fat', nutrients['fat']!, nutrientGoals['fat']!, AppTheme.colors['error']!),
-                  _buildNutrientProgress('Carbs', nutrients['carbs']!, nutrientGoals['carbs']!, AppTheme.colors['fullProgress']!),
-                  _buildNutrientProgress('Fiber', nutrients['fiber']!, nutrientGoals['fiber']!, AppTheme.colors['indigo']!),
+                  _buildNutrientProgress(
+                    context,
+                    'Protein',
+                    nutrients['protein']!,
+                    nutrientGoals['protein']!,
+                    AppTheme.colors['navBarActive']!,
+                  ),
+                  _buildNutrientProgress(
+                    context,
+                    'Fat',
+                    nutrients['fat']!,
+                    nutrientGoals['fat']!,
+                    AppTheme.colors['error']!,
+                  ),
+                  _buildNutrientProgress(
+                    context,
+                    'Carbs',
+                    nutrients['carbs']!,
+                    nutrientGoals['carbs']!,
+                    AppTheme.colors['fullProgress']!,
+                  ),
+                  _buildNutrientProgress(
+                    context,
+                    'Fiber',
+                    nutrients['fiber']!,
+                    nutrientGoals['fiber']!,
+                    AppTheme.colors['indigo']!,
+                  ),
                 ],
               ),
             ],
@@ -97,19 +128,25 @@ class CalorieSummary extends ConsumerWidget {
     );
   }
 
-  Widget _buildNutrientProgress(String label, double value, double goal, Color color) {
+  Widget _buildNutrientProgress(
+    BuildContext context,
+    String label,
+    double value,
+    double goal,
+    Color color,
+  ) {
     return SizedBox(
-      width: 150,
+      width: FixedSizes.box150(context),
       child: Column(
         children: [
           Text(
             '$label: ${value.toStringAsFixed(1)} / ${goal.toStringAsFixed(0)}g',
             style: GoogleFonts.roboto(
-              fontSize: 14,
+              fontSize: FixedSizes.font14(context),
               color: AppTheme.colors['onSurface'],
             ),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: FixedSizes.box4(context)),
           LinearProgressIndicator(
             value: goal > 0 ? value / goal : 0.0,
             backgroundColor: AppTheme.colors['white']!.withOpacity(0.2),

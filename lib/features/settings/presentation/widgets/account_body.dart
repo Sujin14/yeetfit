@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../../../user_info/presentation/providers/user_info_provider.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/basic_info_card.dart';
@@ -21,7 +21,10 @@ class AccountBody extends ConsumerWidget {
 
     return userDataAsync.when(
       data: (userInfo) => SingleChildScrollView(
-        padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
+        padding: EdgeInsets.symmetric(
+          horizontal: FixedSizes.box24(context),
+          vertical: FixedSizes.box24(context),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -34,30 +37,30 @@ class AccountBody extends ConsumerWidget {
                     source: ImageSource.gallery,
                   );
                   if (image != null && context.mounted) {
-                    await ref
-                        .read(settingsControllerProvider.notifier)
-                        .updateProfileImage(context: context, image: image);
+                    await ref.read(settingsControllerProvider.notifier).updateProfileImage(
+                          context: context,
+                          image: image,
+                        );
                   }
                 },
               ),
             ),
-            SizedBox(height: 24.h),
+            SizedBox(height: FixedSizes.box24(context)),
             BasicInfoCard(onTap: () => context.push('/basic-information')),
-            SizedBox(height: 16.h),
+            SizedBox(height: FixedSizes.box16(context)),
             GoalCard(
               title: 'Fitness Goal',
-              selectedGoal: userInfo.goal.isNotEmpty
-                  ? userInfo.goal
-                  : 'weight loss',
+              selectedGoal: userInfo.goal.isNotEmpty ? userInfo.goal : 'weight loss',
               onGoalSelected: (newGoal) {
                 if (newGoal != null) {
-                  ref
-                      .read(settingsControllerProvider.notifier)
-                      .updateFitnessGoal(context: context, goal: newGoal);
+                  ref.read(settingsControllerProvider.notifier).updateFitnessGoal(
+                        context: context,
+                        goal: newGoal,
+                      );
                 }
               },
             ),
-            SizedBox(height: 16.h),
+            SizedBox(height: FixedSizes.box16(context)),
             FoodPreferencesCard(onTap: () => context.push('/food-preferences')),
           ],
         ),

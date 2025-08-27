@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../../../plans/presentation/providers/plan_provider.dart';
 import 'plan_tile_widget.dart';
 import 'error_tile_widget.dart';
@@ -21,9 +21,7 @@ class PlanListDisplay extends ConsumerWidget {
           data: (plan) => PlanTileWidget(
             title: 'Diet Plans',
             icon: Icons.restaurant,
-            onTap: () {
-              context.push('/plans/diet');
-            },
+            onTap: () => context.push('/plans/diet'),
           ),
           loading: () => const LoadingTileWidget(),
           error: (error, _) => ErrorTileWidget(
@@ -32,14 +30,12 @@ class PlanListDisplay extends ConsumerWidget {
                 : error.toString(),
           ),
         ),
-        SizedBox(height: 16.h),
+        SizedBox(height: FixedSizes.box16(context)),
         workoutPlanAsync.when(
           data: (plan) => PlanTileWidget(
             title: 'Workout Plans',
             icon: Icons.fitness_center,
-            onTap: () {
-              context.push('/plans/workouts');
-            },
+            onTap: () => context.push('/plans/workouts'),
           ),
           loading: () => const LoadingTileWidget(),
           error: (error, _) => ErrorTileWidget(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lottie/lottie.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class StepsAnimation extends StatelessWidget {
   const StepsAnimation({super.key});
@@ -8,7 +8,7 @@ class StepsAnimation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 200.h,
+      height: FixedSizes.box200(context),
       child: Lottie.asset(
         'assets/animations/running.json',
         fit: BoxFit.contain,

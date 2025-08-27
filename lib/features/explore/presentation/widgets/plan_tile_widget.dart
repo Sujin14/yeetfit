@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class PlanTileWidget extends StatelessWidget {
   final String title;
@@ -19,17 +19,20 @@ class PlanTileWidget extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
+        padding: EdgeInsets.symmetric(
+          vertical: FixedSizes.box12(context),
+          horizontal: FixedSizes.box16(context),
+        ),
         decoration: BoxDecoration(
           color: AppTheme.colors['cardBackground'] ?? Colors.white,
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(FixedSizes.radius12(context)),
           boxShadow: [
             BoxShadow(
               color: (AppTheme.colors['shadow'] ?? Colors.grey).withOpacity(
                 0.1,
               ),
-              blurRadius: 8.r,
-              offset: Offset(0, 2.h),
+              blurRadius: FixedSizes.box8(context),
+              offset: Offset(0, FixedSizes.box2(context)),
             ),
           ],
         ),
@@ -37,20 +40,20 @@ class PlanTileWidget extends StatelessWidget {
           children: [
             Icon(
               icon,
-              size: 24.sp,
+              size: FixedSizes.icon20(context),
               color: AppTheme.colors['primaryIcon'] ?? Colors.blue,
             ),
-            SizedBox(width: 16.w),
+            SizedBox(width: FixedSizes.box16(context)),
             Text(
               title,
               style:
                   AppTheme.textStyles['body']?.copyWith(
                     color: AppTheme.colors['primaryText'] ?? Colors.black,
-                    fontSize: 18.sp,
+                    fontSize: FixedSizes.font18(context),
                     fontWeight: FontWeight.w500,
                   ) ??
                   TextStyle(
-                    fontSize: 18.sp,
+                    fontSize: FixedSizes.font18(context),
                     color: Colors.black,
                     fontWeight: FontWeight.w500,
                   ),

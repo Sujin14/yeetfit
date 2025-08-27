@@ -1,7 +1,7 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
+// login_header.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class LoginHeader extends StatelessWidget {
   const LoginHeader({super.key});
@@ -10,8 +10,8 @@ class LoginHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.symmetric(
-        horizontal: kIsWeb ? 40.w : 24.w,
-        vertical: kIsWeb ? 20.h : 16.h,
+        horizontal: FixedSizes.box24(context),
+        vertical: FixedSizes.box20(context),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -24,17 +24,17 @@ class LoginHeader extends StatelessWidget {
                 child: Text(
                   'Welcome Back',
                   style: AppTheme.textStyles['heading']!.copyWith(
-                    fontSize: (kIsWeb ? 26.sp : 24.sp).clamp(20.0, 26.0),
+                    fontSize: FixedSizes.fontHeading(context),
                     color: AppTheme.colors['primaryText'],
                   ),
                   softWrap: false,
                 ),
               ),
-              SizedBox(height: 8.h),
+              SizedBox(height: FixedSizes.box8(context)),
               Text(
                 'Login to your account',
                 style: AppTheme.textStyles['subtitle']!.copyWith(
-                  fontSize: (kIsWeb ? 16.sp : 14.sp).clamp(12.0, 16.0),
+                  fontSize: FixedSizes.fontSubtitle(context),
                   color: AppTheme.colors['secondaryText'],
                 ),
               ),

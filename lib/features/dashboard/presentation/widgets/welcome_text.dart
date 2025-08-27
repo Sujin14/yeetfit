@@ -1,6 +1,7 @@
+// features/dashboard/presentation/widgets/welcome_text.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../../../../shared/widgets/gradient_text.dart';
 
 class WelcomeText extends StatelessWidget {
@@ -13,7 +14,7 @@ class WelcomeText extends StatelessWidget {
     return GradientText(
       text: 'Welcome, $name!',
       style: AppTheme.textStyles['heading']!.copyWith(
-        fontSize: 28.sp,
+        fontSize: FixedSizes.font22(context),
         color: AppTheme.colors['primaryText'],
       ),
       gradient: LinearGradient(

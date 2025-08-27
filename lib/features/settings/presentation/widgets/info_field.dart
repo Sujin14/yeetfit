@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../../../user_info/domain/validators/user_info_validators.dart';
 
 class InfoField extends StatelessWidget {
@@ -27,12 +27,16 @@ class InfoField extends StatelessWidget {
           labelText: label,
           labelStyle: AppTheme.textStyles['body']!.copyWith(
             color: AppTheme.colors['secondaryText'],
+            fontSize: FixedSizes.font14(context),
           ),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r)),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(FixedSizes.radius8(context)),
+          ),
         ),
         keyboardType: keyboardType,
         style: AppTheme.textStyles['body']!.copyWith(
           color: AppTheme.colors['primaryText'],
+          fontSize: FixedSizes.font14(context),
         ),
         validator: (value) {
           if (label == 'Name') return UserInfoValidators.validateName(value);

@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/drag_handle.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
+import '../../../../utils/fixed_sizes.dart';
 import 'track_button.dart';
 
 class AddModalWidget extends StatelessWidget {
@@ -15,8 +14,8 @@ class AddModalWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return GlassmorphicContainer(
       color: AppTheme.colors['lightBackground']!,
-      padding: EdgeInsets.all(16.w),
-      borderRadius: 24.r,
+      padding: EdgeInsets.all(FixedSizes.box16(context)),
+      borderRadius: FixedSizes.radius24(context),
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -25,12 +24,12 @@ class AddModalWidget extends StatelessWidget {
             Text(
               'Track Your Progress',
               style: GoogleFonts.roboto(
-                fontSize: 20.sp,
+                fontSize: FixedSizes.font20(context),
                 fontWeight: FontWeight.bold,
                 color: AppTheme.colors['primarytext'],
               ),
             ),
-            SizedBox(height: 24.h),
+            SizedBox(height: FixedSizes.box24(context)),
             trackButton(
               context,
               icon: Icons.local_dining,
@@ -38,7 +37,7 @@ class AddModalWidget extends StatelessWidget {
               color: AppTheme.colors['gradientTextMiddle'] ?? Colors.blue,
               onPressed: () => context.push('/modal/food'),
             ),
-            SizedBox(height: 12.h),
+            SizedBox(height: FixedSizes.box12(context)),
             trackButton(
               context,
               icon: Icons.bed,
@@ -46,7 +45,7 @@ class AddModalWidget extends StatelessWidget {
               color: AppTheme.colors['teal'] ?? Colors.teal,
               onPressed: () => context.push('/modal/sleep'),
             ),
-            SizedBox(height: 12.h),
+            SizedBox(height: FixedSizes.box12(context)),
             trackButton(
               context,
               icon: Icons.directions_walk,
@@ -54,7 +53,7 @@ class AddModalWidget extends StatelessWidget {
               color: AppTheme.colors['gradientTextMiddle'] ?? Colors.blue,
               onPressed: () => context.push('/modal/steps'),
             ),
-            SizedBox(height: 12.h),
+            SizedBox(height: FixedSizes.box12(context)),
             trackButton(
               context,
               icon: Icons.water_drop,
@@ -62,7 +61,7 @@ class AddModalWidget extends StatelessWidget {
               color: AppTheme.colors['teal'] ?? Colors.teal,
               onPressed: () => context.push('/modal/water'),
             ),
-            SizedBox(height: 12.h),
+            SizedBox(height: FixedSizes.box12(context)),
             trackButton(
               context,
               icon: Icons.scale,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../providers/progress_provider.dart';
 import '../widgets/progress_calendar.dart';
 import '../widgets/progress_header.dart';
@@ -20,7 +20,7 @@ class ProgressScreen extends ConsumerWidget {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(16.w),
+          padding: EdgeInsets.all(FixedSizes.box16(context)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -31,16 +31,15 @@ class ProgressScreen extends ConsumerWidget {
                       .refresh();
                 },
               ),
-              SizedBox(height: 16.h),
+              SizedBox(height: FixedSizes.box16(context)),
               progressAsync.when(
                 data: (progressList) {
-                  // Convert List<DailyProgress> -> Map<DateTime, int>
                   final dataset = <DateTime, int>{};
                   for (final DailyProgress p in progressList) {
                     DateTime? d;
                     try {
                       d = DateTime.parse(p.date);
-                    } catch (e) {
+                    } catch (_) {
                       continue;
                     }
 
@@ -50,19 +49,13 @@ class ProgressScreen extends ConsumerWidget {
                           1.0,
                         );
                     final int score = (safe * 10).round();
-
                     dataset[d] = score;
                   }
 
-                  if (dataset.isNotEmpty) {
-                    final sample = dataset.entries
-                        .take(5)
-                        .map(
-                          (e) =>
-                              '${e.key.toIso8601String().substring(0, 10)}:${e.value}',
-                        )
-                        .join(', ');
-                  } 
+                  if (dataset.isEmpty) {
+                    return const Center(child: Text("No data available"));
+                  }
+
                   return ProgressCalendar(dataset: dataset);
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
@@ -73,10 +66,10 @@ class ProgressScreen extends ConsumerWidget {
                       Text(
                         'Error: $error',
                         style: AppTheme.textStyles['body']!.copyWith(
-                          fontSize: 16.sp,
+                          fontSize: FixedSizes.font16(context),
                         ),
                       ),
-                      SizedBox(height: 8.h),
+                      SizedBox(height: FixedSizes.box8(context)),
                       ElevatedButton(
                         onPressed: () {
                           ref
@@ -88,7 +81,7 @@ class ProgressScreen extends ConsumerWidget {
                         child: Text(
                           'Retry',
                           style: AppTheme.textStyles['body']!.copyWith(
-                            fontSize: 14.sp,
+                            fontSize: FixedSizes.font14(context),
                           ),
                         ),
                       ),

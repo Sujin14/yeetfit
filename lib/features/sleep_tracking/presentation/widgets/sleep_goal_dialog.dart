@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../providers/sleep_provider.dart';
 
 class SleepGoalDialog extends ConsumerWidget {
   final String userId;
-
   const SleepGoalDialog({super.key, required this.userId});
 
   @override
@@ -20,11 +20,12 @@ class SleepGoalDialog extends ConsumerWidget {
         'Set Sleep Goal (hours)',
         style: GoogleFonts.roboto(
           fontWeight: FontWeight.bold,
+          fontSize: FixedSizes.font18(context),
           color: AppTheme.colors['white'],
         ),
       ),
       content: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(FixedSizes.box16(context)),
         child: TextField(
           controller: state.controller,
           decoration: InputDecoration(
@@ -32,17 +33,19 @@ class SleepGoalDialog extends ConsumerWidget {
             filled: true,
             hintText: 'Enter hours (e.g., 7.5)',
             hintStyle: GoogleFonts.roboto(
-              color: AppTheme.colors['white']!.withOpacity(0.7),
-            ),
+                fontSize: FixedSizes.font14(context),
+                color: AppTheme.colors['white']!.withOpacity(0.7)),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(FixedSizes.radius10(context)),
               borderSide: BorderSide(
                 color: AppTheme.colors['white']!.withOpacity(0.3),
               ),
             ),
           ),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          style: GoogleFonts.roboto(color: AppTheme.colors['white']),
+          style: GoogleFonts.roboto(
+              fontSize: FixedSizes.font14(context),
+              color: AppTheme.colors['white']),
         ),
       ),
       actions: [
@@ -50,7 +53,9 @@ class SleepGoalDialog extends ConsumerWidget {
           onPressed: () => Navigator.pop(context),
           child: Text(
             'Cancel',
-            style: GoogleFonts.roboto(color: AppTheme.colors['white']),
+            style: GoogleFonts.roboto(
+                fontSize: FixedSizes.font14(context),
+                color: AppTheme.colors['white']),
           ),
         ),
         ElevatedButton(
@@ -60,7 +65,9 @@ class SleepGoalDialog extends ConsumerWidget {
           ),
           child: Text(
             'Save',
-            style: GoogleFonts.roboto(color: AppTheme.colors['white']),
+            style: GoogleFonts.roboto(
+                fontSize: FixedSizes.font14(context),
+                color: AppTheme.colors['white']),
           ),
         ),
       ],

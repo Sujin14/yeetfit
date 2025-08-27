@@ -1,9 +1,9 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
+// forgot_password_button.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../providers/email_auth_controller.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class ForgotPasswordButton extends ConsumerWidget {
   const ForgotPasswordButton({super.key});
@@ -22,7 +22,7 @@ class ForgotPasswordButton extends ConsumerWidget {
       child: Text(
         "Forgot Password?",
         style: AppTheme.textStyles['body']!.copyWith(
-          fontSize: (kIsWeb ? 16.sp : 14.sp).clamp(12.0, 16.0),
+          fontSize: FixedSizes.fontBody(context),
           color: AppTheme.colors['primaryAccent'],
         ),
       ),
@@ -37,7 +37,7 @@ class ForgotPasswordButton extends ConsumerWidget {
         title: Text(
           "Reset Password",
           style: AppTheme.textStyles['title']!.copyWith(
-            fontSize: (kIsWeb ? 20.sp : 18.sp).clamp(16.0, 20.0),
+            fontSize: FixedSizes.fontTitle(context),
             color: AppTheme.colors['primaryText'],
           ),
         ),

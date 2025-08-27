@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class StepsActionButton extends StatelessWidget {
   final VoidCallback onPressed;
@@ -12,7 +12,11 @@ class StepsActionButton extends StatelessWidget {
     return FloatingActionButton(
       backgroundColor: AppTheme.colors['indigo']!.withOpacity(0.3),
       onPressed: onPressed,
-      child: Icon(Icons.add, size: 22.sp, color: AppTheme.colors['onSurface']),
+      child: Icon(
+        Icons.add,
+        size: FixedSizes.icon24(context),
+        color: AppTheme.colors['onSurface'],
+      ),
     );
   }
 }

@@ -1,9 +1,10 @@
+// goal_input.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../domain/validators/user_info_validators.dart';
 import '../providers/user_info_provider.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class GoalInput extends ConsumerWidget {
   final GlobalKey<FormState> formKey;
@@ -27,15 +28,20 @@ class GoalInput extends ConsumerWidget {
         children: [
           Text(
             "What is your fitness goal?",
-            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
+            style: TextStyle(
+              fontSize: FixedSizes.font16(context),
+              fontWeight: FontWeight.w600,
+            ),
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: FixedSizes.spacing(context) / 2),
           DropdownButtonFormField<String>(
-            value: userInfo.value?.goal.isEmpty ?? true ? null : userInfo.value!.goal,
+            value: userInfo.value?.goal.isEmpty ?? true
+                ? null
+                : userInfo.value!.goal,
             decoration: InputDecoration(
               hintText: "Select your goal",
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.r),
+                borderRadius: BorderRadius.circular(12),
               ),
               filled: true,
               fillColor: AppTheme.colors['gray']!,

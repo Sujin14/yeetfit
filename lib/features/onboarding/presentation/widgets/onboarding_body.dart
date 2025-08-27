@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yeetfit/shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../providers/onboarding_controller.dart';
 import 'onboarding_page.dart';
 
@@ -54,20 +54,34 @@ class _OnboardingBodyState extends ConsumerState<OnboardingBody> {
             onPageChanged: controller.onPageChanged,
             itemBuilder: (_, index) => RepaintBoundary(child: pages[index]),
           ),
+
+          // Skip button
           if (controller.currentPage < 2)
             Positioned(
-              top: kIsWeb ? 30.h : 20.h,
-              right: kIsWeb ? 30.w : 20.w,
+              top: kIsWeb
+                  ? FixedSizes.spacing(context) * 2.5
+                  : FixedSizes.spacing(context) * 2,
+              right: kIsWeb
+                  ? FixedSizes.spacing(context) * 2.5
+                  : FixedSizes.spacing(context) * 2,
               child: TextButton(
                 onPressed: () => context.go('/welcome'),
                 child: Text(
                   "Skip",
-                  style: TextStyle(fontSize: (kIsWeb ? 18.sp : 16.sp).clamp(14.0, 18.0)),
+                  style: TextStyle(
+                    fontSize: kIsWeb
+                        ? FixedSizes.font18(context)
+                        : FixedSizes.font16(context),
+                  ),
                 ),
               ),
             ),
+
+          // Dots indicator
           Positioned(
-            bottom: kIsWeb ? 80.h : 60.h,
+            bottom: kIsWeb
+                ? FixedSizes.spacing(context) * 6
+                : FixedSizes.spacing(context) * 5,
             left: 0,
             right: 0,
             child: Row(
@@ -76,20 +90,38 @@ class _OnboardingBodyState extends ConsumerState<OnboardingBody> {
                 final isActive = index == controller.currentPage;
                 return AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
-                  margin: EdgeInsets.symmetric(horizontal: kIsWeb ? 6.w : 4.w),
-                  height: kIsWeb ? 10.h : 8.h,
-                  width: isActive ? (kIsWeb ? 24.w : 20.w) : (kIsWeb ? 10.w : 8.w),
+                  margin: EdgeInsets.symmetric(
+                    horizontal: kIsWeb
+                        ? FixedSizes.spacing(context) / 2
+                        : FixedSizes.spacing(context) / 3,
+                  ),
+                  height: kIsWeb
+                      ? FixedSizes.box16(context)
+                      : FixedSizes.box12(context),
+                  width: isActive
+                      ? (kIsWeb
+                          ? FixedSizes.box32(context)
+                          : FixedSizes.box24(context))
+                      : (kIsWeb
+                          ? FixedSizes.box16(context)
+                          : FixedSizes.box12(context)),
                   decoration: BoxDecoration(
                     color: AppTheme.colors['orangeAccent'],
-                    borderRadius: BorderRadius.circular(20.r),
+                    borderRadius: BorderRadius.circular(20),
                   ),
                 );
               }),
             ),
           ),
+
+          // Next/Get Started button
           Positioned(
-            bottom: kIsWeb ? 30.h : 20.h,
-            right: kIsWeb ? 30.w : 20.w,
+            bottom: kIsWeb
+                ? FixedSizes.spacing(context) * 2.5
+                : FixedSizes.spacing(context) * 2,
+            right: kIsWeb
+                ? FixedSizes.spacing(context) * 2.5
+                : FixedSizes.spacing(context) * 2,
             child: ElevatedButton(
               onPressed: () {
                 if (controller.currentPage < 2) {
@@ -100,7 +132,11 @@ class _OnboardingBodyState extends ConsumerState<OnboardingBody> {
               },
               child: Text(
                 controller.currentPage < 2 ? 'Next' : 'Get Started',
-                style: TextStyle(fontSize: (kIsWeb ? 18.sp : 16.sp).clamp(14.0, 18.0)),
+                style: TextStyle(
+                  fontSize: kIsWeb
+                      ? FixedSizes.font18(context)
+                      : FixedSizes.font16(context),
+                ),
               ),
             ),
           ),

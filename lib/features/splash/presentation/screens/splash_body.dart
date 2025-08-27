@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class SplashBody extends StatefulWidget {
   const SplashBody({super.key});
@@ -46,17 +45,17 @@ class _SplashBodyState extends State<SplashBody> {
               duration: const Duration(seconds: 1),
               child: Image.asset(
                 'assets/icons/app_icon.png',
-                width: 100.w,
-                height: 100.w,
+                width: FixedSizes.box100(context),
+                height: FixedSizes.box100(context),
               ),
             ),
-            SizedBox(width: 10.w),
+            SizedBox(width: FixedSizes.spacing(context)),
             AnimatedOpacity(
               opacity: _showName ? 1.0 : 0.0,
               duration: const Duration(milliseconds: 1500),
               child: Image.asset(
                 'assets/images/splash_text.png',
-                width: 180.w,
+                width: FixedSizes.box100(context) * 1.8,
               ),
             ),
           ],

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class SleepTimeCardsShimmer extends StatelessWidget {
   const SleepTimeCardsShimmer({super.key});
@@ -16,40 +16,40 @@ class SleepTimeCardsShimmer extends StatelessWidget {
           baseColor: Colors.grey[300]!,
           highlightColor: Colors.grey[100]!,
           child: Container(
-            width: 100.w,
-            height: 18.h,
+            width: FixedSizes.box100(context),
+            height: FixedSizes.box18(context),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(4.r),
+              borderRadius: BorderRadius.circular(FixedSizes.radius4(context)),
             ),
           ),
         ),
-        SizedBox(height: 30.h),
+        SizedBox(height: FixedSizes.box30(context)),
         GlassmorphicContainer(
           color: AppTheme.colors['deepOrange']!,
           child: Shimmer.fromColors(
             baseColor: Colors.grey[300]!,
             highlightColor: Colors.grey[100]!,
             child: Container(
-              height: 56.h,
+              height: FixedSizes.box56(context),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(12.r),
+                borderRadius: BorderRadius.circular(FixedSizes.radius12(context)),
               ),
             ),
           ),
         ),
-        SizedBox(height: 25.h),
+        SizedBox(height: FixedSizes.box25(context)),
         GlassmorphicContainer(
           color: AppTheme.colors['deepOrange']!,
           child: Shimmer.fromColors(
             baseColor: Colors.grey[300]!,
             highlightColor: Colors.grey[100]!,
             child: Container(
-              height: 56.h,
+              height: FixedSizes.box56(context),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(12.r),
+                borderRadius: BorderRadius.circular(FixedSizes.radius12(context)),
               ),
             ),
           ),

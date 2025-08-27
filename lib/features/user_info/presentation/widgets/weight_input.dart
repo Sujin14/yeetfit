@@ -1,8 +1,9 @@
+// weight_input.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../domain/validators/user_info_validators.dart';
 import '../providers/user_info_provider.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class WeightInput extends ConsumerStatefulWidget {
   final GlobalKey<FormState> formKey;
@@ -25,10 +26,14 @@ class _WeightInputState extends ConsumerState<WeightInput> {
     super.initState();
     final userInfo = ref.read(userInfoControllerProvider);
     _currentWeightController = TextEditingController(
-      text: userInfo.value?.currentWeight == 0 ? '' : userInfo.value?.currentWeight.toString(),
+      text: userInfo.value?.currentWeight == 0
+          ? ''
+          : userInfo.value?.currentWeight.toString(),
     );
     _goalWeightController = TextEditingController(
-      text: userInfo.value?.goalWeight == 0 ? '' : userInfo.value?.goalWeight.toString(),
+      text: userInfo.value?.goalWeight == 0
+          ? ''
+          : userInfo.value?.goalWeight.toString(),
     );
   }
 
@@ -50,15 +55,18 @@ class _WeightInputState extends ConsumerState<WeightInput> {
         children: [
           Text(
             "What is your current weight?",
-            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
+            style: TextStyle(
+              fontSize: FixedSizes.font16(context),
+              fontWeight: FontWeight.w600,
+            ),
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: FixedSizes.spacing(context) / 2),
           TextFormField(
             controller: _currentWeightController,
             decoration: InputDecoration(
               hintText: "Enter current weight (kg)",
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.r),
+                borderRadius: BorderRadius.circular(12),
               ),
               filled: true,
               fillColor: Colors.grey[100],
@@ -70,18 +78,21 @@ class _WeightInputState extends ConsumerState<WeightInput> {
               controller.setFormValue('currentWeight', weight);
             },
           ),
-          SizedBox(height: 24.h),
+          SizedBox(height: FixedSizes.spacing(context) * 1.5),
           Text(
             "What is your goal weight?",
-            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
+            style: TextStyle(
+              fontSize: FixedSizes.font16(context),
+              fontWeight: FontWeight.w600,
+            ),
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: FixedSizes.spacing(context) / 2),
           TextFormField(
             controller: _goalWeightController,
             decoration: InputDecoration(
               hintText: "Enter goal weight (kg)",
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.r),
+                borderRadius: BorderRadius.circular(12),
               ),
               filled: true,
               fillColor: Colors.grey[100],

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../widgets/favorite_plan_display.dart';
 
 class FavoritesPage extends ConsumerWidget {
@@ -11,7 +11,10 @@ class FavoritesPage extends ConsumerWidget {
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+          padding: EdgeInsets.symmetric(
+            horizontal: FixedSizes.box16(context),
+            vertical: FixedSizes.box16(context),
+          ),
           child: const FavoritePlansDisplay(),
         ),
       ),

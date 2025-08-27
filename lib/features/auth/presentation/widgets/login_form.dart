@@ -1,6 +1,5 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
+// login_form.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yeetfit/shared/widgets/shimmer_widget.dart';
@@ -8,6 +7,7 @@ import '../providers/email_auth_controller.dart';
 import '../../domain/validators/auth_validators.dart';
 import 'forgot_password_button.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class LoginForm extends ConsumerStatefulWidget {
   const LoginForm({super.key});
@@ -45,7 +45,6 @@ class _LoginFormState extends ConsumerState<LoginForm> {
   @override
   Widget build(BuildContext context) {
     final isLoading = ref.watch(emailAuthControllerProvider);
-    final maxButtonWidth = kIsWeb ? 300.w : 250.w;
 
     return Form(
       key: _formKey,
@@ -66,7 +65,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
             ),
             validator: AuthValidators.validateEmail,
           ),
-          SizedBox(height: kIsWeb ? 20.h : 16.h),
+          SizedBox(height: FixedSizes.box20(context)),
           TextFormField(
             controller: passwordController,
             obscureText: true,
@@ -82,22 +81,25 @@ class _LoginFormState extends ConsumerState<LoginForm> {
             ),
             validator: AuthValidators.validatePassword,
           ),
-          SizedBox(height: kIsWeb ? 12.h : 8.h),
-          Align(
+          SizedBox(height: FixedSizes.box12(context)),
+          const Align(
             alignment: Alignment.centerRight,
-            child: const ForgotPasswordButton(),
+            child: ForgotPasswordButton(),
           ),
-          SizedBox(height: kIsWeb ? 32.h : 24.h),
+          SizedBox(height: FixedSizes.box32(context)),
           ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: maxButtonWidth),
+            constraints: BoxConstraints(maxWidth: FixedSizes.authButtonWidth(context)),
             child: ElevatedButton(
               onPressed: isLoading ? null : _login,
               child: isLoading
-                  ? ShimmerLoading(width: 100.w, height: 20.h)
+                  ? ShimmerLoading(
+                      width: FixedSizes.box100(context),
+                      height: FixedSizes.box20(context),
+                    )
                   : Text(
                       'Login',
                       style: AppTheme.textStyles['body']!.copyWith(
-                        fontSize: (kIsWeb ? 16.sp : 14.sp).clamp(12.0, 16.0),
+                        fontSize: FixedSizes.fontBody(context),
                         color: AppTheme.colors['primaryText'],
                       ),
                     ),

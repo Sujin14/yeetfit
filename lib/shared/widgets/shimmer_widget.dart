@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shimmer/shimmer.dart';
+import '../../utils/fixed_sizes.dart';
 
 class ShimmerLoading extends StatelessWidget {
   final double width;
@@ -18,7 +18,7 @@ class ShimmerLoading extends StatelessWidget {
         height: height,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(FixedSizes.box12(context)),
         ),
       ),
     );

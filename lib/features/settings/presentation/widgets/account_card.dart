@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../providers/settings_provider.dart';
 
 class AccountCard extends ConsumerWidget {
@@ -22,7 +22,7 @@ class AccountCard extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(vertical: 8.h),
+          padding: EdgeInsets.symmetric(vertical: FixedSizes.box8(context)),
           child: Column(
             children: [
               GestureDetector(
@@ -36,15 +36,15 @@ class AccountCard extends ConsumerWidget {
                           Text(
                             'Account',
                             style: AppTheme.textStyles['subtitle']!.copyWith(
-                              fontSize: 18.sp,
+                              fontSize: FixedSizes.font18(context),
                               color: AppTheme.colors['primaryText'],
                             ),
                           ),
-                          SizedBox(height: 8.h),
+                          SizedBox(height: FixedSizes.box8(context)),
                           Text(
                             'Manage your account details',
                             style: AppTheme.textStyles['body']!.copyWith(
-                              fontSize: 14.sp,
+                              fontSize: FixedSizes.font14(context),
                               color: AppTheme.colors['secondaryText'],
                             ),
                           ),
@@ -54,12 +54,12 @@ class AccountCard extends ConsumerWidget {
                     Icon(
                       Icons.arrow_forward_ios,
                       color: AppTheme.colors['primaryText'],
-                      size: 16.sp,
+                      size: FixedSizes.icon16(context),
                     ),
                   ],
                 ),
               ),
-              SizedBox(height: 16.h),
+              SizedBox(height: FixedSizes.box16(context)),
               GestureDetector(
                 onTap: isSaving ? null : onDeleteTap,
                 child: Row(
@@ -71,15 +71,15 @@ class AccountCard extends ConsumerWidget {
                           Text(
                             'Delete Account',
                             style: AppTheme.textStyles['subtitle']!.copyWith(
-                              fontSize: 18.sp,
+                              fontSize: FixedSizes.font18(context),
                               color: AppTheme.colors['error'],
                             ),
                           ),
-                          SizedBox(height: 8.h),
+                          SizedBox(height: FixedSizes.box8(context)),
                           Text(
                             'Permanently delete your account',
                             style: AppTheme.textStyles['body']!.copyWith(
-                              fontSize: 14.sp,
+                              fontSize: FixedSizes.font14(context),
                               color: AppTheme.colors['secondaryText'],
                             ),
                           ),
@@ -89,7 +89,7 @@ class AccountCard extends ConsumerWidget {
                     Icon(
                       Icons.delete,
                       color: AppTheme.colors['error'],
-                      size: 16.sp,
+                      size: FixedSizes.icon16(context),
                     ),
                   ],
                 ),

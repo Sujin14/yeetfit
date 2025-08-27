@@ -1,17 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class WaterActionButtons extends StatelessWidget {
   final VoidCallback onAdd;
   final VoidCallback onRemove;
 
-  const WaterActionButtons({
-    super.key,
-    required this.onAdd,
-    required this.onRemove,
-  });
+  const WaterActionButtons({super.key, required this.onAdd, required this.onRemove});
 
   @override
   Widget build(BuildContext context) {
@@ -22,17 +17,17 @@ class WaterActionButtons extends StatelessWidget {
           onPressed: onRemove,
           icon: Icon(
             Icons.remove_circle,
-            size: 32,
+            size: FixedSizes.icon32(context),
             color: AppTheme.colors['deepOrange'],
           ),
           tooltip: 'Remove Glass',
         ),
-        SizedBox(width: 30.w),
+        SizedBox(width: FixedSizes.box30(context)),
         IconButton(
           onPressed: onAdd,
           icon: Icon(
             Icons.add_circle,
-            size: 32,
+            size: FixedSizes.icon32(context),
             color: AppTheme.colors['teal'],
           ),
           tooltip: 'Add Glass',

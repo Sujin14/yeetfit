@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../controllers/payment_controller.dart';
 import '../providers/payment_provider.dart';
 import '../widgets/payment_form.dart';
@@ -18,9 +18,7 @@ class PaymentScreen extends ConsumerWidget {
     final state = ref.watch(paymentControllerProvider);
 
     ref.listen<PaymentState>(paymentControllerProvider, (previous, next) {
-      if (next.success) {
-        context.go('/admin-list');
-      }
+      if (next.success) context.go('/admin-list');
     });
 
     return Scaffold(
@@ -30,16 +28,21 @@ class PaymentScreen extends ConsumerWidget {
           onTap: () => context.go('/user-dashboard'),
           child: const Icon(Icons.arrow_back_ios_new_rounded),
         ),
-        title: Text('Unlock Chat Feature', style: AppTheme.textStyles['title']),
+        title: Text(
+          'Unlock Chat Feature',
+          style: AppTheme.textStyles['title']?.copyWith(
+            fontSize: FixedSizes.font20(context),
+          ),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
       body: Stack(
         children: [
           SingleChildScrollView(
-            padding: EdgeInsets.all(16.w),
+            padding: EdgeInsets.all(FixedSizes.spacing(context)),
             child: GlassmorphicContainer(
-              color: AppTheme.colors['primaryAccent'] ?? Colors.blue,
+              color: AppTheme.colors['primaryAccent']!,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -56,12 +59,16 @@ class PaymentScreen extends ConsumerWidget {
               ),
             ),
           ),
-          if (state.isLoading) const Center(child: CircularProgressIndicator()),
+          if (state.isLoading)
+            const Center(child: CircularProgressIndicator()),
           if (state.error != null)
             Center(
               child: Text(
                 state.error!,
-                style: TextStyle(color: Colors.red, fontSize: 16.sp),
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: FixedSizes.font16(context),
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -69,7 +76,10 @@ class PaymentScreen extends ConsumerWidget {
             Center(
               child: Text(
                 'Payment Successful!',
-                style: TextStyle(color: Colors.green, fontSize: 20.sp),
+                style: TextStyle(
+                  color: Colors.green,
+                  fontSize: FixedSizes.font18(context),
+                ),
                 textAlign: TextAlign.center,
               ),
             ),

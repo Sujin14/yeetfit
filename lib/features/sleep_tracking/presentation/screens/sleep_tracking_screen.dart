@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/entry_dialog.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../widgets/sleep_animation.dart';
 import '../widgets/sleep_app_bar.dart';
 import '../widgets/sleep_chart_section.dart';
-import '../widgets/sleep_entry_dialog.dart';
 import '../widgets/sleep_progress_section.dart';
 import '../widgets/sleep_time_card.dart';
 import '../widgets/sleep_tips_card.dart';
 import '../providers/sleep_provider.dart';
+import '../widgets/sleep_entry_dialog.dart';
 
 class SleepTrackingScreen extends ConsumerWidget {
   const SleepTrackingScreen({super.key});
@@ -28,20 +28,23 @@ class SleepTrackingScreen extends ConsumerWidget {
       appBar: const SleepAppBar(),
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 600),
+          constraints: BoxConstraints(maxWidth: FixedSizes.box620(context)),
           child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
+            padding: EdgeInsets.symmetric(
+              horizontal: FixedSizes.spacing(context),
+              vertical: FixedSizes.spacing(context) * 1.5,
+            ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SleepAnimation(),
-                SizedBox(height: 25.h),
+                SizedBox(height: FixedSizes.box25(context)),
                 const SleepProgressSection(),
-                SizedBox(height: 30.h),
+                SizedBox(height: FixedSizes.box30(context)),
                 const SleepTimeCards(),
-                SizedBox(height: 20.h),
+                SizedBox(height: FixedSizes.box20(context)),
                 const SleepTipsCard(),
-                SizedBox(height: 20.h),
+                SizedBox(height: FixedSizes.box20(context)),
                 SleepChartSection(userId: userId),
               ],
             ),

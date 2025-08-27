@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../../../user_info/domain/validators/user_info_validators.dart';
 
 class ActivityDropdown extends StatelessWidget {
@@ -23,7 +23,10 @@ class ActivityDropdown extends StatelessWidget {
     ];
 
     return ListTile(
-      leading: Icon(Icons.directions_run, color: AppTheme.colors['primaryText']),
+      leading: Icon(
+        Icons.directions_run,
+        color: AppTheme.colors['primaryText'],
+      ),
       title: DropdownButtonFormField<String>(
         value: value != null && activityLevels.contains(value) ? value : null,
         decoration: InputDecoration(
@@ -31,13 +34,12 @@ class ActivityDropdown extends StatelessWidget {
           labelStyle: AppTheme.textStyles['body']!.copyWith(
             color: AppTheme.colors['secondaryText'],
           ),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r)),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(FixedSizes.radius8(context)),
+          ),
         ),
         items: activityLevels
-            .map((level) => DropdownMenuItem(
-                  value: level,
-                  child: Text(level),
-                ))
+            .map((level) => DropdownMenuItem(value: level, child: Text(level)))
             .toList(),
         onChanged: onChanged,
         style: AppTheme.textStyles['body']!.copyWith(

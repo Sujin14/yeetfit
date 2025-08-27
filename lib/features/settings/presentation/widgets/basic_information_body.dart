@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/activity_dropdown.dart';
 import '../widgets/gender_dropdown.dart';
 import '../widgets/info_field.dart';
+import 'package:go_router/go_router.dart';
 
 class BasicInformationBody extends ConsumerWidget {
   final GlobalKey<FormState> formKey;
@@ -39,7 +39,10 @@ class BasicInformationBody extends ConsumerWidget {
 
     return settingsState.when(
       data: (_) => SingleChildScrollView(
-        padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
+        padding: EdgeInsets.symmetric(
+          horizontal: FixedSizes.box24(context),
+          vertical: FixedSizes.box24(context),
+        ),
         child: Form(
           key: formKey,
           child: Column(
@@ -51,38 +54,35 @@ class BasicInformationBody extends ConsumerWidget {
                 icon: Icons.person,
                 keyboardType: TextInputType.text,
               ),
-              SizedBox(height: 16.h),
-              GenderDropdown(
-                value: gender,
-                onChanged: onGenderChanged,
-              ),
-              SizedBox(height: 16.h),
+              SizedBox(height: FixedSizes.box16(context)),
+              GenderDropdown(value: gender, onChanged: onGenderChanged),
+              SizedBox(height: FixedSizes.box16(context)),
               InfoField(
                 controller: ageController,
                 label: 'Age',
                 icon: Icons.cake,
                 keyboardType: TextInputType.number,
               ),
-              SizedBox(height: 16.h),
+              SizedBox(height: FixedSizes.box16(context)),
               ActivityDropdown(
                 value: dailyActivity,
                 onChanged: onActivityChanged,
               ),
-              SizedBox(height: 16.h),
+              SizedBox(height: FixedSizes.box16(context)),
               InfoField(
                 controller: heightController,
                 label: 'Height (cm)',
                 icon: Icons.height,
                 keyboardType: TextInputType.number,
               ),
-              SizedBox(height: 16.h),
+              SizedBox(height: FixedSizes.box16(context)),
               InfoField(
                 controller: currentWeightController,
                 label: 'Current Weight (kg)',
                 icon: Icons.scale,
                 keyboardType: TextInputType.number,
               ),
-              SizedBox(height: 24.h),
+              SizedBox(height: FixedSizes.box24(context)),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -91,8 +91,12 @@ class BasicInformationBody extends ConsumerWidget {
                       onPressed: isSaving ? null : () => context.pop(),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.colors['error'],
-                        minimumSize: Size(150.w, 48.h),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                        minimumSize: Size(FixedSizes.buttonSize(context), FixedSizes.buttonSize(context)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            FixedSizes.radius8(context),
+                          ),
+                        ),
                       ),
                       child: Text(
                         'Cancel',
@@ -103,30 +107,39 @@ class BasicInformationBody extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  SizedBox(width: 16.w),
+                  SizedBox(width: FixedSizes.box16(context)),
                   Expanded(
                     child: ElevatedButton(
                       onPressed: isSaving
                           ? null
-                          : () => ref.read(settingsControllerProvider.notifier).saveBasicInformation(
-                                context: context,
-                                name: nameController.text,
-                                gender: gender ?? '',
-                                age: ageController.text,
-                                height: heightController.text,
-                                currentWeight: currentWeightController.text,
-                                activityLevel: dailyActivity ?? '',
-                                formKey: formKey,
-                              ),
+                          : () => ref
+                                .read(settingsControllerProvider.notifier)
+                                .saveBasicInformation(
+                                  context: context,
+                                  name: nameController.text,
+                                  gender: gender ?? '',
+                                  age: ageController.text,
+                                  height: heightController.text,
+                                  currentWeight: currentWeightController.text,
+                                  activityLevel: dailyActivity ?? '',
+                                  formKey: formKey,
+                                ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.colors['primaryButton'],
-                        minimumSize: Size(150.w, 48.h),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                        minimumSize: Size(
+                          FixedSizes.buttonSize(context),
+                          FixedSizes.buttonSize(context),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            FixedSizes.radius8(context),
+                          ),
+                        ),
                       ),
                       child: isSaving
                           ? SizedBox(
-                              width: 24.w,
-                              height: 24.h,
+                              width: FixedSizes.box24(context),
+                              height: FixedSizes.box24(context),
                               child: CircularProgressIndicator(
                                 color: AppTheme.colors['onSurfaceDark'],
                               ),

@@ -1,80 +1,57 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../providers/steps_provider.dart';
 import '../../../../shared/theme/theme.dart';
-import '../../../../shared/widgets/glassmorphic_container.dart';
-import '../screens/step_counter_screen.dart';
-import 'steps_goal_dialogue.dart';
+import '../../../../utils/fixed_sizes.dart';
 
-class StepsProgressCard extends ConsumerWidget {
+class StepsProgressCard extends StatelessWidget {
   final int steps;
-  final int goalSteps;
-  final Color progressColor;
+  final int goal;
 
-  const StepsProgressCard({
-    super.key,
-    required this.steps,
-    required this.goalSteps,
-    required this.progressColor,
-  });
+  const StepsProgressCard({super.key, required this.steps, required this.goal});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final userId = ref.watch(firebaseAuthProvider).currentUser?.uid;
-    return GlassmorphicContainer(
-      color: AppTheme.colors['deepOrange']!,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  '$steps of $goalSteps steps walked',
-                  style: GoogleFonts.roboto(
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.colors['primaryText']!.withOpacity(0.8),
-                  ),
-                ),
-              ),
-              IconButton(
-                icon: Icon(Icons.edit, size: 18.sp, color: AppTheme.colors['onSurface']),
-                onPressed: userId != null
-                    ? () {
-                        final controller = TextEditingController(
-                          text: ref.read(stepsGoalInitialValueProvider(userId)),
-                        );
-                        showDialog(
-                          context: context,
-                          builder: (context) => StepsGoalDialog(
-                            userId: userId,
-                            controller: controller,
-                          ),
-                        );
-                      }
-                    : null,
-                tooltip: 'Set Steps Goal',
-              ),
-            ],
-          ),
-          SizedBox(height: 8.h),
-          TweenAnimationBuilder(
-            tween: ColorTween(begin: AppTheme.colors['gray'], end: progressColor),
-            duration: const Duration(milliseconds: 300),
-            builder: (context, color, child) => ClipRRect(
-              borderRadius: BorderRadius.circular(20.r),
-              child: LinearProgressIndicator(
-                value: goalSteps > 0 ? steps / goalSteps : 0.0,
-                color: color,
-                backgroundColor: AppTheme.colors['white']!.withOpacity(0.2),
-                minHeight: 8.h,
+  Widget build(BuildContext context) {
+    final progress = (steps / goal).clamp(0.0, 1.0);
+
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(FixedSizes.radius16(context)),
+      ),
+      elevation: 3,
+      margin: EdgeInsets.symmetric(
+        horizontal: FixedSizes.spacing(context),
+        vertical: FixedSizes.box8(context),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(FixedSizes.spacing(context)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Steps Progress',
+              style: GoogleFonts.roboto(
+                fontSize: FixedSizes.font16(context),
+                fontWeight: FontWeight.bold,
+                color: AppTheme.colors['onSurface'],
               ),
             ),
-          ),
-        ],
+            SizedBox(height: FixedSizes.box8(context)),
+            LinearProgressIndicator(
+              value: progress,
+              minHeight: FixedSizes.box12(context),
+              backgroundColor: AppTheme.colors['lightBackground'],
+              color: AppTheme.colors['teal'],
+            ),
+            SizedBox(height: FixedSizes.box8(context)),
+            Text(
+              '$steps / $goal steps',
+              style: GoogleFonts.roboto(
+                fontSize: FixedSizes.font14(context),
+                color: AppTheme.colors['onSurface']!.withOpacity(0.7),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

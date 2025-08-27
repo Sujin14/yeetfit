@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:yeetfit/shared/theme/theme.dart';
+import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class SleepChartShimmer extends StatelessWidget {
   const SleepChartShimmer({super.key});
@@ -12,11 +12,11 @@ class SleepChartShimmer extends StatelessWidget {
       baseColor: AppTheme.colors['gray']!.withOpacity(0.3),
       highlightColor: AppTheme.colors['gray']!.withOpacity(0.7),
       child: Container(
-        height: 220.h,
+        height: FixedSizes.box220(context),
         width: double.infinity,
         decoration: BoxDecoration(
           color: AppTheme.colors['white'],
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(FixedSizes.radius12(context)),
         ),
       ),
     );

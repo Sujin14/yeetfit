@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:glassmorphism/glassmorphism.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class PlanCardWidget extends StatelessWidget {
   final String title;
@@ -21,8 +21,8 @@ class PlanCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return GlassmorphicContainer(
       width: double.infinity,
-      height: 200.h,
-      borderRadius: 20.r,
+      height: FixedSizes.box200(context),
+      borderRadius: FixedSizes.borderRadius(context),
       blur: 20,
       alignment: Alignment.center,
       border: 1.5,
@@ -42,27 +42,31 @@ class PlanCardWidget extends StatelessWidget {
       ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(FixedSizes.borderRadius(context)),
         child: Padding(
-          padding: EdgeInsets.all(16.w),
+          padding: EdgeInsets.all(FixedSizes.box16(context)),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 48.sp, color: AppTheme.colors['primaryText']),
-              SizedBox(height: 8.h),
+              Icon(
+                icon,
+                size: FixedSizes.icon48(context),
+                color: AppTheme.colors['primaryText'],
+              ),
+              SizedBox(height: FixedSizes.box8(context)),
               Text(
                 title,
-                style: AppTheme.textStyles['title']!.copyWith(
+                style: AppTheme.textStyles['title']?.copyWith(
                   color: AppTheme.colors['primaryText'],
-                  fontSize: 20.sp,
+                  fontSize: FixedSizes.font20(context),
                 ),
               ),
-              SizedBox(height: 4.h),
+              SizedBox(height: FixedSizes.box4(context)),
               Text(
                 '$count plan${count == 1 ? '' : 's'}',
-                style: AppTheme.textStyles['body']!.copyWith(
+                style: AppTheme.textStyles['body']?.copyWith(
                   color: AppTheme.colors['secondaryText'],
-                  fontSize: 16.sp,
+                  fontSize: FixedSizes.font16(context),
                 ),
               ),
             ],

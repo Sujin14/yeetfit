@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:yeetfit/features/track_options/presentation/widgets/add_modal_widget.dart';
-
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class TrackOptionsModal extends StatelessWidget {
   const TrackOptionsModal({super.key});
@@ -16,7 +15,9 @@ class TrackOptionsModal extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           color: AppTheme.colors['navigationAccent'],
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(FixedSizes.radius24(context)),
+          ),
         ),
         child: const AddModalWidget(),
       ),

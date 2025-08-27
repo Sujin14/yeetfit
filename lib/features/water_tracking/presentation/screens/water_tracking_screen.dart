@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../widgets/water_action_button.dart';
 import '../widgets/water_app_bar.dart';
 import '../widgets/water_chart_section.dart';
@@ -24,10 +24,7 @@ class WaterTrackingScreen extends ConsumerWidget {
       );
     }
 
-    ref.listen(waterTrackingNavigationProvider(userId), (
-      previous,
-      hasNavigated,
-    ) {
+    ref.listen(waterTrackingNavigationProvider(userId), (previous, hasNavigated) {
       if (hasNavigated) {
         final goalGlasses = ref.read(waterGoalProvider(userId)).value ?? 8;
         context.goNamed(
@@ -45,32 +42,29 @@ class WaterTrackingScreen extends ConsumerWidget {
       backgroundColor: AppTheme.colors['lightBackground'],
       appBar: const WaterAppBar(),
       body: ListView(
-        padding: EdgeInsets.all(16.w),
+        padding: EdgeInsets.all(FixedSizes.box16(context)),
         children: [
           SizedBox(
-            height: 150.h,
+            height: FixedSizes.box150(context),
             child: Lottie.asset(
               'assets/animations/water.json',
               fit: BoxFit.contain,
             ),
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: FixedSizes.box16(context)),
           const WaterProgressCard(),
-          SizedBox(height: 30.h),
-          WaterCircularIndicator(progress: progress), // ✅ fixed
-          SizedBox(height: 15.h),
+          SizedBox(height: FixedSizes.box30(context)),
+          WaterCircularIndicator(progress: progress),
+          SizedBox(height: FixedSizes.box14(context)),
           WaterActionButtons(
-            onAdd: () =>
-                ref.read(glassesConsumedProvider(userId).notifier).addGlass(),
-            onRemove: () => ref
-                .read(glassesConsumedProvider(userId).notifier)
-                .removeGlass(),
+            onAdd: () => ref.read(glassesConsumedProvider(userId).notifier).addGlass(),
+            onRemove: () => ref.read(glassesConsumedProvider(userId).notifier).removeGlass(),
           ),
-          SizedBox(height: 30.h),
+          SizedBox(height: FixedSizes.box30(context)),
           const WaterTipCard(),
-          SizedBox(height: 30.h),
+          SizedBox(height: FixedSizes.box30(context)),
           WaterChartSection(userId: userId),
-          SizedBox(height: 50.h),
+          SizedBox(height: FixedSizes.box50(context)),
         ],
       ),
     );

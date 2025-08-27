@@ -1,10 +1,9 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../providers/weight_provider.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
+import '../providers/weight_provider.dart';
 
 class WeightEntryDialog extends ConsumerStatefulWidget {
   final String userId;
@@ -21,14 +20,7 @@ class _WeightEntryDialogState extends ConsumerState<WeightEntryDialog> {
   @override
   void initState() {
     super.initState();
-    print(
-      'WeightEntryDialog: Initializing for userId=${widget.userId}, authUid=${FirebaseAuth.instance.currentUser?.uid}',
-    );
-    final currentWeight =
-        ref.read(currentWeightProvider(widget.userId)).value ?? 75.0;
-    print(
-      'WeightEntryDialog: Initial currentWeight=$currentWeight for userId=${widget.userId}',
-    );
+    final currentWeight = ref.read(currentWeightProvider(widget.userId)).value ?? 75.0;
     weightController.text = currentWeight.toStringAsFixed(1);
   }
 
@@ -41,26 +33,26 @@ class _WeightEntryDialogState extends ConsumerState<WeightEntryDialog> {
         'Enter Current Weight',
         style: GoogleFonts.roboto(
           fontWeight: FontWeight.bold,
-          fontSize: 18.sp,
+          fontSize: FixedSizes.font18(context),
           color: AppTheme.colors['onSurface'],
         ),
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(height: 16.h),
+          SizedBox(height: FixedSizes.box16(context)),
           SizedBox(
-            width: 250.w,
+            width: FixedSizes.box240(context),
             child: TextField(
               controller: weightController,
               decoration: InputDecoration(
                 labelText: 'Current Weight (kg)',
                 labelStyle: GoogleFonts.roboto(
                   color: AppTheme.colors['onSurface']!.withOpacity(0.7),
-                  fontSize: 14.sp,
+                  fontSize: FixedSizes.font14(context),
                 ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.r),
+                  borderRadius: BorderRadius.circular(FixedSizes.box10(context)),
                   borderSide: BorderSide(
                     color: AppTheme.colors['borderGradientStart']!,
                   ),
@@ -68,52 +60,34 @@ class _WeightEntryDialogState extends ConsumerState<WeightEntryDialog> {
                 filled: true,
                 fillColor: Colors.transparent,
               ),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
               style: GoogleFonts.roboto(
+                fontSize: FixedSizes.font16(context),
                 color: AppTheme.colors['onSurface'],
-                fontSize: 16.sp,
               ),
             ),
           ),
-          SizedBox(height: 10.h),
+          SizedBox(height: FixedSizes.box10(context)),
         ],
       ),
       actions: [
         TextButton(
-          onPressed: () {
-            print(
-              'WeightEntryDialog: Cancel pressed for userId=${widget.userId}',
-            );
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
           child: Text(
             'Cancel',
             style: GoogleFonts.roboto(
+              fontSize: FixedSizes.font14(context),
               color: AppTheme.colors['onSurface'],
-              fontSize: 14.sp,
             ),
           ),
         ),
         ElevatedButton(
           onPressed: () {
             final currentWeight = double.tryParse(weightController.text);
-            print(
-              'WeightEntryDialog: Save pressed for userId=${widget.userId}, currentWeight=$currentWeight',
-            );
             if (currentWeight != null && currentWeight > 0) {
-              ref
-                  .read(currentWeightProvider(widget.userId).notifier)
-                  .updateWeight(currentWeight);
-              print(
-                'WeightEntryDialog: Saving currentWeight for userId=${widget.userId}',
-              );
+              ref.read(currentWeightProvider(widget.userId).notifier).updateWeight(currentWeight);
               Navigator.pop(context);
             } else {
-              print(
-                'WeightEntryDialog: Invalid weight for userId=${widget.userId}',
-              );
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Please enter a valid weight')),
               );
@@ -125,8 +99,8 @@ class _WeightEntryDialogState extends ConsumerState<WeightEntryDialog> {
           child: Text(
             'Save',
             style: GoogleFonts.roboto(
+              fontSize: FixedSizes.font14(context),
               color: AppTheme.colors['onSurface'],
-              fontSize: 14.sp,
             ),
           ),
         ),
@@ -136,7 +110,6 @@ class _WeightEntryDialogState extends ConsumerState<WeightEntryDialog> {
 
   @override
   void dispose() {
-    print('WeightEntryDialog: Disposing for userId=${widget.userId}');
     weightController.dispose();
     super.dispose();
   }

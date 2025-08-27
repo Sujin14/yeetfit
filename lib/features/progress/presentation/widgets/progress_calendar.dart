@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_heatmap_calendar/flutter_heatmap_calendar.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class ProgressCalendar extends StatelessWidget {
   final Map<DateTime, int> dataset;
@@ -13,10 +14,6 @@ class ProgressCalendar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (dataset.isNotEmpty) {
-      final sample = dataset.entries.take(8).map((e) => '${e.key.toIso8601String().substring(0,10)}:${e.value}').join(', ');
-    }
-
     if (dataset.isEmpty) {
       return const Center(child: Text("No data available"));
     }
@@ -29,20 +26,18 @@ class ProgressCalendar extends StatelessWidget {
     final hasNonZero = normalizedDataset.values.any((v) => v > 0);
     final safeDataset = hasNonZero ? normalizedDataset : {DateTime.now(): 1};
 
-
     return HeatMapCalendar(
       datasets: safeDataset,
       colorMode: ColorMode.opacity,
       colorsets: {1: baseColor},
       showColorTip: true,
-      monthFontSize: 16,
-      weekFontSize: 12,
+      monthFontSize: FixedSizes.font16(context),
+      weekFontSize: FixedSizes.font12(context),
       textColor: Colors.black,
       defaultColor: Colors.grey[200]!,
-      size: 32,
-      margin: const EdgeInsets.all(4),
-      onClick: (date) {
-      },
+      size: FixedSizes.box32(context),
+      margin: EdgeInsets.all(FixedSizes.box4(context)),
+      onClick: (date) {},
     );
   }
 }

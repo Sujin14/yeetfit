@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../../domain/validators/payment_validators.dart';
 
 class PaymentForm extends StatelessWidget {
@@ -28,62 +28,80 @@ class PaymentForm extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(height: 16.h),
+          SizedBox(height: FixedSizes.box16(context)),
           TextFormField(
             controller: nameController,
             decoration: InputDecoration(
               labelText: 'Name',
-              labelStyle: TextStyle(color: AppTheme.colors['']),
-              border: const OutlineInputBorder(),
+              labelStyle: TextStyle(
+                color: AppTheme.colors['primaryText']?.withOpacity(0.7),
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(FixedSizes.radius12(context)),
+              ),
             ),
             style: TextStyle(
-              color: AppTheme.colors['primaryText']!.withOpacity(0.7),
+              color: AppTheme.colors['primaryText']?.withOpacity(0.7),
+              fontSize: FixedSizes.font16(context),
             ),
             validator: PaymentValidators.validateName,
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: FixedSizes.box12(context)),
           TextFormField(
             controller: emailController,
             decoration: InputDecoration(
               labelText: 'Email',
               labelStyle: TextStyle(
-                color: AppTheme.colors['primaryText']!.withOpacity(0.7),
+                color: AppTheme.colors['primaryText']?.withOpacity(0.7),
               ),
-              border: const OutlineInputBorder(),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(FixedSizes.radius12(context)),
+              ),
             ),
             style: TextStyle(
-              color: AppTheme.colors['primaryText']!.withOpacity(0.7),
+              color: AppTheme.colors['primaryText']?.withOpacity(0.7),
+              fontSize: FixedSizes.font16(context),
             ),
             keyboardType: TextInputType.emailAddress,
             validator: PaymentValidators.validateEmail,
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: FixedSizes.box12(context)),
           TextFormField(
             controller: contactController,
             decoration: InputDecoration(
               labelText: 'Contact Number',
               labelStyle: TextStyle(
-                color: AppTheme.colors['primaryText']!.withOpacity(0.7),
+                color: AppTheme.colors['primaryText']?.withOpacity(0.7),
               ),
-              border: const OutlineInputBorder(),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(FixedSizes.radius12(context)),
+              ),
             ),
             style: TextStyle(
-              color: AppTheme.colors['primaryText']!.withOpacity(0.7),
+              color: AppTheme.colors['primaryText']?.withOpacity(0.7),
+              fontSize: FixedSizes.font16(context),
             ),
             keyboardType: TextInputType.phone,
             validator: PaymentValidators.validateContact,
           ),
-          SizedBox(height: 24.h),
+          SizedBox(height: FixedSizes.box24(context)),
           ElevatedButton(
             onPressed: isLoading ? null : onPayPressed,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.colors['primaryButton'] ?? Colors.blue,
-              padding: EdgeInsets.symmetric(horizontal: 32.w, vertical: 12.h),
+              padding: EdgeInsets.symmetric(
+                horizontal: FixedSizes.box32(context),
+                vertical: FixedSizes.box16(context),
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(FixedSizes.radius16(context)),
+              ),
             ),
             child: Text(
               isLoading ? 'Processing...' : 'Pay Now',
-              style: AppTheme.textStyles['title']!.copyWith(
-                color: AppTheme.colors['primaryText']!.withOpacity(0.7),
+              style: AppTheme.textStyles['title']?.copyWith(
+                color: AppTheme.colors['primaryText']?.withOpacity(0.7),
+                fontSize: FixedSizes.font16(context),
               ),
             ),
           ),

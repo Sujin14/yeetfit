@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class TermsAndConditionsBody extends StatelessWidget {
   const TermsAndConditionsBody({super.key});
@@ -8,25 +8,28 @@ class TermsAndConditionsBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
+      padding: EdgeInsets.symmetric(
+        horizontal: FixedSizes.box24(context),
+        vertical: FixedSizes.box24(context),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
             'Terms & Conditions',
             style: AppTheme.textStyles['subtitle']!.copyWith(
-              fontSize: 24.sp,
+              fontSize: FixedSizes.font24(context),
               color: AppTheme.colors['primaryText'],
             ),
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: FixedSizes.box16(context)),
           Text(
             'By using our app, you agree to the following terms and conditions:',
             style: AppTheme.textStyles['body']!.copyWith(
               color: AppTheme.colors['primaryText'],
             ),
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: FixedSizes.box16(context)),
           Text(
             '1. Usage\n'
             'You agree to use the app for personal, non-commercial purposes only.\n\n'

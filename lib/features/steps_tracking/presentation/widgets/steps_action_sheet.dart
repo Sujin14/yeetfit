@@ -1,69 +1,47 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../providers/steps_provider.dart';
 import '../../../../shared/theme/theme.dart';
-import 'steps_goal_dialogue.dart';
+import '../../../../utils/fixed_sizes.dart';
 
-class StepsActionSheet extends ConsumerWidget {
-  final String userId;
+class StepsActionSheet extends StatelessWidget {
+  final VoidCallback onSetGoal;
+  final VoidCallback onReset;
 
-  const StepsActionSheet({super.key, required this.userId});
+  const StepsActionSheet({
+    super.key,
+    required this.onSetGoal,
+    required this.onReset,
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isDesktop = ScreenUtil().screenWidth >= 600.w;
+  Widget build(BuildContext context) {
     return Container(
+      padding: EdgeInsets.all(FixedSizes.spacing(context)),
       decoration: BoxDecoration(
         color: AppTheme.colors['lightBackground'],
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(FixedSizes.radius24(context)),
+        ),
       ),
-      padding: EdgeInsets.all(16.w),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 40.w,
-            height: 4.h,
-            decoration: BoxDecoration(
-              color: AppTheme.colors['gray']!.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(2.r),
-            ),
-          ),
-          SizedBox(height: 16.h),
-          Text(
-            'Set Steps Goal',
-            style: GoogleFonts.roboto(
-              fontSize: isDesktop ? 18.sp : 20.sp,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.colors['primaryText'],
-            ),
-          ),
-          SizedBox(height: 16.h),
           ListTile(
-            leading: Icon(Icons.flag, color: AppTheme.colors['teal']),
+            leading: Icon(Icons.flag, size: FixedSizes.icon24(context)),
             title: Text(
-              'Set Steps Goal',
-              style: GoogleFonts.roboto(
-                fontSize: isDesktop ? 16.sp : 16.sp,
-                color: AppTheme.colors['primaryText'],
-              ),
+              'Set Daily Goal',
+              style: GoogleFonts.roboto(fontSize: FixedSizes.font16(context)),
             ),
-            onTap: () {
-              // Create the controller here and pass it to the dialog
-              final controller = TextEditingController(
-                text: ref.read(stepsGoalInitialValueProvider(userId)),
-              );
-              Navigator.pop(context);
-              showDialog(
-                context: context,
-                builder: (context) =>
-                    StepsGoalDialog(userId: userId, controller: controller),
-              );
-            },
+            onTap: onSetGoal,
           ),
-          SizedBox(height: 16.h),
+          ListTile(
+            leading: Icon(Icons.refresh, size: FixedSizes.icon24(context)),
+            title: Text(
+              'Reset Steps',
+              style: GoogleFonts.roboto(fontSize: FixedSizes.font16(context)),
+            ),
+            onTap: onReset,
+          ),
         ],
       ),
     );

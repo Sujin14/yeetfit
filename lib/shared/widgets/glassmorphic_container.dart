@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:ui';
 import '../theme/theme.dart';
 
@@ -20,20 +19,20 @@ class GlassmorphicContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(borderRadius.r),
+      borderRadius: BorderRadius.circular(borderRadius),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
           padding: padding,
           decoration: BoxDecoration(
             color: color.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(borderRadius.r),
+            borderRadius: BorderRadius.circular(borderRadius),
             border: Border.all(color: AppTheme.colors['borderGradientStart']!),
             boxShadow: [
               BoxShadow(
                 color: AppTheme.colors['darkBackground']!.withOpacity(0.1),
-                blurRadius: 10.r,
-                spreadRadius: 2.r,
+                blurRadius: 10,
+                spreadRadius: 2,
               ),
             ],
           ),

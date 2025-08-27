@@ -1,8 +1,9 @@
+// age_input.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../domain/validators/user_info_validators.dart';
 import '../providers/user_info_provider.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class AgeInput extends ConsumerStatefulWidget {
   final GlobalKey<FormState> formKey;
@@ -45,15 +46,18 @@ class _AgeInputState extends ConsumerState<AgeInput> {
         children: [
           Text(
             "What is your age?",
-            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
+            style: TextStyle(
+              fontSize: FixedSizes.font16(context),
+              fontWeight: FontWeight.w600,
+            ),
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: FixedSizes.spacing(context) / 2),
           TextFormField(
             controller: _ageController,
             decoration: InputDecoration(
               hintText: "Enter your age",
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.r),
+                borderRadius: BorderRadius.circular(12),
               ),
               filled: true,
               fillColor: Colors.grey[100],

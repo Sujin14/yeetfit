@@ -1,7 +1,9 @@
+// weekly_calorie_chart_screen.dart
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yeetfit/shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../widgets/calorie_chart_card.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -26,7 +28,7 @@ class WeeklyCalorieChartScreen extends ConsumerWidget {
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(FixedSizes.box16(context)),
         child: CalorieChartCard(userId: userId),
       ),
     );

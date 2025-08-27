@@ -1,11 +1,12 @@
+// calorie_chart_card.dart
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../../data/model/food_model.dart';
 import '../providers/food_provider.dart';
 import '../widgets/shimmer_card.dart';
@@ -20,25 +21,25 @@ class CalorieChartCard extends ConsumerWidget {
     final weeklyDataAsync = ref.watch(weeklyFoodDataProvider(userId));
 
     return SizedBox(
-      height: 350.h,
+      height: FixedSizes.box350(context),
       child: GlassmorphicContainer(
         color: AppTheme.colors['indigo']!,
-        padding: EdgeInsets.all(24.w),
+        padding: EdgeInsets.all(FixedSizes.box24(context)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
               'Calorie Intake (Last 7 Days)',
               style: GoogleFonts.roboto(
-                fontSize: 20.sp,
+                fontSize: FixedSizes.font20(context),
                 fontWeight: FontWeight.bold,
                 color: AppTheme.colors['primaryText']!.withOpacity(0.7),
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 24.h),
+            SizedBox(height: FixedSizes.box24(context)),
             SizedBox(
-              height: 220.h,
+              height: FixedSizes.box220(context),
               child: weeklyDataAsync.when(
                 data: (weeklyData) {
                   final maxGoal = weeklyData.values
@@ -92,27 +93,27 @@ class CalorieChartCard extends ConsumerWidget {
                           barRods: [
                             BarChartRodData(
                               toY: totalCalories,
-                              width: 20.w,
+                              width: FixedSizes.box20(context),
                               color: progressColor,
-                              borderRadius: BorderRadius.circular(16.r),
+                              borderRadius: BorderRadius.circular(FixedSizes.radius16(context)),
                             ),
                           ],
                         );
                       }),
                       titlesData: FlTitlesData(
                         bottomTitles: AxisTitles(
-                          axisNameSize: 24.h,
+                          axisNameSize: FixedSizes.box24(context),
                           sideTitles: SideTitles(
                             showTitles: true,
                             getTitlesWidget: (value, meta) {
                               final date = DateTime.now().subtract(Duration(days: 6 - value.toInt()));
                               final label = DateFormat('EEE').format(date); // Mon, Tue, etc.
                               return Padding(
-                                padding: EdgeInsets.only(top: 8.0.h),
+                                padding: EdgeInsets.only(top: FixedSizes.box8(context)),
                                 child: Text(
                                   label,
                                   style: GoogleFonts.roboto(
-                                    fontSize: 12.sp,
+                                    fontSize: FixedSizes.font12(context),
                                     color: AppTheme.colors['primaryText']!,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -125,21 +126,21 @@ class CalorieChartCard extends ConsumerWidget {
                           axisNameWidget: Text(
                             'Calories',
                             style: GoogleFonts.roboto(
-                              fontSize: 18.sp,
+                              fontSize: FixedSizes.font18(context),
                               fontWeight: FontWeight.bold,
                               color: AppTheme.colors['primaryText']!.withOpacity(0.7),
                             ),
                           ),
-                          axisNameSize: 28.h,
+                          axisNameSize: FixedSizes.box28(context),
                           sideTitles: SideTitles(
-                            reservedSize: 30.w,
+                            reservedSize: FixedSizes.box30(context),
                             showTitles: true,
                             interval: interval,
                             getTitlesWidget: (value, meta) {
                               return Text(
                                 value.toInt().toString(),
                                 style: GoogleFonts.roboto(
-                                  fontSize: 12.sp,
+                                  fontSize: FixedSizes.font12(context),
                                   color: AppTheme.colors['primaryText']!.withOpacity(0.7),
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -147,13 +148,13 @@ class CalorieChartCard extends ConsumerWidget {
                             },
                           ),
                         ),
-                        topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                        rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                       ),
                       barTouchData: BarTouchData(
                         enabled: true,
                         touchTooltipData: BarTouchTooltipData(
-                          tooltipPadding: EdgeInsets.all(8.w),
+                          tooltipPadding: EdgeInsets.all(FixedSizes.box8(context)),
                           getTooltipItem: (group, groupIndex, rod, rodIndex) {
                             return BarTooltipItem(
                               '${rod.toY.toStringAsFixed(0)} Cal',
@@ -169,11 +170,11 @@ class CalorieChartCard extends ConsumerWidget {
                     duration: const Duration(milliseconds: 800),
                   );
                 },
-                loading: () => ShimmerCard(isChart: true),
+                loading: () => const ShimmerCard(isChart: true),
                 error: (error, _) => Text(
                   'Error: $error',
                   style: GoogleFonts.roboto(
-                    fontSize: 14.sp,
+                    fontSize: FixedSizes.font14(context),
                     color: AppTheme.colors['white']!.withOpacity(0.7),
                   ),
                 ),

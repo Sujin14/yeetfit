@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../widgets/terms_and_conditions_body.dart';
 
 class TermsAndConditionsScreen extends StatelessWidget {
@@ -14,6 +15,7 @@ class TermsAndConditionsScreen extends StatelessWidget {
           'Terms & Conditions',
           style: AppTheme.textStyles['title']!.copyWith(
             color: AppTheme.colors['primaryText'],
+            fontSize: FixedSizes.font18(context),
           ),
         ),
         backgroundColor: AppTheme.colors['lightBackground'],

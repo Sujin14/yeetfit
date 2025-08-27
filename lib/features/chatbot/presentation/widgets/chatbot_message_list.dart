@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../../data/model/chatbot_message_model.dart';
 import '../providers/chatbot_provider.dart';
 
 class ChatbotMessageList extends ConsumerStatefulWidget {
   final String userId;
-
   const ChatbotMessageList({super.key, required this.userId});
 
   @override
@@ -67,7 +66,7 @@ class _ChatbotMessageListState extends ConsumerState<ChatbotMessageList> {
           if (lastDateLabel != dateLabel) {
             messageWidgets.add(
               Padding(
-                padding: EdgeInsets.symmetric(vertical: 8.h),
+                padding: EdgeInsets.symmetric(vertical: FixedSizes.box8(context)),
                 child: Center(
                   child: Text(
                     dateLabel,
@@ -88,14 +87,17 @@ class _ChatbotMessageListState extends ConsumerState<ChatbotMessageList> {
                   ? Alignment.centerRight
                   : Alignment.centerLeft,
               child: Container(
-                margin: EdgeInsets.symmetric(vertical: 4.h),
-                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                constraints: BoxConstraints(maxWidth: 300.w),
+                margin: EdgeInsets.symmetric(vertical: FixedSizes.box4(context)),
+                padding: EdgeInsets.symmetric(
+                  horizontal: FixedSizes.box16(context),
+                  vertical: FixedSizes.box12(context),
+                ),
+                constraints: BoxConstraints(maxWidth: FixedSizes.box150(context)),
                 decoration: BoxDecoration(
                   color: message.isUser
                       ? AppTheme.colors['primaryAccent']!.withOpacity(0.8)
                       : AppTheme.colors['navigationAccent']!.withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(16.r),
+                  borderRadius: BorderRadius.circular(FixedSizes.radius16(context)),
                 ),
                 child: Text(
                   message.text,
@@ -112,7 +114,10 @@ class _ChatbotMessageListState extends ConsumerState<ChatbotMessageList> {
 
         return ListView(
           controller: _scrollController,
-          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+          padding: EdgeInsets.symmetric(
+            horizontal: FixedSizes.box16(context),
+            vertical: FixedSizes.box8(context),
+          ),
           children: messageWidgets,
         );
       },

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-
 import '../../features/track_options/presentation/screens/track_option_modal.dart';
+import '../../utils/fixed_sizes.dart';
 import '../theme/theme.dart';
 import '../ui/bottom_nav_bar_ui.dart';
 
@@ -53,31 +52,32 @@ class _BottomNavBarState extends State<BottomNavBar> {
   }
 
   Widget _buildNavItem(
-  BuildContext context,
-  IconData icon,
-  int index, {
-  bool isProminent = false,
-}) {
-  final isSelected = widget.currentIndex == index;
+    BuildContext context,
+    IconData icon,
+    int index, {
+    bool isProminent = false,
+  }) {
+    final isSelected = widget.currentIndex == index;
 
-  return Expanded(
-    child: InkWell(
-      borderRadius: BorderRadius.circular(40.r),
-      onTap: () => _onItemTapped(context, index),
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 8.h),
-        child: Center(
-          child: Icon(
-            icon,
-            size: isProminent ? 32.sp : 28.sp,
-            color: isSelected
-                ? AppTheme.colors['navBarActive']!
-                : AppTheme.colors['navBarInactiveOpacity']!,
+    return Expanded(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(FixedSizes.box40(context)),
+        onTap: () => _onItemTapped(context, index),
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: FixedSizes.box8(context)),
+          child: Center(
+            child: Icon(
+              icon,
+              size: isProminent
+                  ? FixedSizes.box32(context)
+                  : FixedSizes.box28(context),
+              color: isSelected
+                  ? AppTheme.colors['navBarActive']!
+                  : AppTheme.colors['navBarInactiveOpacity']!,
+            ),
           ),
         ),
       ),
-    ),
-  );
-}
-
+    );
+  }
 }

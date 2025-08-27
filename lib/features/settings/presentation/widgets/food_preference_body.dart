@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../providers/settings_provider.dart';
+import 'package:go_router/go_router.dart';
 
 class FoodPreferencesBody extends ConsumerWidget {
   final GlobalKey<FormState> formKey;
@@ -38,7 +38,10 @@ class FoodPreferencesBody extends ConsumerWidget {
 
     return settingsState.when(
       data: (_) => SingleChildScrollView(
-        padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
+        padding: EdgeInsets.symmetric(
+          horizontal: FixedSizes.box24(context),
+          vertical: FixedSizes.box24(context),
+        ),
         child: Form(
           key: formKey,
           child: Column(
@@ -46,21 +49,21 @@ class FoodPreferencesBody extends ConsumerWidget {
             children: [
               Image.asset(
                 'assets/images/diet_image.jpeg',
-                height: 150.h,
+                height: FixedSizes.box150(context),
                 width: double.infinity,
                 fit: BoxFit.cover,
               ),
-              SizedBox(height: 16.h),
+              SizedBox(height: FixedSizes.box16(context)),
               Divider(color: AppTheme.colors['borderGradientStart']),
-              SizedBox(height: 16.h),
+              SizedBox(height: FixedSizes.box16(context)),
               Text(
                 'Diet Preference',
                 style: AppTheme.textStyles['subtitle']!.copyWith(
-                  fontSize: 18.sp,
+                  fontSize: FixedSizes.font18(context),
                   color: AppTheme.colors['primaryText'],
                 ),
               ),
-              SizedBox(height: 8.h),
+              SizedBox(height: FixedSizes.box8(context)),
               DropdownButtonFormField<String>(
                 value: dietPreference,
                 decoration: InputDecoration(
@@ -69,22 +72,27 @@ class FoodPreferencesBody extends ConsumerWidget {
                     color: AppTheme.colors['secondaryText'],
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.r),
+                    borderRadius: BorderRadius.circular(
+                      FixedSizes.radius8(context),
+                    ),
                   ),
                 ),
                 items: ['Vegetarian', 'Non-Vegetarian', 'Vegan']
-                    .map((diet) => DropdownMenuItem(value: diet, child: Text(diet)))
+                    .map(
+                      (diet) =>
+                          DropdownMenuItem(value: diet, child: Text(diet)),
+                    )
                     .toList(),
                 onChanged: onDietPreferenceChanged,
                 style: AppTheme.textStyles['body']!.copyWith(
                   color: AppTheme.colors['primaryText'],
                 ),
               ),
-              SizedBox(height: 16.h),
+              SizedBox(height: FixedSizes.box16(context)),
               Text(
                 'Any Allergies?',
                 style: AppTheme.textStyles['subtitle']!.copyWith(
-                  fontSize: 18.sp,
+                  fontSize: FixedSizes.font18(context),
                   color: AppTheme.colors['primaryText'],
                 ),
               ),
@@ -110,7 +118,9 @@ class FoodPreferencesBody extends ConsumerWidget {
                       color: AppTheme.colors['secondaryText'],
                     ),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.r),
+                      borderRadius: BorderRadius.circular(
+                        FixedSizes.radius8(context),
+                      ),
                     ),
                   ),
                   style: AppTheme.textStyles['body']!.copyWith(
@@ -118,13 +128,13 @@ class FoodPreferencesBody extends ConsumerWidget {
                   ),
                   onChanged: onOtherAllergyChanged,
                 ),
-              SizedBox(height: 16.h),
+              SizedBox(height: FixedSizes.box16(context)),
               Divider(color: AppTheme.colors['borderGradientStart']),
-              SizedBox(height: 16.h),
+              SizedBox(height: FixedSizes.box16(context)),
               Text(
                 'Preferred Cuisine',
                 style: AppTheme.textStyles['subtitle']!.copyWith(
-                  fontSize: 18.sp,
+                  fontSize: FixedSizes.font18(context),
                   color: AppTheme.colors['primaryText'],
                 ),
               ),
@@ -141,7 +151,7 @@ class FoodPreferencesBody extends ConsumerWidget {
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
-              SizedBox(height: 24.h),
+              SizedBox(height: FixedSizes.box24(context)),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -150,8 +160,12 @@ class FoodPreferencesBody extends ConsumerWidget {
                       onPressed: isSaving ? null : () => context.pop(),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.colors['error'],
-                        minimumSize: Size(150.w, 48.h),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                        minimumSize: Size.square(FixedSizes.buttonSize(context)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            FixedSizes.radius8(context),
+                          ),
+                        ),
                       ),
                       child: Text(
                         'Cancel',
@@ -162,28 +176,34 @@ class FoodPreferencesBody extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  SizedBox(width: 16.w),
+                  SizedBox(width: FixedSizes.box16(context)),
                   Expanded(
                     child: ElevatedButton(
                       onPressed: isSaving
                           ? null
-                          : () => ref.read(settingsControllerProvider.notifier).saveFoodPreferences(
-                                context: context,
-                                dietPreference: dietPreference,
-                                allergies: allergies,
-                                otherAllergy: otherAllergy,
-                                cuisines: cuisines,
-                                formKey: formKey,
-                              ),
+                          : () => ref
+                                .read(settingsControllerProvider.notifier)
+                                .saveFoodPreferences(
+                                  context: context,
+                                  dietPreference: dietPreference,
+                                  allergies: allergies,
+                                  otherAllergy: otherAllergy,
+                                  cuisines: cuisines,
+                                  formKey: formKey,
+                                ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.colors['primaryButton'],
-                        minimumSize: Size(150.w, 48.h),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                        minimumSize: Size.square(FixedSizes.buttonSize(context)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            FixedSizes.radius8(context),
+                          ),
+                        ),
                       ),
                       child: isSaving
                           ? SizedBox(
-                              width: 24.w,
-                              height: 24.h,
+                              width: FixedSizes.box24(context),
+                              height: FixedSizes.box24(context),
                               child: CircularProgressIndicator(
                                 color: AppTheme.colors['onSurfaceDark'],
                               ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class HelpBody extends StatelessWidget {
   const HelpBody({super.key});
@@ -8,33 +8,36 @@ class HelpBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
+      padding: EdgeInsets.symmetric(
+        horizontal: FixedSizes.box24(context),
+        vertical: FixedSizes.box24(context),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
             'Help & Support',
             style: AppTheme.textStyles['subtitle']!.copyWith(
-              fontSize: 24.sp,
+              fontSize: FixedSizes.font24(context),
               color: AppTheme.colors['primaryText'],
             ),
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: FixedSizes.box16(context)),
           Text(
             'Need assistance? Here are some common questions and answers to help you get started.',
             style: AppTheme.textStyles['body']!.copyWith(
               color: AppTheme.colors['primaryText'],
             ),
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: FixedSizes.box16(context)),
           Text(
             'FAQs',
             style: AppTheme.textStyles['subtitle']!.copyWith(
-              fontSize: 18.sp,
+              fontSize: FixedSizes.font18(context),
               color: AppTheme.colors['primaryText'],
             ),
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: FixedSizes.box8(context)),
           Text(
             'Q: How do I update my profile?\n'
             'A: Go to Settings > Account > Basic Information to update your profile details.\n\n'

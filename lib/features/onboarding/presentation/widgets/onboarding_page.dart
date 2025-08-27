@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/gradient_text.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class OnboardingPage extends StatelessWidget {
   final String imagePath, title, description;
@@ -24,13 +24,15 @@ class OnboardingPage extends StatelessWidget {
           builder: (context, constraints) {
             final maxHeight = constraints.maxHeight;
             final maxImageHeight = maxHeight * (kIsWeb ? 0.35 : 0.3);
-            final fontSize = (kIsWeb ? 80.sp : 70.sp).clamp(
-              30.0,
-              60.0,
-            );
+
+            // Heading font size
+            final fontSize = kIsWeb
+                ? FixedSizes.font40(context)
+                : FixedSizes.font35(context);
 
             return Column(
               children: [
+                // App name
                 Expanded(
                   flex: 2,
                   child: Center(
@@ -62,21 +64,34 @@ class OnboardingPage extends StatelessWidget {
                     ),
                   ),
                 ),
+
+                // Image
                 Expanded(
                   flex: 3,
                   child: Image.asset(
                     imagePath,
                     fit: BoxFit.contain,
-                    height: maxImageHeight.clamp(150.h, kIsWeb ? 350.h : 300.h),
+                    height: maxImageHeight.clamp(
+                      FixedSizes.box100(context) * 1.5,
+                      kIsWeb
+                          ? FixedSizes.box100(context) * 3.5
+                          : FixedSizes.box100(context) * 3,
+                    ),
                     width: constraints.maxWidth,
                   ),
                 ),
+
+                // Title + description
                 Expanded(
                   flex: 2,
                   child: Padding(
                     padding: EdgeInsets.symmetric(
-                      horizontal: kIsWeb ? 40.w : 32.w,
-                      vertical: kIsWeb ? 20.h : 16.h,
+                      horizontal: kIsWeb
+                          ? FixedSizes.spacing(context) * 3
+                          : FixedSizes.spacing(context) * 2.5,
+                      vertical: kIsWeb
+                          ? FixedSizes.spacing(context) * 1.5
+                          : FixedSizes.spacing(context),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,10 +101,9 @@ class OnboardingPage extends StatelessWidget {
                           text: title,
                           style: AppTheme.textStyles['heading']!.copyWith(
                             fontWeight: FontWeight.bold,
-                            fontSize: (kIsWeb ? 28.sp : 24.sp).clamp(
-                              20.0,
-                              28.0,
-                            ),
+                            fontSize: kIsWeb
+                                ? FixedSizes.font22(context)
+                                : FixedSizes.font18(context),
                           ),
                           gradient: LinearGradient(
                             colors: [
@@ -101,14 +115,13 @@ class OnboardingPage extends StatelessWidget {
                             end: Alignment.bottomRight,
                           ),
                         ),
-                        SizedBox(height: kIsWeb ? 12.h : 8.h),
+                        SizedBox(height: FixedSizes.spacing(context) / 1.5),
                         GradientText(
                           text: description,
                           style: AppTheme.textStyles['body']!.copyWith(
-                            fontSize: (kIsWeb ? 18.sp : 16.sp).clamp(
-                              14.0,
-                              18.0,
-                            ),
+                            fontSize: kIsWeb
+                                ? FixedSizes.font18(context)
+                                : FixedSizes.font16(context),
                           ),
                           gradient: LinearGradient(
                             colors: [

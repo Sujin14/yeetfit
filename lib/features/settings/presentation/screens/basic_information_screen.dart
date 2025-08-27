@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../utils/fixed_sizes.dart';
 import '../../../user_info/presentation/providers/user_info_provider.dart';
 import '../widgets/basic_information_body.dart';
 
@@ -60,6 +61,7 @@ class _BasicInformationScreenState
           'Basic Information',
           style: AppTheme.textStyles['title']!.copyWith(
             color: AppTheme.colors['primaryText'],
+            fontSize: FixedSizes.font18(context),
           ),
         ),
         backgroundColor: AppTheme.colors['lightBackground'],

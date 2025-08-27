@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class WaterCircularIndicator extends StatelessWidget {
   final double progress;
-
   const WaterCircularIndicator({super.key, required this.progress});
 
   @override
@@ -18,44 +16,44 @@ class WaterCircularIndicator extends StatelessWidget {
             alignment: Alignment.center,
             children: [
               Container(
-                width: 160.w,
-                height: 160.h,
+                width: FixedSizes.box150(context),
+                height: FixedSizes.box150(context),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: AppTheme.colors['transparent'],
                 ),
               ),
               SizedBox(
-                width: 160.w,
-                height: 160.h,
+                width: FixedSizes.box150(context),
+                height: FixedSizes.box150(context),
                 child: CircularProgressIndicator(
                   value: progress,
-                  strokeWidth: 20.w,
+                  strokeWidth: FixedSizes.box20(context),
                   backgroundColor: AppTheme.colors['white']?.withOpacity(0.5),
                   valueColor: AlwaysStoppedAnimation(AppTheme.colors['aquaBlue']),
                 ),
               ),
               GlassmorphicContainer(
                 color: AppTheme.colors['teal']!,
-                padding: EdgeInsets.all(0.w),
-                borderRadius: 40.r,
+                padding: EdgeInsets.all(0),
+                borderRadius: FixedSizes.radius50(context),
                 child: Container(
-                  width: 80.w,
-                  height: 80.h,
+                  width: FixedSizes.box80(context),
+                  height: FixedSizes.box80(context),
                   decoration: const BoxDecoration(shape: BoxShape.circle),
                   child: Icon(
                     Icons.water_drop_outlined,
-                    size: 40.sp,
+                    size: FixedSizes.icon40(context),
                     color: AppTheme.colors['aquaBlue'],
                   ),
                 ),
               ),
             ],
           ),
-          SizedBox(height: 20.h),
+          SizedBox(height: FixedSizes.box20(context)),
           Text(
             '1 Glass = 250 ml',
-            style: GoogleFonts.roboto(
+            style: TextStyle(
               color: AppTheme.colors['primaryText']?.withOpacity(0.7),
             ),
           ),

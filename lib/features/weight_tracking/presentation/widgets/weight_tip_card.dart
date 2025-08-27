@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
+import '../../../../utils/fixed_sizes.dart';
 
 class WeightTipCard extends StatelessWidget {
   const WeightTipCard({super.key});
@@ -10,25 +10,28 @@ class WeightTipCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GlassmorphicContainer(
-      color: AppTheme.colors['deepOrange']!,
-      padding: EdgeInsets.all(14.w),
+      color: AppTheme.colors['green']!,
+      padding: EdgeInsets.all(FixedSizes.box16(context)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Weight Loss Tip',
+            'Weight Management Tips',
             style: GoogleFonts.roboto(
+              fontSize: FixedSizes.font16(context),
               fontWeight: FontWeight.bold,
-              fontSize: 14.sp,
               color: AppTheme.colors['onSurface'],
             ),
           ),
-          SizedBox(height: 6.h),
+          SizedBox(height: FixedSizes.box8(context)),
           Text(
-            'Consistency is key! Track your weight weekly and focus on sustainable habits like balanced nutrition and regular exercise.',
+            '• Maintain a balanced diet.\n'
+            '• Exercise regularly.\n'
+            '• Track your weight consistently.\n'
+            '• Stay hydrated and sleep well.',
             style: GoogleFonts.roboto(
-              fontSize: 11.sp,
-              color: AppTheme.colors['onSurface']!.withOpacity(0.7),
+              fontSize: FixedSizes.font14(context),
+              color: AppTheme.colors['onSurface']!.withOpacity(0.8),
             ),
           ),
         ],
