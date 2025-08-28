@@ -24,14 +24,14 @@ class HelpCard extends StatelessWidget {
                     children: [
                       Text(
                         'Help',
-                        style: AppTheme.textStyles['subtitle']!.copyWith(
+                        style: AppTheme.textStyles['subheading']!.copyWith(
                           fontSize: 18.sp,
                           color: AppTheme.colors['primaryText'],
                         ),
                       ),
                       SizedBox(height: 8.h),
                       Text(
-                        'Get assistance and FAQs',
+                        'FAQs and support resources',
                         style: AppTheme.textStyles['body']!.copyWith(
                           fontSize: 14.sp,
                           color: AppTheme.colors['secondaryText'],
@@ -42,7 +42,7 @@ class HelpCard extends StatelessWidget {
                 ),
                 Icon(
                   Icons.arrow_forward_ios,
-                  color: AppTheme.colors['primaryText'],
+                  color: AppTheme.colors['primaryIcon'],
                   size: 16.sp,
                 ),
               ],

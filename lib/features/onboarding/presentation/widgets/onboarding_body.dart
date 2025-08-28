@@ -3,9 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:yeetfit/shared/theme/theme.dart';
-import '../providers/onboarding_controller.dart';
-import 'onboarding_page.dart';
+import '../../../../shared/theme/theme.dart';
+import '../providers/onboarding_provider.dart';
 
 class OnboardingBody extends ConsumerStatefulWidget {
   const OnboardingBody({super.key});
@@ -27,34 +26,16 @@ class _OnboardingBodyState extends ConsumerState<OnboardingBody> {
   Widget build(BuildContext context) {
     final controller = ref.watch(onboardingControllerProvider);
 
-    final pages = const [
-      OnboardingPage(
-        imagePath: 'assets/images/onboarding1.png',
-        title: 'Track Your Fitness',
-        description: 'Monitor calories, steps, sleep and water intake easily.',
-      ),
-      OnboardingPage(
-        imagePath: 'assets/images/onboarding2.png',
-        title: 'Custom Diet Plans',
-        description: 'Get AI-based diet plans tailored to your goals.',
-      ),
-      OnboardingPage(
-        imagePath: 'assets/images/onboarding3.png',
-        title: 'Stay Motivated',
-        description: 'Follow routines, track progress, and stay consistent.',
-      ),
-    ];
-
     return SafeArea(
       child: Stack(
         children: [
           PageView.builder(
             controller: controller.pageController,
-            itemCount: pages.length,
+            itemCount: controller.pages.length,
             onPageChanged: controller.onPageChanged,
-            itemBuilder: (_, index) => RepaintBoundary(child: pages[index]),
+            itemBuilder: (_, index) => RepaintBoundary(child: controller.pages[index]),
           ),
-          if (controller.currentPage < 2)
+          if (controller.currentPage < controller.pages.length - 1)
             Positioned(
               top: kIsWeb ? 30.h : 20.h,
               right: kIsWeb ? 30.w : 20.w,
@@ -62,7 +43,9 @@ class _OnboardingBodyState extends ConsumerState<OnboardingBody> {
                 onPressed: () => context.go('/welcome'),
                 child: Text(
                   "Skip",
-                  style: TextStyle(fontSize: (kIsWeb ? 18.sp : 16.sp).clamp(14.0, 18.0)),
+                  style: AppTheme.textStyles['bodyMedium']!.copyWith(
+                    color: AppTheme.colors['onSurface'],
+                  ),
                 ),
               ),
             ),
@@ -72,7 +55,7 @@ class _OnboardingBodyState extends ConsumerState<OnboardingBody> {
             right: 0,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(3, (index) {
+              children: List.generate(controller.pages.length, (index) {
                 final isActive = index == controller.currentPage;
                 return AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
@@ -92,15 +75,17 @@ class _OnboardingBodyState extends ConsumerState<OnboardingBody> {
             right: kIsWeb ? 30.w : 20.w,
             child: ElevatedButton(
               onPressed: () {
-                if (controller.currentPage < 2) {
+                if (controller.currentPage < controller.pages.length - 1) {
                   controller.nextPage();
                 } else {
                   context.go('/welcome');
                 }
               },
               child: Text(
-                controller.currentPage < 2 ? 'Next' : 'Get Started',
-                style: TextStyle(fontSize: (kIsWeb ? 18.sp : 16.sp).clamp(14.0, 18.0)),
+                controller.currentPage < controller.pages.length - 1 ? 'Next' : 'Get Started',
+                style: AppTheme.textStyles['bodyMedium']!.copyWith(
+                  color: AppTheme.colors['onSurface'],
+                ),
               ),
             ),
           ),

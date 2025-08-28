@@ -6,6 +6,7 @@ import '../providers/progress_provider.dart';
 
 class ProgressHeader extends ConsumerWidget {
   final ValueChanged<String?> onMetricChanged;
+
   const ProgressHeader({super.key, required this.onMetricChanged});
 
   @override
@@ -16,8 +17,9 @@ class ProgressHeader extends ConsumerWidget {
     return Container(
       padding: EdgeInsets.all(isDesktop ? 20.w : 16.w),
       decoration: BoxDecoration(
-        color: AppTheme.colors['indigo']!,
+        color: AppTheme.colors['cardBackground'],
         borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: AppTheme.colors['borderGradientStart']!),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -25,20 +27,20 @@ class ProgressHeader extends ConsumerWidget {
           Text(
             'Progress Heatmap',
             style: AppTheme.textStyles['title']!.copyWith(
-              fontSize: 20.sp,
               color: AppTheme.colors['primaryText'],
+              fontSize: 20.sp,
             ),
           ),
           DropdownButton<String>(
             value: selected,
-            dropdownColor: AppTheme.colors['indigo']!.withOpacity(0.5),
+            dropdownColor: AppTheme.colors['cardBackground']!.withOpacity(0.9),
             style: AppTheme.textStyles['body']!.copyWith(
               color: AppTheme.colors['primaryText'],
               fontSize: isDesktop ? 16.sp : 14.sp,
             ),
             icon: Icon(
               Icons.arrow_drop_down,
-              color: AppTheme.colors['primaryText'],
+              color: AppTheme.colors['primaryIcon'],
             ),
             underline: const SizedBox(),
             onChanged: (value) {
@@ -46,16 +48,67 @@ class ProgressHeader extends ConsumerWidget {
               ref.read(selectedMetricProvider.notifier).state = v;
               onMetricChanged(value);
             },
-            items: const [
+            items: [
               DropdownMenuItem(
                 value: 'All Metrics',
-                child: Text('All Metrics'),
+                child: Text(
+                  'All Metrics',
+                  style: AppTheme.textStyles['body']!.copyWith(
+                    color: AppTheme.colors['primaryText'],
+                    fontSize: isDesktop ? 16.sp : 14.sp,
+                  ),
+                ),
               ),
-              DropdownMenuItem(value: 'food', child: Text('Meal Tracking')),
-              DropdownMenuItem(value: 'sleep', child: Text('Sleep')),
-              DropdownMenuItem(value: 'steps', child: Text('Steps')),
-              DropdownMenuItem(value: 'water', child: Text('Water')),
-              DropdownMenuItem(value: 'weight', child: Text('Weight')),
+              DropdownMenuItem(
+                value: 'food',
+                child: Text(
+                  'Meal Tracking',
+                  style: AppTheme.textStyles['body']!.copyWith(
+                    color: AppTheme.colors['primaryText'],
+                    fontSize: isDesktop ? 16.sp : 14.sp,
+                  ),
+                ),
+              ),
+              DropdownMenuItem(
+                value: 'sleep',
+                child: Text(
+                  'Sleep',
+                  style: AppTheme.textStyles['body']!.copyWith(
+                    color: AppTheme.colors['primaryText'],
+                    fontSize: isDesktop ? 16.sp : 14.sp,
+                  ),
+                ),
+              ),
+              DropdownMenuItem(
+                value: 'steps',
+                child: Text(
+                  'Steps',
+                  style: AppTheme.textStyles['body']!.copyWith(
+                    color: AppTheme.colors['primaryText'],
+                    fontSize: isDesktop ? 16.sp : 14.sp,
+                  ),
+                ),
+              ),
+              DropdownMenuItem(
+                value: 'water',
+                child: Text(
+                  'Water',
+                  style: AppTheme.textStyles['body']!.copyWith(
+                    color: AppTheme.colors['primaryText'],
+                    fontSize: isDesktop ? 16.sp : 14.sp,
+                  ),
+                ),
+              ),
+              DropdownMenuItem(
+                value: 'weight',
+                child: Text(
+                  'Weight',
+                  style: AppTheme.textStyles['body']!.copyWith(
+                    color: AppTheme.colors['primaryText'],
+                    fontSize: isDesktop ? 16.sp : 14.sp,
+                  ),
+                ),
+              ),
             ],
           ),
         ],

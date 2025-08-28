@@ -42,7 +42,7 @@ class ContactUsCard extends StatelessWidget {
                 ),
                 Icon(
                   Icons.arrow_forward_ios,
-                  color: AppTheme.colors['primaryText'],
+                  color: AppTheme.colors['primaryIcon'],
                   size: 16.sp,
                 ),
               ],

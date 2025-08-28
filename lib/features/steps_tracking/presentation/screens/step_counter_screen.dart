@@ -1,21 +1,15 @@
-
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../shared/theme/theme.dart';
 import '../providers/steps_provider.dart';
 import '../widgets/steps_action_button.dart';
-import '../widgets/steps_animation.dart';
-import '../widgets/steps_app_bar.dart';
 import '../widgets/steps_action_sheet.dart';
-import '../widgets/steps_calorie_card_container.dart';
-import '../widgets/steps_chart_card.dart';
-import '../widgets/steps_progress_card_container.dart';
-import '../widgets/steps_tip_card.dart';
-import '../widgets/steps_tracking_toggle.dart';
+import '../widgets/steps_app_bar.dart';
+import '../widgets/steps_body.dart';
 
 class StepCounterScreen extends ConsumerStatefulWidget {
   const StepCounterScreen({super.key});
@@ -26,8 +20,7 @@ class StepCounterScreen extends ConsumerStatefulWidget {
 
 class _StepCounterScreenState extends ConsumerState<StepCounterScreen> {
   bool _usePedometer = true; // Initialize pedometer as active by default
-  bool _hasNavigated = false; // Flag to prevent multiple navigations
-
+  bool _hasNavigated = false;
   @override
   Widget build(BuildContext context) {
     final userId = ref.watch(firebaseAuthProvider).currentUser?.uid;
@@ -36,75 +29,51 @@ class _StepCounterScreenState extends ConsumerState<StepCounterScreen> {
         body: Center(
           child: Text(
             'Please log in to track steps',
-            style: TextStyle(color: AppTheme.colors['primaryText']),
+            style: AppTheme.textStyles['body']!.copyWith(
+              color: AppTheme.colors['error'],
+              fontSize: 16.sp,
+            ),
           ),
         ),
       );
     }
 
-    final today = DateTime.now().toIso8601String().split('T')[0];
-    final isDesktop = ScreenUtil().screenWidth >= 600.w;
+    // Listen to stepsCountProvider to detect goal achievement
+    ref.listen(stepsCountProvider(userId), (previous, next) {
+      next.whenData((steps) {
+        final goalAsync = ref.watch(stepsGoalProvider(userId));
+        goalAsync.whenData((goalSteps) {
+          if (steps >= goalSteps && !_hasNavigated) {
+            if (kDebugMode) {
+              print('StepCounterScreen: Goal steps achieved for userId=$userId, navigating to StepsSuccessPage');
+            }
+            _hasNavigated = true; // Set flag to prevent multiple navigations
+            context.push('/steps-success/$goalSteps').then((_) {
+              // Reset flag when returning from StepsSuccessPage
+              if (mounted) {
+                setState(() {
+                  _hasNavigated = false;
+                });
+              }
+            });
+          }
+        });
+      });
+    });
 
     return Scaffold(
       appBar: const StepsAppBar(),
-      body: Consumer(
-        builder: (context, ref, child) {
-          // Listen to stepsCountProvider to detect goal achievement
-          ref.listen(stepsCountProvider(userId), (previous, next) {
-            next.whenData((steps) {
-              final goalAsync = ref.watch(stepsGoalProvider(userId));
-              goalAsync.whenData((goalSteps) {
-                if (steps >= goalSteps && !_hasNavigated) {
-                  if (kDebugMode) {
-                    print('StepCounterScreen: Goal steps achieved for userId=$userId, navigating to StepsSuccessPage');
-                  }
-                  _hasNavigated = true; // Set flag to prevent multiple navigations
-                  context.push('/steps-success/$goalSteps').then((_) {
-                    // Reset flag when returning from StepsSuccessPage
-                    if (mounted) {
-                      setState(() {
-                        _hasNavigated = false;
-                      });
-                    }
-                  });
-                }
-              });
-            });
+      body: StepsBody(
+        userId: userId,
+        isPedometerActive: _usePedometer,
+        onToggle: (value) {
+          setState(() {
+            _usePedometer = value;
+            ref.read(stepsCountProvider(userId).notifier).togglePedometer(value);
+            if (value) {
+              ref.invalidate(stepsCountProvider(userId));
+            }
           });
-
-          return RefreshIndicator(
-            onRefresh: () async => ref.invalidate(stepsCountProvider(userId)),
-            child: SingleChildScrollView(
-              padding: EdgeInsets.all(isDesktop ? 24.w : 16.w),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const StepsAnimation(),
-                  StepsTrackingModeToggle(
-                    isPedometerActive: _usePedometer,
-                    onToggle: (value) {
-                      setState(() {
-                        _usePedometer = value;
-                        ref.read(stepsCountProvider(userId).notifier).togglePedometer(value);
-                        if (value) {
-                          ref.invalidate(stepsCountProvider(userId));
-                        }
-                      });
-                    },
-                  ),
-                  SizedBox(height: 16.h),
-                  StepsProgressCardContainer(userId: userId, today: today),
-                  SizedBox(height: 18.h),
-                  StepsCaloriesCardContainer(userId: userId),
-                  SizedBox(height: 18.h),
-                  const StepsTipCard(),
-                  SizedBox(height: 18.h),
-                  StepsChartSection(userId: userId),
-                  SizedBox(height: 60.h),
-                ],
-              ),
-            ),
-          );
         },
       ),
       floatingActionButton: StepsActionButton(

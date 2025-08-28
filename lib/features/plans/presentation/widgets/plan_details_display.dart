@@ -24,12 +24,10 @@ class PlanDetailsDisplay extends StatelessWidget {
             plan.details['description'].isNotEmpty) ...[
           Text(
             'Description: ${plan.details['description']}',
-            style:
-                AppTheme.textStyles['body']?.copyWith(
-                  color: AppTheme.colors['primaryText'] ?? Colors.black,
-                  fontSize: 16.sp,
-                ) ??
-                TextStyle(fontSize: 16.sp, color: Colors.black),
+            style: AppTheme.textStyles['body']!.copyWith(
+              color: AppTheme.colors['primaryText'],
+              fontSize: 16.sp,
+            ),
           ),
           SizedBox(height: 16.h),
         ],

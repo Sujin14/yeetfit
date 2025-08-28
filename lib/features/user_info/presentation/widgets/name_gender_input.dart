@@ -34,7 +34,9 @@ class _NameGenderInputState extends ConsumerState<NameGenderInput> {
   void initState() {
     super.initState();
     final userInfo = ref.read(userInfoControllerProvider);
-    gender = userInfo.value?.gender.isNotEmpty ?? false ? userInfo.value!.gender : null;
+    gender = userInfo.value?.gender.isNotEmpty ?? false
+        ? userInfo.value!.gender
+        : null;
     _nameController = TextEditingController(text: userInfo.value?.name ?? '');
   }
 
@@ -143,16 +145,24 @@ class _NameGenderInputState extends ConsumerState<NameGenderInput> {
                       backgroundImage: _image != null
                           ? FileImage(File(_image!.path))
                           : userInfo.value?.profileImageUrl != null
-                              ? NetworkImage(userInfo.value!.profileImageUrl!)
-                              : null,
-                      child: _image == null && userInfo.value?.profileImageUrl == null
-                          ? Icon(Icons.add_a_photo, size: 35.sp, color: Colors.grey[600])
+                          ? NetworkImage(userInfo.value!.profileImageUrl!)
+                          : null,
+                      child:
+                          _image == null &&
+                              userInfo.value?.profileImageUrl == null
+                          ? Icon(
+                              Icons.add_a_photo,
+                              size: 35.sp,
+                              color: Colors.grey[600],
+                            )
                           : null,
                     ),
                   ),
                   if (_isUploading)
                     CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Theme.of(context).primaryColor,
+                      ),
                     ),
                 ],
               ),
@@ -227,7 +237,9 @@ class _NameGenderInputState extends ConsumerState<NameGenderInput> {
                 enabled: false,
                 initialValue: gender ?? userInfo.value?.gender ?? '',
                 validator: (value) {
-                  final error = UserInfoValidators.validateGender(gender ?? userInfo.value?.gender);
+                  final error = UserInfoValidators.validateGender(
+                    gender ?? userInfo.value?.gender,
+                  );
                   setState(() {
                     _genderError = error;
                   });
@@ -245,7 +257,10 @@ class _NameGenderInputState extends ConsumerState<NameGenderInput> {
                 padding: EdgeInsets.only(top: 8.h),
                 child: Text(
                   _genderError!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 12.sp),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.error,
+                    fontSize: 12.sp,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ),

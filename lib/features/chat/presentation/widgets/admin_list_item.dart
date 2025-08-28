@@ -3,22 +3,17 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../data/model/admin_model.dart';
-import '../controllers/admin_controller.dart';
 
 class AdminListItem extends StatelessWidget {
   final AdminModel admin;
-  final AdminController controller;
+  final VoidCallback onTap;
 
-  const AdminListItem({
-    super.key,
-    required this.admin,
-    required this.controller,
-  });
+  const AdminListItem({super.key, required this.admin, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () => controller.selectAdmin(context, admin.id),
+      onTap: onTap,
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
         margin: EdgeInsets.symmetric(vertical: 4.h),
@@ -39,7 +34,7 @@ class AdminListItem extends StatelessWidget {
             SizedBox(width: 12.w),
             Text(
               admin.name,
-              style: AppTheme.textStyles['bodyLarge']?.copyWith(
+              style: AppTheme.textStyles['bodyMedium']?.copyWith(
                 color: AppTheme.colors['onSurface'],
               ),
             ),

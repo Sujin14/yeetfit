@@ -10,9 +10,13 @@ class StepsActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FloatingActionButton(
-      backgroundColor: AppTheme.colors['indigo']!.withOpacity(0.3),
+      backgroundColor: AppTheme.colors['primaryButton']!.withOpacity(0.8),
       onPressed: onPressed,
-      child: Icon(Icons.add, size: 22.sp, color: AppTheme.colors['onSurface']),
+      child: Icon(
+        Icons.add,
+        size: 22.sp,
+        color: AppTheme.colors['onSurfaceDark'],
+      ),
     );
   }
 }

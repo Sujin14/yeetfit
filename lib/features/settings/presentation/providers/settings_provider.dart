@@ -2,9 +2,9 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../user_info/data/datasources/firestore_user_service.dart';
 import '../../../user_info/data/models/user_info_model.dart';
@@ -13,7 +13,6 @@ import '../../../user_info/domain/usecases/save_user_info.dart';
 import '../../../user_info/domain/validators/user_info_validators.dart';
 import '../../../user_info/presentation/providers/user_info_provider.dart';
 import '../../../weight_tracking/presentation/providers/weight_provider.dart';
-
 
 final settingsControllerProvider = StateNotifierProvider<SettingsController, AsyncValue<void>>((ref) {
   final repository = UserRepositoryImpl(userService: FirestoreUserService());
@@ -30,110 +29,107 @@ class SettingsController extends StateNotifier<AsyncValue<void>> {
   bool get isSaving => _isSaving;
 
   Future<bool> saveBasicInformation({
-  required BuildContext context,
-  required String name,
-  required String gender,
-  required String age,
-  required String height,
-  required String currentWeight,
-  required String activityLevel,
-  required GlobalKey<FormState> formKey,
-}) async {
-  if (_isSaving) return false;
-  _isSaving = true;
-  state = const AsyncValue.loading();
-  try {
-    formKey.currentState?.save();
-    if (!formKey.currentState!.validate()) {
-      throw Exception('Invalid input');
-    }
+    required BuildContext context,
+    required String name,
+    required String gender,
+    required String age,
+    required String height,
+    required String currentWeight,
+    required String activityLevel,
+    required GlobalKey<FormState> formKey,
+  }) async {
+    if (_isSaving) return false;
+    _isSaving = true;
+    state = const AsyncValue.loading();
+    try {
+      formKey.currentState?.save();
+      if (!formKey.currentState!.validate()) {
+        throw Exception('Invalid input');
+      }
 
-    final parsedAge = int.tryParse(age);
-    final parsedHeight = double.tryParse(height);
-    final parsedCurrentWeight = double.tryParse(currentWeight);
+      final parsedAge = int.tryParse(age);
+      final parsedHeight = double.tryParse(height);
+      final parsedCurrentWeight = double.tryParse(currentWeight);
 
-    final nameError = UserInfoValidators.validateName(name);
-    final genderError = UserInfoValidators.validateGender(gender);
-    final ageError = UserInfoValidators.validateAge(age);
-    final heightError = UserInfoValidators.validateHeight(height);
-    final currentWeightError = UserInfoValidators.validateWeight(currentWeight);
-    final activityLevelError = UserInfoValidators.validateActivityLevel(activityLevel);
+      final nameError = UserInfoValidators.validateName(name);
+      final genderError = UserInfoValidators.validateGender(gender);
+      final ageError = UserInfoValidators.validateAge(age);
+      final heightError = UserInfoValidators.validateHeight(height);
+      final currentWeightError = UserInfoValidators.validateWeight(currentWeight);
+      final activityLevelError = UserInfoValidators.validateActivityLevel(activityLevel);
 
-    if (nameError != null ||
-        genderError != null ||
-        ageError != null ||
-        heightError != null ||
-        currentWeightError != null ||
-        activityLevelError != null ||
-        parsedAge == null ||
-        parsedHeight == null ||
-        parsedCurrentWeight == null) {
-      throw Exception('Invalid input: ${[
-        nameError,
-        genderError,
-        ageError,
-        heightError,
-        currentWeightError,
-        activityLevelError
-      ].where((e) => e != null).join(', ')}');
-    }
+      if (nameError != null ||
+          genderError != null ||
+          ageError != null ||
+          heightError != null ||
+          currentWeightError != null ||
+          activityLevelError != null ||
+          parsedAge == null ||
+          parsedHeight == null ||
+          parsedCurrentWeight == null) {
+        throw Exception('Invalid input: ${[
+          nameError,
+          genderError,
+          ageError,
+          heightError,
+          currentWeightError,
+          activityLevelError
+        ].where((e) => e != null).join(', ')}');
+      }
 
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) {
-      throw Exception('User not authenticated');
-    }
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid == null) {
+        throw Exception('User not authenticated');
+      }
 
-    final userInfoController = ref.read(userInfoControllerProvider.notifier);
-    final currentUserInfo = ref.read(userInfoControllerProvider).value ?? UserInfoModel(uid: uid);
-    final updatedUserInfo = currentUserInfo.copyWith(
-      name: name.trim(),
-      gender: gender,
-      age: parsedAge,
-      height: parsedHeight,
-      currentWeight: parsedCurrentWeight,
-      activityLevel: activityLevel,
-      email: FirebaseAuth.instance.currentUser?.email,
-    );
+      final userInfoController = ref.read(userInfoControllerProvider.notifier);
+      final currentUserInfo = ref.read(userInfoControllerProvider).value ?? UserInfoModel(uid: uid);
+      final updatedUserInfo = currentUserInfo.copyWith(
+        name: name.trim(),
+        gender: gender,
+        age: parsedAge,
+        height: parsedHeight,
+        currentWeight: parsedCurrentWeight,
+        activityLevel: activityLevel,
+        email: FirebaseAuth.instance.currentUser?.email,
+      );
 
-    // Save user profile
-    await saveUserInfo(updatedUserInfo);
-    userInfoController.state = AsyncValue.data(updatedUserInfo);
+      await saveUserInfo(updatedUserInfo);
+      userInfoController.state = AsyncValue.data(updatedUserInfo);
 
-    await ref.read(weightRepositoryProvider)
-        .updateCurrentWeight(uid, parsedCurrentWeight);
+      await ref.read(weightRepositoryProvider).updateCurrentWeight(uid, parsedCurrentWeight);
 
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Basic information saved',
-            style: AppTheme.textStyles['body']!.copyWith(
-              color: AppTheme.colors['onSurfaceDark'],
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Basic information saved',
+              style: AppTheme.textStyles['body']!.copyWith(
+                color: AppTheme.colors['primaryText'],
+              ),
             ),
+            backgroundColor: AppTheme.colors['primaryButton'],
           ),
-          backgroundColor: AppTheme.colors['primaryButton'],
-        ),
-      );
-      context.go('/account');
+        );
+        context.go('/account');
+      }
+      state = const AsyncValue.data(null);
+      _isSaving = false;
+      return true;
+    } catch (e, stackTrace) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error saving basic information: $e'),
+            backgroundColor: AppTheme.colors['error'],
+          ),
+        );
+      }
+      state = AsyncValue.error(e, stackTrace);
+      _isSaving = false;
+      return false;
     }
-    state = const AsyncValue.data(null);
-    _isSaving = false;
-    return true;
-  } catch (e, stackTrace) {
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error saving basic information: $e'),
-          backgroundColor: AppTheme.colors['error'],
-        ),
-      );
-    }
-    state = AsyncValue.error(e, stackTrace);
-    _isSaving = false;
-    return false;
   }
-}
-
 
   Future<bool> saveFoodPreferences({
     required BuildContext context,
@@ -176,7 +172,7 @@ class SettingsController extends StateNotifier<AsyncValue<void>> {
             content: Text(
               'Food preferences saved',
               style: AppTheme.textStyles['body']!.copyWith(
-                color: AppTheme.colors['onSurfaceDark'],
+                color: AppTheme.colors['primaryText'],
               ),
             ),
             backgroundColor: AppTheme.colors['primaryButton'],
@@ -231,7 +227,7 @@ class SettingsController extends StateNotifier<AsyncValue<void>> {
             content: Text(
               'Fitness goal updated',
               style: AppTheme.textStyles['body']!.copyWith(
-                color: AppTheme.colors['onSurfaceDark'],
+                color: AppTheme.colors['primaryText'],
               ),
             ),
             backgroundColor: AppTheme.colors['primaryButton'],
@@ -289,7 +285,7 @@ class SettingsController extends StateNotifier<AsyncValue<void>> {
             content: Text(
               'Profile image updated',
               style: AppTheme.textStyles['body']!.copyWith(
-                color: AppTheme.colors['onSurfaceDark'],
+                color: AppTheme.colors['primaryText'],
               ),
             ),
             backgroundColor: AppTheme.colors['primaryButton'],
@@ -330,7 +326,7 @@ class SettingsController extends StateNotifier<AsyncValue<void>> {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          backgroundColor: AppTheme.colors['lightBackground'],
+          backgroundColor: AppTheme.colors['cardBackground'],
           title: Text('Delete Account', style: AppTheme.textStyles['title']),
           content: Text(
             'Are you sure you want to permanently delete your account? This action cannot be undone.',
@@ -364,7 +360,7 @@ class SettingsController extends StateNotifier<AsyncValue<void>> {
             content: Text(
               'Account deleted successfully',
               style: AppTheme.textStyles['body']!.copyWith(
-                color: AppTheme.colors['onSurfaceDark'],
+                color: AppTheme.colors['primaryText'],
               ),
             ),
             backgroundColor: AppTheme.colors['primaryButton'],
@@ -380,7 +376,7 @@ class SettingsController extends StateNotifier<AsyncValue<void>> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error deleting account: $e'),
-            backgroundColor: AppTheme.colors['error'] ,
+            backgroundColor: AppTheme.colors['error'],
           ),
         );
       }
@@ -398,7 +394,7 @@ class SettingsController extends StateNotifier<AsyncValue<void>> {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          backgroundColor: AppTheme.colors['lightBackground'],
+          backgroundColor: AppTheme.colors['cardBackground'],
           title: Text('Logout', style: AppTheme.textStyles['title']),
           content: Text(
             'Are you sure you want to log out?',
@@ -433,7 +429,7 @@ class SettingsController extends StateNotifier<AsyncValue<void>> {
             content: Text(
               'Logged out successfully',
               style: AppTheme.textStyles['body']!.copyWith(
-                color: AppTheme.colors['onSurfaceDark'],
+                color: AppTheme.colors['primaryText'],
               ),
             ),
             backgroundColor: AppTheme.colors['primaryButton'],

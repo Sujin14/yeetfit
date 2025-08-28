@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
-import '../../../../shared/theme/theme.dart';
+import '../../../../shared/widgets/custom_appbar.dart';
+import '../widgets/privacy_policy_body.dart';
 
 class PrivacyPolicyScreen extends StatelessWidget {
   const PrivacyPolicyScreen({super.key});
@@ -9,54 +8,13 @@ class PrivacyPolicyScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Privacy Policy',
-          style: AppTheme.textStyles['title']!.copyWith(color: AppTheme.colors['primaryText']),
-        ),
-        backgroundColor: AppTheme.colors['lightBackground'],
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppTheme.colors['primaryText']),
-          onPressed: () => context.pop(),
-        ),
+      appBar: CustomAppBar(
+        title: 'Privacy Policy',
+        showSettings: false,
+        onSettings: null,
+        showFavorite: false,
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'Privacy Policy',
-              style: AppTheme.textStyles['subtitle']!.copyWith(
-                fontSize: 24.sp,
-                color: AppTheme.colors['primaryText'],
-              ),
-            ),
-            SizedBox(height: 16.h),
-            Text(
-              'Your privacy is important to us. This policy explains how we collect, use, and protect your personal information.',
-              style: AppTheme.textStyles['body']!.copyWith(
-                color: AppTheme.colors['primaryText'],
-              ),
-            ),
-            SizedBox(height: 16.h),
-            Text(
-              '1. Data Collection\n'
-              'We collect personal information such as your name, email, and health data to provide personalized services.\n\n'
-              '2. Data Usage\n'
-              'Your data is used to track your progress, provide insights, and improve our services.\n\n'
-              '3. Data Protection\n'
-              'We implement security measures to protect your information from unauthorized access.\n\n'
-              '4. Data Sharing\n'
-              'We do not share your personal information with third parties without your consent, except as required by law.',
-              style: AppTheme.textStyles['body']!.copyWith(
-                color: AppTheme.colors['secondaryText'],
-              ),
-            ),
-          ],
-        ),
-      ),
+      body: const PrivacyPolicyBody(),
     );
   }
 }

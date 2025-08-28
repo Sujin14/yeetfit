@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../../../shared/theme/theme.dart';
+import '../../../../shared/widgets/custom_appbar.dart';
 import '../widgets/settings_body.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -10,19 +9,13 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Settings',
-          style: AppTheme.textStyles['title']!.copyWith(color: AppTheme.colors['primaryText']),
-        ),
-        backgroundColor: AppTheme.colors['lightBackground'],
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppTheme.colors['primaryText']),
-          onPressed: () => context.go('/user-dashboard'),
-        ),
+      appBar: CustomAppBar(
+        title: 'Settings',
+        showSettings: false,
+        onSettings: null,
+        showFavorite: false,
       ),
-      body: SettingsBody(),
+      body: const SettingsBody(),
     );
   }
 }

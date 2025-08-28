@@ -10,18 +10,16 @@ class WorkoutDetailsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final validExercises = exercises
-        .whereType<Map<String, dynamic>>()
-        .toList();
+    final validExercises = exercises.whereType<Map<String, dynamic>>().toList();
 
     if (validExercises.isEmpty) {
       return Center(
         child: Text(
           'No exercises available',
-          style: AppTheme.textStyles['body']?.copyWith(
+          style: AppTheme.textStyles['body']!.copyWith(
             color: AppTheme.colors['secondaryText'],
             fontSize: 16.sp,
-          ) ?? TextStyle(fontSize: 16.sp, color: AppTheme.colors['gray']),
+          ),
         ),
       );
     }
@@ -58,85 +56,57 @@ class WorkoutDetailsWidget extends StatelessWidget {
             children: [
               Text(
                 'Exercise ${index + 1}: $name',
-                style: AppTheme.textStyles['subheading']?.copyWith(
-                      color: AppTheme.colors['primaryText'],
-                      fontSize: 18.sp,
-                      fontWeight: FontWeight.w600,
-                    ) ??
-                    TextStyle(
-                      fontSize: 18.sp,
-                      color: AppTheme.colors['black'],
-                      fontWeight: FontWeight.w600,
-                    ),
+                style: AppTheme.textStyles['subheading']!.copyWith(
+                  color: AppTheme.colors['primaryText'],
+                  fontSize: 18.sp,
+                ),
               ),
               SizedBox(height: 8.h),
-
               Text(
                 'Reps: $reps $repsType',
-                style: AppTheme.textStyles['body']?.copyWith(
-                      color: AppTheme.colors['secondaryText'],
-                      fontSize: 14.sp,
-                    ) ??
-                    TextStyle(fontSize: 14.sp, color: AppTheme.colors['gray']),
+                style: AppTheme.textStyles['body']!.copyWith(
+                  color: AppTheme.colors['secondaryText'],
+                  fontSize: 14.sp,
+                ),
               ),
-
-              // Sets
               SizedBox(height: 8.h),
               Text(
                 'Sets: $sets',
-                style: AppTheme.textStyles['body']?.copyWith(
-                      color: AppTheme.colors['secondaryText'],
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w500,
-                    ) ??
-                    TextStyle(
-                      fontSize: 14.sp,
-                      color: AppTheme.colors['gray'],
-                      fontWeight: FontWeight.w500,
-                    ),
+                style: AppTheme.textStyles['body']!.copyWith(
+                  color: AppTheme.colors['secondaryText'],
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-
-              // Description
               if (description != null && description.isNotEmpty) ...[
                 SizedBox(height: 8.h),
                 Text(
                   'Description: $description',
-                  style: AppTheme.textStyles['body']?.copyWith(
-                        color:
-                            AppTheme.colors['secondaryText'],
-                        fontSize: 14.sp,
-                      ) ??
-                      TextStyle(fontSize: 14.sp, color: AppTheme.colors['gray']),
+                  style: AppTheme.textStyles['body']!.copyWith(
+                    color: AppTheme.colors['secondaryText'],
+                    fontSize: 14.sp,
+                  ),
                 ),
               ],
-
-              // Instructions
               if (instructions.isNotEmpty) ...[
                 SizedBox(height: 8.h),
                 Text(
                   'Instructions:',
-                  style: AppTheme.textStyles['body']?.copyWith(
-                        color:
-                            AppTheme.colors['secondaryText'],
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w500,
-                      ) ??
-                      TextStyle(
-                        fontSize: 14.sp,
-                        color: AppTheme.colors['gray'],
-                        fontWeight: FontWeight.w500,
-                      ),
+                  style: AppTheme.textStyles['body']!.copyWith(
+                    color: AppTheme.colors['secondaryText'],
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
                 ...instructions.map(
                   (text) => Padding(
                     padding: EdgeInsets.only(left: 16.w, top: 4.h),
                     child: Text(
                       '- $text',
-                      style: AppTheme.textStyles['body']?.copyWith(
-                            color: AppTheme.colors['secondaryText'],
-                            fontSize: 14.sp,
-                          ) ??
-                          TextStyle(fontSize: 14.sp, color: AppTheme.colors['gray']),
+                      style: AppTheme.textStyles['body']!.copyWith(
+                        color: AppTheme.colors['secondaryText'],
+                        fontSize: 14.sp,
+                      ),
                     ),
                   ),
                 ),

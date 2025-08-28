@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../providers/steps_provider.dart';
 import '../../../../shared/theme/theme.dart';
+import '../providers/steps_provider.dart';
 
 class StepsGoalDialog extends ConsumerStatefulWidget {
   final String userId;
@@ -22,7 +21,7 @@ class StepsGoalDialog extends ConsumerStatefulWidget {
 class _StepsGoalDialogState extends ConsumerState<StepsGoalDialog> {
   @override
   void dispose() {
-    widget.controller.dispose(); // Dispose of the controller when the dialog is closed
+    widget.controller.dispose();
     super.dispose();
   }
 
@@ -30,36 +29,32 @@ class _StepsGoalDialogState extends ConsumerState<StepsGoalDialog> {
   Widget build(BuildContext context) {
     final isDesktop = ScreenUtil().screenWidth >= 600.w;
     return AlertDialog(
-      backgroundColor: AppTheme.colors['lightBackground'],
-      contentPadding: EdgeInsets.zero,
+      backgroundColor: AppTheme.colors['cardBackground']!.withOpacity(0.4),
+      contentPadding: EdgeInsets.all(16.w),
       title: Text(
         'Set Steps Goal',
-        style: GoogleFonts.roboto(
-          fontWeight: FontWeight.bold,
+        style: AppTheme.textStyles['subheading']!.copyWith(
           fontSize: isDesktop ? 18.sp : 20.sp,
-          color: AppTheme.colors['primaryText']!.withOpacity(0.8),
+          color: AppTheme.colors['onSurfaceDark'],
         ),
       ),
-      content: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-        child: TextField(
-          controller: widget.controller,
-          decoration: InputDecoration(
-            hintText: 'Enter goal steps (e.g., 10000)',
-            hintStyle: GoogleFonts.roboto(
-              color: AppTheme.colors['primaryText']!.withOpacity(0.7),
-              fontSize: isDesktop ? 14.sp : 16.sp,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10.r),
-              borderSide: BorderSide(color: AppTheme.colors['primaryText']!.withOpacity(0.8)),
-            ),
-          ),
-          keyboardType: TextInputType.number,
-          style: GoogleFonts.roboto(
-            color: AppTheme.colors['primaryText']!.withOpacity(0.7),
+      content: TextField(
+        controller: widget.controller,
+        decoration: InputDecoration(
+          hintText: 'Enter goal steps (e.g., 10000)',
+          hintStyle: AppTheme.textStyles['body']!.copyWith(
+            color: AppTheme.colors['onSurfaceDark']!.withOpacity(0.7),
             fontSize: isDesktop ? 14.sp : 16.sp,
           ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10.r),
+            borderSide: BorderSide(color: AppTheme.colors['borderGradientStart']!),
+          ),
+        ),
+        keyboardType: TextInputType.number,
+        style: AppTheme.textStyles['body']!.copyWith(
+          color: AppTheme.colors['onSurfaceDark'],
+          fontSize: isDesktop ? 14.sp : 16.sp,
         ),
       ),
       actions: [
@@ -67,8 +62,8 @@ class _StepsGoalDialogState extends ConsumerState<StepsGoalDialog> {
           onPressed: () => Navigator.pop(context),
           child: Text(
             'Cancel',
-            style: GoogleFonts.roboto(
-              color: AppTheme.colors['primaryText']!.withOpacity(0.8),
+            style: AppTheme.textStyles['body']!.copyWith(
+              color: AppTheme.colors['error'],
               fontSize: isDesktop ? 14.sp : 16.sp,
             ),
           ),
@@ -79,19 +74,42 @@ class _StepsGoalDialogState extends ConsumerState<StepsGoalDialog> {
             if (newGoal != null && newGoal > 0) {
               ref.read(stepsGoalProvider(widget.userId).notifier).setGoal(newGoal);
               Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Steps goal updated',
+                    style: AppTheme.textStyles['body']!.copyWith(
+                      color: AppTheme.colors['primaryText'],
+                    ),
+                  ),
+                  backgroundColor: AppTheme.colors['cardBackground'],
+                ),
+              );
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Please enter a valid number')),
+                SnackBar(
+                  content: Text(
+                    'Please enter a valid number',
+                    style: AppTheme.textStyles['body']!.copyWith(
+                      color: AppTheme.colors['error'],
+                    ),
+                  ),
+                  backgroundColor: AppTheme.colors['cardBackground'],
+                ),
               );
             }
           },
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppTheme.colors['teal']!.withOpacity(0.3),
+            backgroundColor: AppTheme.colors['primaryButton'],
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8.r),
+            ),
           ),
           child: Text(
             'Save',
-            style: GoogleFonts.roboto(
-              color: AppTheme.colors['white'],
+            style: AppTheme.textStyles['body']!.copyWith(
+              color: AppTheme.colors['onSurfaceDark'],
+              fontWeight: FontWeight.w600,
               fontSize: isDesktop ? 14.sp : 16.sp,
             ),
           ),

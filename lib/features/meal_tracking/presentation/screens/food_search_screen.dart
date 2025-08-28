@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../shared/theme/theme.dart';
-import '../widgets/food_list.dart';
-import '../widgets/food_search_bar.dart';
+import '../widgets/food_search_screen_body.dart';
 import '../widgets/manual_add_button.dart';
 
 class FoodSearchScreen extends ConsumerWidget {
@@ -18,19 +17,10 @@ class FoodSearchScreen extends ConsumerWidget {
         elevation: 0,
         title: Text(
           'Search Food - $mealType',
-          style: TextStyle(color: AppTheme.colors['white']!),
+          style: TextStyle(color: AppTheme.colors['onSurface']),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          children: [
-            FoodSearchBar(mealType: mealType),
-            const SizedBox(height: 12),
-            FoodList(mealType: mealType),
-          ],
-        ),
-      ),
+      body: FoodSearchScreenBody(mealType: mealType),
       floatingActionButton: ManualAddButton(mealType: mealType),
     );
   }

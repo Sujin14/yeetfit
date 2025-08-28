@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:yeetfit/shared/theme/theme.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../shared/theme/theme.dart';
 import '../../../user_info/data/models/user_info_model.dart';
 import '../../data/datasources/food_datasource.dart';
 import '../../data/model/food_model.dart';
@@ -28,23 +29,18 @@ final getWeeklyFoodDataProvider = Provider<GetWeeklyFoodData>(
   (ref) => GetWeeklyFoodData(ref.read(foodRepositoryProvider)),
 );
 
-/// ✅ User info is now family-based, scoped by userId
 final userInfoProvider = FutureProvider.family<UserInfoModel, String>((ref, userId) async {
   if (userId.isEmpty) {
     throw Exception('User not logged in');
   }
-  final doc = await FirebaseFirestore.instance
-      .collection('users')
-      .doc(userId)
-      .get();
+  final doc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
   if (!doc.exists) {
     throw Exception('User data not found');
   }
   return UserInfoModel.fromMap(doc.data()!);
 });
 
-final dailyFoodItemsProvider = StateNotifierProvider.autoDispose
-    .family<DailyFoodItemsNotifier, AsyncValue<List<FoodItem>>, String>(
+final dailyFoodItemsProvider = StateNotifierProvider.autoDispose.family<DailyFoodItemsNotifier, AsyncValue<List<FoodItem>>, String>(
   (ref, userIdAndMealType) {
     final parts = userIdAndMealType.split('|');
     final userId = parts[0];
@@ -83,8 +79,7 @@ final dailyNutrientsProvider = Provider.autoDispose.family<Map<String, double>, 
   },
 );
 
-final calorieGoalProvider = StateNotifierProvider.autoDispose
-    .family<CalorieGoalNotifier, AsyncValue<double>, String>(
+final calorieGoalProvider = StateNotifierProvider.autoDispose.family<CalorieGoalNotifier, AsyncValue<double>, String>(
   (ref, userId) => CalorieGoalNotifier(
     ref,
     ref.read(foodRepositoryProvider),
@@ -93,7 +88,6 @@ final calorieGoalProvider = StateNotifierProvider.autoDispose
   ),
 );
 
-/// ✅ Uses userInfoProvider(userId)
 final nutrientGoalsProvider = Provider.family<Map<String, double>, String>((ref, userId) {
   final userInfoAsync = ref.watch(userInfoProvider(userId));
   return userInfoAsync.when(
@@ -104,19 +98,15 @@ final nutrientGoalsProvider = Provider.family<Map<String, double>, String>((ref,
       } else {
         bmr = 10 * userInfo.currentWeight + 6.25 * userInfo.height - 5 * userInfo.age - 161;
       }
-
       double activityFactor = userInfo.activityLevel == 'Moderately Active' ? 1.55 : 1.2;
       double totalCalories = bmr * activityFactor;
-
       if (userInfo.goal.toLowerCase() == 'weight loss') {
         totalCalories -= 500;
       }
-
       final proteinCalories = totalCalories * 0.20;
       final fatCalories = totalCalories * 0.30;
       final carbCalories = totalCalories * 0.45;
       final fiberGrams = totalCalories < 2000 ? 25.0 : 30.0;
-
       return {
         'protein': proteinCalories / 4,
         'fat': fatCalories / 9,
@@ -124,22 +114,11 @@ final nutrientGoalsProvider = Provider.family<Map<String, double>, String>((ref,
         'fiber': fiberGrams,
       };
     },
-    loading: () => {
-      'protein': 70.0,
-      'fat': 50.0,
-      'carbs': 250.0,
-      'fiber': 30.0,
-    },
-    error: (_, __) => {
-      'protein': 70.0,
-      'fat': 50.0,
-      'carbs': 250.0,
-      'fiber': 30.0,
-    },
+    loading: () => {'protein': 70.0, 'fat': 50.0, 'carbs': 250.0, 'fiber': 30.0},
+    error: (_, __) => {'protein': 70.0, 'fat': 50.0, 'carbs': 250.0, 'fiber': 30.0},
   );
 });
 
-/// ✅ Uses userInfoProvider(userId)
 final mealCalorieGoalsProvider = Provider.family<Map<String, double>, String>((ref, userId) {
   final userInfoAsync = ref.watch(userInfoProvider(userId));
   return userInfoAsync.when(
@@ -150,14 +129,11 @@ final mealCalorieGoalsProvider = Provider.family<Map<String, double>, String>((r
       } else {
         bmr = 10 * userInfo.currentWeight + 6.25 * userInfo.height - 5 * userInfo.age - 161;
       }
-
       double activityFactor = userInfo.activityLevel == 'Moderately Active' ? 1.55 : 1.2;
       double totalCalories = bmr * activityFactor;
-
       if (userInfo.goal.toLowerCase() == 'weight loss') {
         totalCalories -= 500;
       }
-
       return {
         'Breakfast': totalCalories * 0.25,
         'Lunch': totalCalories * 0.25,
@@ -183,21 +159,17 @@ final mealCalorieGoalsProvider = Provider.family<Map<String, double>, String>((r
   );
 });
 
-/// ✅ Now waits for real calorie goal before computing progress
 final dailyCalorieProgressColorProvider = Provider.autoDispose.family<Color, String>(
   (ref, userIdAndDate) {
     final parts = userIdAndDate.split('|');
     final userId = parts[0];
     final mealTypes = ['Breakfast', 'Morning Snack', 'Lunch', 'Evening Snack', 'Dinner'];
-
     double totalCalories = 0.0;
     for (final mealType in mealTypes) {
       final calories = ref.watch(dailyCaloriesProvider('$userId|$mealType'));
       totalCalories += calories;
     }
-
     final goalAsync = ref.watch(calorieGoalProvider(userId));
-
     return goalAsync.when(
       data: (goalCalories) {
         final progress = goalCalories > 0 ? totalCalories / goalCalories : 0.0;
@@ -206,7 +178,7 @@ final dailyCalorieProgressColorProvider = Provider.autoDispose.family<Color, Str
         if (progress >= 0.5) return AppTheme.colors['quarterProgress']!;
         return AppTheme.colors['error']!;
       },
-      loading: () => AppTheme.colors['quarterProgress']!, // Neutral while loading
+      loading: () => AppTheme.colors['quarterProgress']!,
       error: (_, __) => AppTheme.colors['error']!,
     );
   },
@@ -216,7 +188,6 @@ final weeklyFoodDataProvider = FutureProvider.family<Map<String, List<FoodItem>>
   (ref, userId) async {
     final mealTypes = ['Breakfast', 'Morning Snack', 'Lunch', 'Evening Snack', 'Dinner'];
     final Map<String, List<FoodItem>> weeklyData = {};
-
     for (final mealType in mealTypes) {
       final asyncResult = await ref.read(getWeeklyFoodDataProvider).call(userId, mealType);
       weeklyData[mealType] = asyncResult.when(
@@ -225,9 +196,12 @@ final weeklyFoodDataProvider = FutureProvider.family<Map<String, List<FoodItem>>
         loading: () => [],
       );
     }
-
     return weeklyData;
   },
+);
+
+final calorieTrackingProvider = StateNotifierProvider<CalorieTrackingNotifier, AsyncValue<void>>(
+  (ref) => CalorieTrackingNotifier(ref),
 );
 
 class DailyFoodItemsNotifier extends StateNotifier<AsyncValue<List<FoodItem>>> {
@@ -283,7 +257,7 @@ class CalorieGoalNotifier extends StateNotifier<AsyncValue<double>> {
     _fetchGoal();
   }
 
-    Future<void> _fetchGoal() async {
+  Future<void> _fetchGoal() async {
     try {
       state = const AsyncValue.loading();
       final savedGoal = await _repository.getCalorieGoal(_userId);
@@ -294,18 +268,11 @@ class CalorieGoalNotifier extends StateNotifier<AsyncValue<double>> {
       final userInfo = await _ref.read(userInfoProvider(_userId).future);
       double bmr;
       if (userInfo.gender.toLowerCase() == 'male') {
-        bmr = 10 * userInfo.currentWeight +
-            6.25 * userInfo.height -
-            5 * userInfo.age +
-            5;
+        bmr = 10 * userInfo.currentWeight + 6.25 * userInfo.height - 5 * userInfo.age + 5;
       } else {
-        bmr = 10 * userInfo.currentWeight +
-            6.25 * userInfo.height -
-            5 * userInfo.age -
-            161;
+        bmr = 10 * userInfo.currentWeight + 6.25 * userInfo.height - 5 * userInfo.age - 161;
       }
-      double activityFactor =
-          userInfo.activityLevel == 'Moderately Active' ? 1.55 : 1.2;
+      double activityFactor = userInfo.activityLevel == 'Moderately Active' ? 1.55 : 1.2;
       double totalCalories = bmr * activityFactor;
       if (userInfo.goal.toLowerCase() == 'weight loss') {
         totalCalories -= 500;
@@ -324,5 +291,15 @@ class CalorieGoalNotifier extends StateNotifier<AsyncValue<double>> {
     } catch (e, stackTrace) {
       state = AsyncValue.error(e, stackTrace);
     }
+  }
+}
+
+class CalorieTrackingNotifier extends StateNotifier<AsyncValue<void>> {
+  final Ref _ref;
+
+  CalorieTrackingNotifier(this._ref) : super(const AsyncValue.data(null));
+
+  void navigateBack(BuildContext context) {
+    context.go('/user-dashboard');
   }
 }

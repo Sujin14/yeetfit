@@ -24,14 +24,14 @@ class PrivacyPolicyCard extends StatelessWidget {
                     children: [
                       Text(
                         'Privacy Policy',
-                        style: AppTheme.textStyles['subtitle']!.copyWith(
+                        style: AppTheme.textStyles['subheading']!.copyWith(
                           fontSize: 18.sp,
                           color: AppTheme.colors['primaryText'],
                         ),
                       ),
                       SizedBox(height: 8.h),
                       Text(
-                        'Review our privacy policy',
+                        'Learn how we protect your data',
                         style: AppTheme.textStyles['body']!.copyWith(
                           fontSize: 14.sp,
                           color: AppTheme.colors['secondaryText'],
@@ -42,7 +42,7 @@ class PrivacyPolicyCard extends StatelessWidget {
                 ),
                 Icon(
                   Icons.arrow_forward_ios,
-                  color: AppTheme.colors['primaryText'],
+                  color: AppTheme.colors['primaryIcon'],
                   size: 16.sp,
                 ),
               ],

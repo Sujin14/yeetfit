@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../../shared/widgets/glassmorphic_container.dart';
 import '../../data/model/sleep_model.dart';
 import '../providers/sleep_provider.dart';
-import '../../../../shared/widgets/glassmorphic_container.dart';
 import 'sleep_chart_shimmer.dart';
 
 class SleepChartSection extends ConsumerWidget {
@@ -19,17 +18,16 @@ class SleepChartSection extends ConsumerWidget {
     final weeklyDataAsync = ref.watch(weeklySleepDataProvider(userId));
 
     return GlassmorphicContainer(
-      color: AppTheme.colors['indigo']!,
+      color: AppTheme.colors['cardBackground']!,
       padding: EdgeInsets.all(16.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Sleep Analysis',
-            style: GoogleFonts.roboto(
-              fontWeight: FontWeight.bold,
+            style: AppTheme.textStyles['subheading']!.copyWith(
               fontSize: 20.sp,
-              color: AppTheme.colors['onSurface'],
+              color: AppTheme.colors['onSurfaceDark'],
             ),
           ),
           SizedBox(height: 10.h),
@@ -40,7 +38,10 @@ class SleepChartSection extends ConsumerWidget {
               loading: () => const SleepChartShimmer(),
               error: (error, _) => Text(
                 'Error: $error',
-                style: TextStyle(color: AppTheme.colors['white']),
+                style: AppTheme.textStyles['body']!.copyWith(
+                  color: AppTheme.colors['error'],
+                  fontSize: 14.sp,
+                ),
               ),
             ),
           ),
@@ -77,10 +78,9 @@ class SleepChartSection extends ConsumerWidget {
               );
               return BarTooltipItem(
                 '${data.duration.toStringAsFixed(1)} hrs',
-                GoogleFonts.roboto(
-                  color: AppTheme.colors['white'],
+                AppTheme.textStyles['body']!.copyWith(
+                  color: AppTheme.colors['onSurfaceDark'],
                   fontSize: 12.sp,
-                  fontWeight: FontWeight.w500,
                 ),
               );
             },
@@ -131,9 +131,9 @@ class SleepChartSection extends ConsumerWidget {
                   padding: EdgeInsets.only(right: 4.w),
                   child: Text(
                     value.toInt().toString(),
-                    style: GoogleFonts.roboto(
+                    style: AppTheme.textStyles['body']!.copyWith(
                       fontSize: 12.sp,
-                      color: AppTheme.colors['onSurface']!.withOpacity(0.8),
+                      color: AppTheme.colors['onSurfaceDark']!.withOpacity(0.8),
                     ),
                   ),
                 );
@@ -156,9 +156,9 @@ class SleepChartSection extends ConsumerWidget {
                 ];
                 return Text(
                   weekdays[index.toInt()],
-                  style: GoogleFonts.roboto(
+                  style: AppTheme.textStyles['body']!.copyWith(
                     fontSize: 14.sp,
-                    color: AppTheme.colors['onSurface']!.withOpacity(0.8),
+                    color: AppTheme.colors['onSurfaceDark']!.withOpacity(0.8),
                   ),
                 );
               },

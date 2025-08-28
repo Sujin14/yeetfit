@@ -1,48 +1,49 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_heatmap_calendar/flutter_heatmap_calendar.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../../shared/theme/theme.dart';
 
 class ProgressCalendar extends StatelessWidget {
   final Map<DateTime, int> dataset;
-  final Color baseColor;
 
   const ProgressCalendar({
     super.key,
     required this.dataset,
-    this.baseColor = Colors.green,
   });
 
   @override
   Widget build(BuildContext context) {
     if (dataset.isNotEmpty) {
-      final sample = dataset.entries.take(8).map((e) => '${e.key.toIso8601String().substring(0,10)}:${e.value}').join(', ');
+      final sample = dataset.entries
+          .take(8)
+          .map((e) => '${e.key.toIso8601String().substring(0, 10)}:${e.value}')
+          .join(', ');
     }
 
     if (dataset.isEmpty) {
-      return const Center(child: Text("No data available"));
+      return Center(
+        child: Text(
+          'No data available',
+          style: AppTheme.textStyles['body']!.copyWith(
+            color: AppTheme.colors['secondaryText'],
+            fontSize: 16.sp,
+          ),
+        ),
+      );
     }
 
-    final normalizedDataset = dataset.map((date, value) {
-      final safeValue = value < 0 ? 0 : value;
-      return MapEntry(date, safeValue);
-    });
-
-    final hasNonZero = normalizedDataset.values.any((v) => v > 0);
-    final safeDataset = hasNonZero ? normalizedDataset : {DateTime.now(): 1};
-
-
     return HeatMapCalendar(
-      datasets: safeDataset,
+      datasets: dataset,
       colorMode: ColorMode.opacity,
-      colorsets: {1: baseColor},
+      colorsets: {1: AppTheme.colors['fullProgress']!},
       showColorTip: true,
       monthFontSize: 16,
       weekFontSize: 12,
-      textColor: Colors.black,
-      defaultColor: Colors.grey[200]!,
+      textColor: AppTheme.colors['primaryText'],
+      defaultColor: AppTheme.colors['gray']!.withOpacity(0.2),
       size: 32,
       margin: const EdgeInsets.all(4),
-      onClick: (date) {
-      },
+      onClick: (date) {},
     );
   }
 }

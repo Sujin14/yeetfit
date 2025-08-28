@@ -5,10 +5,10 @@ import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
 
 class ShimmerCard extends StatelessWidget {
-  final bool isListTile; // For ListTile-style cards (e.g., FoodList, MealSection)
-  final bool isChart; // For CalorieChartCard
-  final bool isSummary; // For CalorieSummary
-  final double height; // Custom height for specific use cases
+  final bool isListTile;
+  final bool isChart;
+  final bool isSummary;
+  final double height;
 
   const ShimmerCard({
     super.key,
@@ -93,24 +93,27 @@ class ShimmerCard extends StatelessWidget {
               Wrap(
                 spacing: 8.w,
                 runSpacing: 8.h,
-                children: List.generate(4, (index) => SizedBox(
-                  width: 150.w,
-                  child: Column(
-                    children: [
-                      Container(
-                        height: 14.h,
-                        width: 100.w,
-                        color: baseColor,
-                      ),
-                      SizedBox(height: 4.h),
-                      Container(
-                        height: 4.h,
-                        width: double.infinity,
-                        color: baseColor,
-                      ),
-                    ],
+                children: List.generate(
+                  4,
+                  (index) => SizedBox(
+                    width: 150.w,
+                    child: Column(
+                      children: [
+                        Container(
+                          height: 14.h,
+                          width: 100.w,
+                          color: baseColor,
+                        ),
+                        SizedBox(height: 4.h),
+                        Container(
+                          height: 4.h,
+                          width: double.infinity,
+                          color: baseColor,
+                        ),
+                      ],
+                    ),
                   ),
-                )),
+                ),
               ),
             ],
           ),

@@ -14,7 +14,6 @@ class CalendarDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedDate = ref.watch(selectedDateProvider);
-    
 
     return Dialog(
       backgroundColor: AppTheme.colors['white'],

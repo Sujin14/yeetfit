@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import '../../../../shared/theme/theme.dart';
+import '../../../../shared/widgets/custom_appbar.dart';
 import '../widgets/goal_settings_body.dart';
 
 class GoalSettingsScreen extends ConsumerWidget {
@@ -10,19 +9,13 @@ class GoalSettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Goal Settings',
-          style: AppTheme.textStyles['title']!.copyWith(color: AppTheme.colors['primaryText']),
-        ),
-        backgroundColor: AppTheme.colors['lightBackground'],
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppTheme.colors['primaryText']),
-          onPressed: () => context.pop(),
-        ),
+      appBar: CustomAppBar(
+        title: 'Goal Settings',
+        showSettings: false,
+        onSettings: null,
+        showFavorite: false,
       ),
-      body: GoalSettingsBody(),
+      body: const GoalSettingsBody(),
     );
   }
 }

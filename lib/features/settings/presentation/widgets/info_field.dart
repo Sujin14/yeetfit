@@ -7,20 +7,20 @@ class InfoField extends StatelessWidget {
   final TextEditingController controller;
   final String label;
   final IconData icon;
-  final TextInputType? keyboardType;
+  final TextInputType keyboardType;
 
   const InfoField({
     super.key,
     required this.controller,
     required this.label,
     required this.icon,
-    this.keyboardType,
+    required this.keyboardType,
   });
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(icon, color: AppTheme.colors['primaryText']),
+      leading: Icon(icon, color: AppTheme.colors['primaryIcon']),
       title: TextFormField(
         controller: controller,
         decoration: InputDecoration(
@@ -28,19 +28,21 @@ class InfoField extends StatelessWidget {
           labelStyle: AppTheme.textStyles['body']!.copyWith(
             color: AppTheme.colors['secondaryText'],
           ),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r)),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.r),
+          ),
         ),
         keyboardType: keyboardType,
         style: AppTheme.textStyles['body']!.copyWith(
           color: AppTheme.colors['primaryText'],
         ),
-        validator: (value) {
-          if (label == 'Name') return UserInfoValidators.validateName(value);
-          if (label == 'Age') return UserInfoValidators.validateAge(value);
-          if (label == 'Height (cm)') return UserInfoValidators.validateHeight(value);
-          if (label.contains('Weight')) return UserInfoValidators.validateWeight(value);
-          return null;
-        },
+        validator: label == 'Name'
+            ? UserInfoValidators.validateName
+            : label == 'Age'
+                ? UserInfoValidators.validateAge
+                : label == 'Height (cm)'
+                    ? UserInfoValidators.validateHeight
+                    : UserInfoValidators.validateWeight,
       ),
     );
   }

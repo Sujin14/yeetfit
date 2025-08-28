@@ -15,8 +15,8 @@ Widget trackButton(
     final isDesktop = MediaQuery.of(context).size.width >= 600.w;
     final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
     final onSurfaceColor = isDarkTheme
-        ? AppTheme.colors['onSurfaceDark'] ?? Colors.white
-        : AppTheme.colors['onSurface'] ?? Colors.black;
+        ? AppTheme.colors['onSurfaceDark']
+        : AppTheme.colors['onSurface'];
 
     return GlassmorphicContainer(
       color: color,

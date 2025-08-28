@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:glassmorphism/glassmorphism.dart';
-import '../../../../../shared/theme/theme.dart';
+import '../../../../shared/theme/theme.dart';
 
 class BasicInfoCard extends StatelessWidget {
   final VoidCallback onTap;
@@ -21,14 +21,14 @@ class BasicInfoCard extends StatelessWidget {
         border: 1.5,
         linearGradient: LinearGradient(
           colors: [
-            AppTheme.colors['navigationAccent']!.withOpacity(0.1),
-            AppTheme.colors['navigationAccent']!.withOpacity(0.05),
+            AppTheme.colors['cardBackground']!.withOpacity(0.1),
+            AppTheme.colors['cardBackground']!.withOpacity(0.05),
           ],
         ),
         borderGradient: LinearGradient(
           colors: [
-            AppTheme.colors['gradientTextStart']!,
-            AppTheme.colors['gradientTextEnd']!,
+            AppTheme.colors['borderGradientStart']!,
+            AppTheme.colors['borderGradientEnd']!,
           ],
         ),
         child: Padding(

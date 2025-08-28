@@ -67,7 +67,8 @@ class AccountBody extends ConsumerWidget {
         child: Text(
           'Error: $error',
           style: AppTheme.textStyles['body']!.copyWith(
-            color: AppTheme.colors['primaryText'],
+            color: AppTheme.colors['error'],
+            fontSize: 16.sp,
           ),
         ),
       ),

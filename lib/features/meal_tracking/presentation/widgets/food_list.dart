@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -28,7 +29,7 @@ class FoodList extends ConsumerWidget {
             if (foodItems.isEmpty) {
               return GlassmorphicContainer(
                 color: AppTheme.colors['deepOrange']!,
-                padding: const EdgeInsets.all(12),
+                padding: EdgeInsets.all(12.w),
                 child: ListTile(
                   contentPadding: EdgeInsets.zero,
                   title: Text(
@@ -52,7 +53,7 @@ class FoodList extends ConsumerWidget {
             final item = foodItems[index];
             return GlassmorphicContainer(
               color: AppTheme.colors['deepOrange']!,
-              padding: const EdgeInsets.all(12),
+              padding: EdgeInsets.all(12.w),
               child: ListTile(
                 contentPadding: EdgeInsets.zero,
                 title: Text(

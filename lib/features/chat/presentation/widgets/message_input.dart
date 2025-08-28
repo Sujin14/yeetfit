@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
 import '../../../../shared/theme/theme.dart';
-import '../controllers/chat_controller.dart';
+import '../providers/chat_provider.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class MessageInput extends StatelessWidget {
-  final ChatController controller;
-
-  const MessageInput({super.key, required this.controller});
+class MessageInput extends ConsumerWidget {
+  const MessageInput({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final adminId = ref.watch(chatControllerProvider as ProviderListenable).adminId;
+    final controller = ref.read(chatControllerProvider(adminId).notifier);
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       child: Row(
@@ -36,15 +37,13 @@ class MessageInput extends StatelessWidget {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24.r),
                   borderSide: BorderSide(
-                    color:
-                        AppTheme.colors['borderGradientStart']!,
+                    color: AppTheme.colors['borderGradientStart']!,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24.r),
                   borderSide: BorderSide(
-                    color:
-                        AppTheme.colors['borderGradientStart']!,
+                    color: AppTheme.colors['borderGradientStart']!,
                   ),
                 ),
                 focusedBorder: OutlineInputBorder(

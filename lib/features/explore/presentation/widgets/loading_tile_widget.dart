@@ -10,7 +10,7 @@ class LoadingTileWidget extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
       decoration: BoxDecoration(
-        color: AppTheme.colors['cardBackground'] ?? Colors.white,
+        color: AppTheme.colors['cardBackground'],
         borderRadius: BorderRadius.circular(12.r),
       ),
       child: Row(
@@ -18,17 +18,15 @@ class LoadingTileWidget extends StatelessWidget {
           Icon(
             Icons.hourglass_empty,
             size: 24.sp,
-            color: AppTheme.colors['secondaryIcon'] ?? Colors.grey,
+            color: AppTheme.colors['secondaryIcon'],
           ),
           SizedBox(width: 16.w),
           Text(
             'Loading...',
-            style:
-                AppTheme.textStyles['body']?.copyWith(
-                  color: AppTheme.colors['secondaryText'] ?? Colors.grey,
-                  fontSize: 16.sp,
-                ) ??
-                TextStyle(fontSize: 16.sp, color: Colors.grey),
+            style: AppTheme.textStyles['body']!.copyWith(
+              color: AppTheme.colors['secondaryText'],
+              fontSize: 16.sp,
+            ),
           ),
         ],
       ),

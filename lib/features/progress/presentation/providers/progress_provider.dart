@@ -26,7 +26,7 @@ final getMonthlyProgressProvider = Provider<GetMonthlyProgress>(
 // Selected metric (null = all)
 final selectedMetricProvider = StateProvider<String?>((ref) => null);
 
-// Monthly progress provider (re-reads selectedMetric on each fetch)
+// Monthly progress provider
 final monthlyProgressProvider = StateNotifierProvider.autoDispose
     .family<MonthlyProgressNotifier, AsyncValue<List<DailyProgress>>, DateTime>(
       (ref, month) {
@@ -38,35 +38,57 @@ final monthlyProgressProvider = StateNotifierProvider.autoDispose
       },
     );
 
-// Heat color provider for a given date
-final dailyProgressColorProvider = Provider.autoDispose.family<Color, String>((
-  ref,
-  key,
-) {
-  // key: "<userId>|<yyyy-MM-dd>"
-  final parts = key.split('|');
-  final date = parts[1];
-  final month = DateTime.parse(date).copyWith(day: 1);
-  final entries = ref.watch(monthlyProgressProvider(month)).value ?? [];
-  final entry = entries.firstWhere(
-    (e) => e.date == date,
-    orElse: () => DailyProgress(date: date, completionRate: 0.0),
-  );
-  final p = entry.completionRate;
-  if (p >= 0.8) return AppTheme.colors['fullProgress']!;
-  if (p >= 0.5) return AppTheme.colors['threeQuarterProgress']!;
-  if (p >= 0.2) return AppTheme.colors['halfProgress']!;
-  return AppTheme.colors['noProgress']!;
-});
+// Dataset provider for ProgressCalendar
+final progressDatasetProvider = Provider.autoDispose.family<Map<DateTime, int>, DateTime>(
+  (ref, month) {
+    final progressList = ref.watch(monthlyProgressProvider(month)).value ?? [];
+    final dataset = <DateTime, int>{};
+    for (final DailyProgress p in progressList) {
+      DateTime? date;
+      try {
+        date = DateTime.parse(p.date);
+      } catch (e) {
+        continue;
+      }
+      final double safe = (p.completionRate.isNaN ? 0.0 : p.completionRate).clamp(0.0, 1.0);
+      final int score = (safe * 10).round();
+      dataset[date] = score;
+    }
+    // Ensure non-empty dataset for HeatMapCalendar
+    if (dataset.isEmpty) {
+      dataset[DateTime.now()] = 1;
+    }
+    return dataset;
+  },
+);
 
-class MonthlyProgressNotifier
-    extends StateNotifier<AsyncValue<List<DailyProgress>>> {
+// Heat color provider for a given date
+final dailyProgressColorProvider = Provider.autoDispose.family<Color, String>(
+  (ref, key) {
+    // key: "<userId>|<yyyy-MM-dd>"
+    final parts = key.split('|');
+    final date = parts[1];
+    final month = DateTime.parse(date).copyWith(day: 1);
+    final entries = ref.watch(monthlyProgressProvider(month)).value ?? [];
+    final entry = entries.firstWhere(
+      (e) => e.date == date,
+      orElse: () => DailyProgress(date: date, completionRate: 0.0),
+    );
+    final p = entry.completionRate;
+    if (p >= 0.8) return AppTheme.colors['fullProgress']!;
+    if (p >= 0.5) return AppTheme.colors['threeQuarterProgress']!;
+    if (p >= 0.2) return AppTheme.colors['halfProgress']!;
+    return AppTheme.colors['noProgress']!;
+  },
+);
+
+class MonthlyProgressNotifier extends StateNotifier<AsyncValue<List<DailyProgress>>> {
   final Ref _ref;
   final GetMonthlyProgress _usecase;
   final DateTime _month;
 
   MonthlyProgressNotifier(this._ref, this._usecase, this._month)
-    : super(const AsyncValue.loading()) {
+      : super(const AsyncValue.loading()) {
     _fetch();
     // Auto refresh when metric changes
     _ref.listen<String?>(selectedMetricProvider, (_, __) {

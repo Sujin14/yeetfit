@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../user_info/presentation/providers/user_info_provider.dart';
 import '../providers/settings_provider.dart';
@@ -12,7 +13,6 @@ class GoalSettingsBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userDataAsync = ref.watch(userInfoControllerProvider);
-    final isSaving = ref.watch(settingsControllerProvider.notifier).isSaving;
 
     return userDataAsync.when(
       data: (userInfo) => SingleChildScrollView(
@@ -20,6 +20,14 @@ class GoalSettingsBody extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            Text(
+              'Set Your Fitness Goal',
+              style: AppTheme.textStyles['subheading']!.copyWith(
+                fontSize: 24.sp,
+                color: AppTheme.colors['primaryText'],
+              ),
+            ),
+            SizedBox(height: 16.h),
             GoalCard(
               title: 'Fitness Goal',
               selectedGoal: userInfo.goal.isNotEmpty ? userInfo.goal : 'weight loss',
@@ -29,6 +37,7 @@ class GoalSettingsBody extends ConsumerWidget {
                         context: context,
                         goal: newGoal,
                       );
+                  context.pop();
                 }
               },
             ),
@@ -40,7 +49,8 @@ class GoalSettingsBody extends ConsumerWidget {
         child: Text(
           'Error: $error',
           style: AppTheme.textStyles['body']!.copyWith(
-            color: AppTheme.colors['primaryText'],
+            color: AppTheme.colors['error'],
+            fontSize: 16.sp,
           ),
         ),
       ),

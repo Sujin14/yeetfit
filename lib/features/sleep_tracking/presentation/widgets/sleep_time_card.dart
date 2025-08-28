@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../shared/theme/theme.dart';
@@ -15,7 +14,17 @@ class SleepTimeCards extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userId = ref.watch(firebaseAuthProvider).currentUser?.uid;
-    if (userId == null) return const SizedBox.shrink();
+    if (userId == null) {
+      return Center(
+        child: Text(
+          'Please log in to view sleep times',
+          style: AppTheme.textStyles['body']!.copyWith(
+            color: AppTheme.colors['error'],
+            fontSize: 14.sp,
+          ),
+        ),
+      );
+    }
 
     final sleepTimesAsync = ref.watch(sleepTimesProvider(userId));
 
@@ -25,13 +34,14 @@ class SleepTimeCards extends ConsumerWidget {
         children: [
           Text(
             'Sleep Time',
-            style: GoogleFonts.roboto(
-              fontWeight: FontWeight.bold,
+            style: AppTheme.textStyles['subheading']!.copyWith(
               fontSize: 18.sp,
-              color: AppTheme.colors['onSurface']!.withOpacity(0.8),
+              color: AppTheme.colors['onSurfaceDark'],
             ),
           ),
-          SizedBox(height: 30.h),
+          SizedBox(height: 16.h),
+          Divider(color: AppTheme.colors['borderGradientStart']),
+          SizedBox(height: 16.h),
           _buildTimeCard(
             context,
             'Bed Time',
@@ -40,7 +50,7 @@ class SleepTimeCards extends ConsumerWidget {
                 : 'Not set',
             userId,
           ),
-          SizedBox(height: 25.h),
+          SizedBox(height: 16.h),
           _buildTimeCard(
             context,
             'Wake Up Time',
@@ -52,7 +62,15 @@ class SleepTimeCards extends ConsumerWidget {
         ],
       ),
       loading: () => const SleepTimeCardsShimmer(),
-      error: (error, _) => Center(child: Text('Error: $error')),
+      error: (error, _) => Center(
+        child: Text(
+          'Error: $error',
+          style: AppTheme.textStyles['body']!.copyWith(
+            color: AppTheme.colors['error'],
+            fontSize: 14.sp,
+          ),
+        ),
+      ),
     );
   }
 
@@ -63,7 +81,8 @@ class SleepTimeCards extends ConsumerWidget {
     String userId,
   ) {
     return GlassmorphicContainer(
-      color: AppTheme.colors['deepOrange']!,
+      color: AppTheme.colors['cardBackground']!,
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       child: ListTile(
         onTap: () => showDialog(
           context: context,
@@ -71,14 +90,17 @@ class SleepTimeCards extends ConsumerWidget {
         ),
         title: Text(
           title,
-          style: GoogleFonts.roboto(fontSize: 16.sp, color: AppTheme.colors['onSurface']!),
+          style: AppTheme.textStyles['body']!.copyWith(
+            fontSize: 16.sp,
+            color: AppTheme.colors['onSurfaceDark'],
+          ),
         ),
         trailing: Text(
           time,
-          style: GoogleFonts.roboto(
+          style: AppTheme.textStyles['body']!.copyWith(
             fontWeight: FontWeight.w600,
             fontSize: 16.sp,
-            color: AppTheme.colors['onSurface']!.withOpacity(0.8),
+            color: AppTheme.colors['onSurfaceDark']!.withOpacity(0.8),
           ),
         ),
       ),

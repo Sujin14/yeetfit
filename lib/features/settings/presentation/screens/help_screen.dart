@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import '../../../../shared/theme/theme.dart';
+import '../../../../shared/widgets/custom_appbar.dart';
 import '../widgets/help_body.dart';
 
 class HelpScreen extends StatelessWidget {
@@ -9,19 +8,13 @@ class HelpScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Help',
-          style: AppTheme.textStyles['title']!.copyWith(color: AppTheme.colors['primaryText']),
-        ),
-        backgroundColor: AppTheme.colors['lightBackground'],
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppTheme.colors['primaryText']),
-          onPressed: () => context.pop(),
-        ),
+      appBar: CustomAppBar(
+        title: 'Help',
+        showSettings: false,
+        onSettings: null,
+        showFavorite: false,
       ),
-      body: HelpBody(),
+      body: const HelpBody(),
     );
   }
 }

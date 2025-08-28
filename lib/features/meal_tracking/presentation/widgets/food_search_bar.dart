@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:yeetfit/shared/theme/theme.dart';
+import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
 import '../../data/model/food_model.dart';
 import '../../domain/services/food_search_api.dart';
@@ -35,7 +36,7 @@ class _FoodSearchBarState extends ConsumerState<FoodSearchBar> {
       final results = await searchFood(query);
       setState(() => _searchResults = results);
     } catch (e) {
-      setState(() => _searchResults = []); // Clear results on error
+      setState(() => _searchResults = []);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error searching food: $e')),
       );
@@ -67,9 +68,9 @@ class _FoodSearchBarState extends ConsumerState<FoodSearchBar> {
                   style: GoogleFonts.roboto(color: AppTheme.colors['onSurface']),
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8.w),
               SizedBox(
-                width: 100,
+                width: 100.w,
                 child: TextField(
                   controller: _quantityController,
                   keyboardType: TextInputType.number,
@@ -88,7 +89,7 @@ class _FoodSearchBarState extends ConsumerState<FoodSearchBar> {
         ),
         if (_searchResults.isNotEmpty)
           Container(
-            constraints: const BoxConstraints(maxHeight: 200),
+            constraints: BoxConstraints(maxHeight: 200.h),
             child: ListView.builder(
               shrinkWrap: true,
               itemCount: _searchResults.length,
@@ -139,7 +140,7 @@ class _FoodSearchBarState extends ConsumerState<FoodSearchBar> {
           ),
         if (_searchResults.isEmpty && _searchController.text.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: EdgeInsets.all(8.0.w),
             child: Text(
               'No results found',
               style: GoogleFonts.roboto(color: AppTheme.colors['onSurface']!.withOpacity(0.7)),

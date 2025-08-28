@@ -12,7 +12,7 @@ class ErrorTileWidget extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
       decoration: BoxDecoration(
-        color: (AppTheme.colors['error'] ?? Colors.red).withOpacity(0.1),
+        color: AppTheme.colors['error']!.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12.r),
       ),
       child: Row(
@@ -20,18 +20,16 @@ class ErrorTileWidget extends StatelessWidget {
           Icon(
             Icons.error_outline,
             size: 24.sp,
-            color: AppTheme.colors['error'] ?? Colors.red,
+            color: AppTheme.colors['error'],
           ),
           SizedBox(width: 16.w),
           Expanded(
             child: Text(
               message,
-              style:
-                  AppTheme.textStyles['body']?.copyWith(
-                    color: AppTheme.colors['error'] ?? Colors.red,
-                    fontSize: 16.sp,
-                  ) ??
-                  TextStyle(fontSize: 16.sp, color: Colors.red),
+              style: AppTheme.textStyles['body']!.copyWith(
+                color: AppTheme.colors['error'],
+                fontSize: 16.sp,
+              ),
             ),
           ),
         ],

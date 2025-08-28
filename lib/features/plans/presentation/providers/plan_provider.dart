@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../shared/theme/theme.dart';
 import '../../../explore/domain/use_cases/get_plans_use_case.dart';
 import '../../../plans/data/models/plan_model.dart';
 import '../../../plans/domain/repositories/plan_repository.dart';
@@ -103,9 +106,8 @@ class FavoritePlansNotifier extends StateNotifier<FavoritePlansState> {
     }
   }
 
-  Future<void> toggleFavorite(String planId, String type, bool isFavorite) async {
+  Future<void> toggleFavorite(String planId, String type, bool isFavorite, BuildContext context) async {
     try {
-      // Optimistically update local state
       final updatedPlans = state.plans.map((plan) {
         if (plan.id == planId && plan.type == type) {
           return PlanModel(
@@ -133,6 +135,24 @@ class FavoritePlansNotifier extends StateNotifier<FavoritePlansState> {
       // Update Firestore
       await ref.read(toggleFavoriteUseCaseProvider).execute(planId, type, isFavorite);
 
+      // Show SnackBar
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isFavorite ? 'Added to favorites' : 'Removed from favorites',
+            style: AppTheme.textStyles['body']!.copyWith(
+              color: AppTheme.colors['primaryText'],
+            ),
+          ),
+          backgroundColor: isFavorite ? AppTheme.colors['primaryButton'] : AppTheme.colors['error'],
+        ),
+      );
+
+      // Navigate back to /favorites if unfavorited
+      if (!isFavorite) {
+        context.go('/favorites');
+      }
+
       // Invalidate providers to refresh streams
       ref.invalidate(dietPlanProvider);
       ref.invalidate(workoutPlanProvider);
@@ -140,6 +160,19 @@ class FavoritePlansNotifier extends StateNotifier<FavoritePlansState> {
     } catch (e) {
       // Revert optimistic update on error
       await _loadFavoritePlans();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e.toString().contains('PERMISSION_DENIED')
+                ? 'Permission denied: Only admins can update plans'
+                : 'Error: $e',
+            style: AppTheme.textStyles['body']!.copyWith(
+              color: AppTheme.colors['primaryText'],
+            ),
+          ),
+          backgroundColor: AppTheme.colors['error'],
+        ),
+      );
       rethrow;
     }
   }

@@ -1,20 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../shared/theme/theme.dart';
-import '../controllers/chat_controller.dart';
 import '../providers/chat_provider.dart';
 
 class ChatHeader extends ConsumerWidget {
-  final ChatController controller;
-
-  const ChatHeader({super.key, required this.controller});
+  const ChatHeader({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final chatState = ref.watch(chatControllerProvider(controller.adminId));
+    final chatState = ref.watch(chatControllerProvider('adminId'));
+    final controller = ref.read(chatControllerProvider('adminId').notifier);
 
     return SafeArea(
       bottom: false,
@@ -25,7 +22,7 @@ class ChatHeader extends ConsumerWidget {
           children: [
             IconButton(
               icon: Icon(Icons.arrow_back, color: AppTheme.colors['primaryAccent'], size: 30),
-              onPressed: () => context.go('/user-dashboard'),
+              onPressed: () => controller.navigateBack(context),
             ),
             CircleAvatar(
               radius: 25.r,
@@ -64,7 +61,6 @@ class ChatHeader extends ConsumerWidget {
                           onPressed: () async {
                             await controller.deleteChats(context);
                             Navigator.of(context).pop();
-                            context.go('/user-dashboard');
                           },
                           child: Text(
                             'Delete',

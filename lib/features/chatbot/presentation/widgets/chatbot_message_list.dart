@@ -31,19 +31,10 @@ class _ChatbotMessageListState extends ConsumerState<ChatbotMessageList> {
     });
   }
 
-  String getDateLabel(DateTime date) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final msgDate = DateTime(date.year, date.month, date.day);
-
-    if (msgDate == today) return 'Today';
-    if (msgDate == today.subtract(const Duration(days: 1))) return 'Yesterday';
-    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
-  }
-
   @override
   Widget build(BuildContext context) {
     final messagesAsync = ref.watch(chatbotMessagesProvider(widget.userId));
+    final controller = ref.read(chatbotProvider(widget.userId).notifier);
 
     return messagesAsync.when(
       data: (messages) {
@@ -62,7 +53,7 @@ class _ChatbotMessageListState extends ConsumerState<ChatbotMessageList> {
           });
 
         for (final message in sortedMessages) {
-          final dateLabel = getDateLabel(message.timestamp);
+          final dateLabel = controller.getDateLabel(message.timestamp);
 
           if (lastDateLabel != dateLabel) {
             messageWidgets.add(
@@ -117,7 +108,14 @@ class _ChatbotMessageListState extends ConsumerState<ChatbotMessageList> {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(child: Text('Error: $error')),
+      error: (error, _) => Center(
+        child: Text(
+          'Error: $error',
+          style: AppTheme.textStyles['bodyMedium']?.copyWith(
+            color: AppTheme.colors['error'],
+          ),
+        ),
+      ),
     );
   }
 }

@@ -56,9 +56,7 @@ class ProgressCard extends ConsumerWidget {
           )
         : GestureDetector(
             onTap: route != null
-                ? () {
-                    context.push(route!, extra: userId);
-                  }
+                ? () => context.push(route!, extra: userId)
                 : null,
             child: _buildCard(context, progressColor: progressColor),
           );
@@ -86,7 +84,7 @@ class ProgressCard extends ConsumerWidget {
           AppTheme.colors['gradientTextEnd']!,
         ],
       ),
-       padding: EdgeInsets.symmetric(horizontal: 8.w), // Added horizontal padding
+      padding: EdgeInsets.symmetric(horizontal: 8.w),
       child: Row(
         children: [
           Expanded(

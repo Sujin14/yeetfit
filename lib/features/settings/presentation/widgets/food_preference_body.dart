@@ -55,7 +55,7 @@ class FoodPreferencesBody extends ConsumerWidget {
               SizedBox(height: 16.h),
               Text(
                 'Diet Preference',
-                style: AppTheme.textStyles['subtitle']!.copyWith(
+                style: AppTheme.textStyles['subheading']!.copyWith(
                   fontSize: 18.sp,
                   color: AppTheme.colors['primaryText'],
                 ),
@@ -73,17 +73,26 @@ class FoodPreferencesBody extends ConsumerWidget {
                   ),
                 ),
                 items: ['Vegetarian', 'Non-Vegetarian', 'Vegan']
-                    .map((diet) => DropdownMenuItem(value: diet, child: Text(diet)))
+                    .map((diet) => DropdownMenuItem(
+                          value: diet,
+                          child: Text(
+                            diet,
+                            style: AppTheme.textStyles['body']!.copyWith(
+                              color: AppTheme.colors['primaryText'],
+                            ),
+                          ),
+                        ))
                     .toList(),
                 onChanged: onDietPreferenceChanged,
                 style: AppTheme.textStyles['body']!.copyWith(
                   color: AppTheme.colors['primaryText'],
                 ),
+                dropdownColor: AppTheme.colors['cardBackground'],
               ),
               SizedBox(height: 16.h),
               Text(
                 'Any Allergies?',
-                style: AppTheme.textStyles['subtitle']!.copyWith(
+                style: AppTheme.textStyles['subheading']!.copyWith(
                   fontSize: 18.sp,
                   color: AppTheme.colors['primaryText'],
                 ),
@@ -123,7 +132,7 @@ class FoodPreferencesBody extends ConsumerWidget {
               SizedBox(height: 16.h),
               Text(
                 'Preferred Cuisine',
-                style: AppTheme.textStyles['subtitle']!.copyWith(
+                style: AppTheme.textStyles['subheading']!.copyWith(
                   fontSize: 18.sp,
                   color: AppTheme.colors['primaryText'],
                 ),
@@ -208,7 +217,8 @@ class FoodPreferencesBody extends ConsumerWidget {
         child: Text(
           'Error: $error',
           style: AppTheme.textStyles['body']!.copyWith(
-            color: AppTheme.colors['primaryText'],
+            color: AppTheme.colors['error'],
+            fontSize: 16.sp,
           ),
         ),
       ),

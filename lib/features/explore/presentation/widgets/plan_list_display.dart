@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../plans/presentation/providers/plan_provider.dart';
-import 'plan_tile_widget.dart';
+import '../providers/explore_plan_provider.dart';
 import 'error_tile_widget.dart';
 import 'loading_tile_widget.dart';
+import 'plan_tile_widget.dart';
 
 class PlanListDisplay extends ConsumerWidget {
   const PlanListDisplay({super.key});
@@ -14,6 +14,7 @@ class PlanListDisplay extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final dietPlanAsync = ref.watch(dietPlanProvider);
     final workoutPlanAsync = ref.watch(workoutPlanProvider);
+    final controller = ref.read(planProvider.notifier);
 
     return ListView(
       children: [
@@ -21,9 +22,7 @@ class PlanListDisplay extends ConsumerWidget {
           data: (plan) => PlanTileWidget(
             title: 'Diet Plans',
             icon: Icons.restaurant,
-            onTap: () {
-              context.push('/plans/diet');
-            },
+            onTap: () => controller.navigateToDietPlan(context),
           ),
           loading: () => const LoadingTileWidget(),
           error: (error, _) => ErrorTileWidget(
@@ -37,9 +36,7 @@ class PlanListDisplay extends ConsumerWidget {
           data: (plan) => PlanTileWidget(
             title: 'Workout Plans',
             icon: Icons.fitness_center,
-            onTap: () {
-              context.push('/plans/workouts');
-            },
+            onTap: () => controller.navigateToWorkoutPlan(context),
           ),
           loading: () => const LoadingTileWidget(),
           error: (error, _) => ErrorTileWidget(

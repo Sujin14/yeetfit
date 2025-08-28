@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import '../../../../shared/theme/theme.dart';
+import '../../../../shared/widgets/custom_appbar.dart';
 import '../widgets/about_body.dart';
 
 class AboutScreen extends StatelessWidget {
@@ -9,19 +8,13 @@ class AboutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'About',
-          style: AppTheme.textStyles['title']!.copyWith(color: AppTheme.colors['primaryText']),
-        ),
-        backgroundColor: AppTheme.colors['lightBackground'],
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppTheme.colors['primaryText']),
-          onPressed: () => context.pop(),
-        ),
+      appBar: CustomAppBar(
+        title: 'About',
+        showSettings: false,
+        onSettings: null,
+        showFavorite: false,
       ),
-      body: AboutBody(),
+      body: const AboutBody(),
     );
   }
 }

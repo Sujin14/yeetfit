@@ -20,7 +20,7 @@ class AppTheme {
     'gradientTextMiddle': Color.fromRGBO(142, 197, 252, 0.7),
     'gradientTextEnd': Color(0xFFE0C3FC),
     'deepOrange': Color(0xFFFF5722),
-    'teal': Color(0xFF26A69A), 
+    'teal': Color(0xFF26A69A),
     'indigo': Color(0xFF3F51B5),
     'onSurface': Color(0xFF212121),
     'onSurfaceDark': Color.fromRGBO(245, 245, 245, 0.9),
@@ -44,6 +44,10 @@ class AppTheme {
     'bmiOverweight': Color(0xFFFFD700),
     'bmiObese': Color(0xFFFFB347),
     'orangeAccent': Colors.orangeAccent,
+    'cardBackground': Color(0xFFF5F5F5), // Added for consistency
+    'primaryIcon': Color(0xFF3F51B5), // Matches indigo
+    'secondaryIcon': Color(0xFF616161), // Matches secondaryText
+    'favorite': Color(0xFFF44336), // Red for favorite icon
   };
 
   static final textStyles = {
@@ -55,6 +59,7 @@ class AppTheme {
     'bodyMedium': GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.normal),
     'bodySmall': GoogleFonts.roboto(fontSize: 12, fontWeight: FontWeight.normal),
     'caption': GoogleFonts.roboto(fontSize: 12, fontWeight: FontWeight.w300),
+    'subheading': GoogleFonts.roboto(fontSize: 18, fontWeight: FontWeight.w600), // Added
   };
 
   static ThemeData getLightTheme() {
@@ -89,7 +94,7 @@ class AppTheme {
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: IconThemeData(color: colors['primaryText']),
+        iconTheme: IconThemeData(color: colors['primaryIcon']),
       ),
       cardTheme: CardThemeData(
         elevation: 0,
@@ -134,7 +139,7 @@ class AppTheme {
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: IconThemeData(color: colors['onSurfaceDark']),
+        iconTheme: IconThemeData(color: colors['primaryIcon']),
       ),
       cardTheme: CardThemeData(
         elevation: 0,

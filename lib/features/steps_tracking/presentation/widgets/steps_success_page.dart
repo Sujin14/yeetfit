@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../providers/steps_provider.dart';
 import '../../../../shared/theme/theme.dart';
@@ -15,8 +14,9 @@ class StepsSuccessPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final message = ref.watch(stepsSuccessMessageProvider(goal));
+    final isDesktop = ScreenUtil().screenWidth >= 600.w;
     return Scaffold(
-      backgroundColor: AppTheme.colors['background'],
+      backgroundColor: AppTheme.colors['cardBackground'],
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -29,39 +29,38 @@ class StepsSuccessPage extends ConsumerWidget {
           ),
           Text(
             'Congratulations! 🎉',
-            style: GoogleFonts.roboto(
-              fontSize: 28.sp,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.colors['teal'],
+            style: AppTheme.textStyles['subheading']!.copyWith(
+              fontSize: isDesktop ? 24.sp : 28.sp,
+              color: AppTheme.colors['primaryButton'],
             ),
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10.h),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.w),
             child: Text(
               message,
-              style: GoogleFonts.roboto(
-                fontSize: 18.sp,
-                color: AppTheme.colors['primaryText'],
+              style: AppTheme.textStyles['body']!.copyWith(
+                fontSize: isDesktop ? 16.sp : 18.sp,
+                color: AppTheme.colors['onSurfaceDark'],
               ),
               textAlign: TextAlign.center,
             ),
           ),
-          const SizedBox(height: 30),
+          SizedBox(height: 30.h),
           ElevatedButton(
             onPressed: () => context.pop(),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.colors['navBarActive'],
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              backgroundColor: AppTheme.colors['primaryButton'],
+              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(12.r),
               ),
             ),
             child: Text(
               'Done',
-              style: GoogleFonts.roboto(
-                fontSize: 16.sp,
-                color: AppTheme.colors['white'],
+              style: AppTheme.textStyles['body']!.copyWith(
+                fontSize: isDesktop ? 14.sp : 16.sp,
+                color: AppTheme.colors['onSurfaceDark'],
               ),
             ),
           ),

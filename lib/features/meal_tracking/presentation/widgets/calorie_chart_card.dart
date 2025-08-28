@@ -106,7 +106,7 @@ class CalorieChartCard extends ConsumerWidget {
                             showTitles: true,
                             getTitlesWidget: (value, meta) {
                               final date = DateTime.now().subtract(Duration(days: 6 - value.toInt()));
-                              final label = DateFormat('EEE').format(date); // Mon, Tue, etc.
+                              final label = DateFormat('EEE').format(date);
                               return Padding(
                                 padding: EdgeInsets.only(top: 8.0.h),
                                 child: Text(

@@ -24,14 +24,14 @@ class TermsAndConditionsCard extends StatelessWidget {
                     children: [
                       Text(
                         'Terms & Conditions',
-                        style: AppTheme.textStyles['subtitle']!.copyWith(
+                        style: AppTheme.textStyles['subheading']!.copyWith(
                           fontSize: 18.sp,
                           color: AppTheme.colors['primaryText'],
                         ),
                       ),
                       SizedBox(height: 8.h),
                       Text(
-                        'Review our terms of use',
+                        'View our terms of service',
                         style: AppTheme.textStyles['body']!.copyWith(
                           fontSize: 14.sp,
                           color: AppTheme.colors['secondaryText'],
@@ -42,7 +42,7 @@ class TermsAndConditionsCard extends StatelessWidget {
                 ),
                 Icon(
                   Icons.arrow_forward_ios,
-                  color: AppTheme.colors['primaryText'],
+                  color: AppTheme.colors['primaryIcon'],
                   size: 16.sp,
                 ),
               ],

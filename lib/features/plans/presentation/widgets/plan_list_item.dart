@@ -54,7 +54,7 @@ class PlanListItem extends StatelessWidget {
         trailing: Icon(
           Icons.arrow_forward_ios,
           size: 16.sp,
-          color: AppTheme.colors['primaryText'],
+          color: AppTheme.colors['primaryIcon'],
         ),
         onTap: onTap,
       ),

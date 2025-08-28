@@ -1,10 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:rxdart/rxdart.dart';
-import '../../../meal_tracking/data/model/food_model.dart';
-import '../../../steps_tracking/presentation/providers/steps_provider.dart';
 import '../../../../shared/theme/theme.dart';
+import '../../../meal_tracking/data/model/food_model.dart';
+import '../../../payment/presentation/providers/payment_provider.dart';
+import '../../../steps_tracking/presentation/providers/steps_provider.dart';
 
 final selectedDateProvider = StateProvider<DateTime>((ref) => DateTime.now());
 
@@ -87,7 +89,6 @@ final dailyProgressStreamProvider =
   final date = ref.watch(selectedDateProvider).toIso8601String().split('T')[0];
   final today = DateTime.now().toIso8601String().split('T')[0];
 
-  // --- Core streams ---
   final userStream =
       FirebaseFirestore.instance.collection('users').doc(userId).snapshots();
 
@@ -136,7 +137,6 @@ final dailyProgressStreamProvider =
       .doc(date)
       .snapshots();
 
-  // --- Goal streams ---
   final stepsGoalStream = FirebaseFirestore.instance
       .collection('users')
       .doc(userId)
@@ -164,7 +164,6 @@ final dailyProgressStreamProvider =
       .doc('$date-goal')
       .snapshots();
 
-  // --- Live steps provider (today only) ---
   final stepsProviderStream = date == today
       ? ref
           .watch(stepsCountStreamProvider(userId).stream)
@@ -172,7 +171,6 @@ final dailyProgressStreamProvider =
           .onErrorReturn(0.0)
       : Stream.value(0.0);
 
-  // --- Combine all streams ---
   await for (final snapshots in CombineLatestStream.list([
     userStream,
     stepsStream,
@@ -196,7 +194,6 @@ final dailyProgressStreamProvider =
     final waterGoalDoc = snapshots[8] as DocumentSnapshot<Map<String, dynamic>>;
     final sleepGoalDoc = snapshots[9] as DocumentSnapshot<Map<String, dynamic>>;
 
-    // --- Food totals ---
     double calories = 0.0, protein = 0.0, carbs = 0.0, fat = 0.0;
     bool hasData = foodSnapshot.docs.isNotEmpty;
     for (final doc in foodSnapshot.docs) {
@@ -207,7 +204,6 @@ final dailyProgressStreamProvider =
       fat += foodItem.fat;
     }
 
-    // --- Goals from daily_goals (food) ---
     final dailyGoalsDocRef = FirebaseFirestore.instance
         .collection('users')
         .doc(userId)
@@ -234,7 +230,6 @@ final dailyProgressStreamProvider =
       effectiveFatGoal = (goalsData['fatGoal'] as num?)?.toDouble() ?? 0;
     }
 
-    // --- Fallback calculation ---
     if (effectiveCaloriesGoal <= 0) {
       final userMap = userDoc.data();
       final gender = (userMap?['gender'] as String?) ?? 'female';
@@ -273,7 +268,6 @@ final dailyProgressStreamProvider =
       }
     }
 
-    // --- Steps ---
     final steps = date == today && liveSteps > 0
         ? liveSteps
         : (stepsDoc.exists
@@ -287,7 +281,6 @@ final dailyProgressStreamProvider =
         sleepDoc.exists ||
         weightDoc.exists;
 
-    // --- Final progress map ---
     final progress = {
       'steps': steps,
       'stepsGoal': stepsGoalDoc.exists
@@ -346,3 +339,43 @@ final dailyProgressStreamProvider =
     yield progress;
   }
 });
+
+final dashboardProvider =
+    StateNotifierProvider.family<DashboardNotifier, AsyncValue<void>, String>(
+        (ref, userId) => DashboardNotifier(ref, userId));
+
+class DashboardNotifier extends StateNotifier<AsyncValue<void>> {
+  final Ref _ref;
+  final String _userId;
+
+  DashboardNotifier(this._ref, this._userId) : super(const AsyncValue.data(null));
+
+  void navigateToChatbot(BuildContext context) {
+    context.go('/chatbot');
+  }
+
+  void navigateToChat(BuildContext context) {
+    final paymentStatusAsync = _ref.read(paymentStatusProvider);
+    paymentStatusAsync.when(
+      data: (hasPaid) {
+        if (hasPaid) {
+          context.go('/admin-list');
+        } else {
+          context.go('/payment');
+        }
+      },
+      loading: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Checking payment status...'),
+          ),
+        );
+      },
+      error: (e, _) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      },
+    );
+  }
+}

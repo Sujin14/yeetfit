@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../config/razorpay_config.dart';
 import '../../data/model/payment_model.dart';
 import '../../domain/usecases/create_order.dart';
@@ -72,7 +73,7 @@ class PaymentController extends StateNotifier<PaymentState> {
     }
   }
 
-  void _handlePaymentSuccess(PaymentSuccessResponse response) async {
+  void _handlePaymentSuccess(PaymentSuccessResponse response, BuildContext context) async {
     state = state.copyWith(isLoading: true);
     try {
       final userId = FirebaseAuth.instance.currentUser?.uid;
@@ -80,6 +81,7 @@ class PaymentController extends StateNotifier<PaymentState> {
         await updatePaymentStatus.call(userId);
       }
       state = state.copyWith(isLoading: false, error: null, success: true);
+      context.go('/admin-list');
     } catch (e) {
       print('Payment success handling error: $e');
       state = state.copyWith(
@@ -100,7 +102,7 @@ class PaymentController extends StateNotifier<PaymentState> {
     print('External wallet selected: ${response.walletName}');
   }
 
-  Future<void> startPayment() async {
+  Future<void> startPayment(BuildContext context) async {
     if (!formKey.currentState!.validate()) return;
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) {
@@ -151,6 +153,10 @@ class PaymentController extends StateNotifier<PaymentState> {
         error: 'Error opening payment session: $e',
       );
     }
+  }
+
+  void navigateBack(BuildContext context) {
+    context.go('/user-dashboard');
   }
 
   @override

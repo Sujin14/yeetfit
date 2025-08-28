@@ -48,7 +48,7 @@ class PlanCardWidget extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 48.sp, color: AppTheme.colors['primaryText']),
+              Icon(icon, size: 48.sp, color: AppTheme.colors['primaryIcon']),
               SizedBox(height: 8.h),
               Text(
                 title,

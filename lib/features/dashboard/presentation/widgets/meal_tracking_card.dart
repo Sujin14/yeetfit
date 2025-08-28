@@ -76,9 +76,7 @@ class MealTrackingCard extends ConsumerWidget {
                 AppTheme.colors['gradientTextEnd']!,
               ],
             ),
-            padding: EdgeInsets.symmetric(
-              horizontal: 8.w,
-            ), // Added horizontal padding
+            padding: EdgeInsets.symmetric(horizontal: 8.w),
             child: Padding(
               padding: EdgeInsets.all(12.w),
               child: Column(
@@ -224,9 +222,14 @@ class MealTrackingCard extends ConsumerWidget {
         highlightColor: AppTheme.colors['secondaryText']!.withOpacity(0.4),
         child: _buildShimmerCard(context),
       ),
-      error: (error, _) {
-        return Center(child: Text('Error: $error'));
-      },
+      error: (error, _) => Center(
+        child: Text(
+          'Error: $error',
+          style: AppTheme.textStyles['bodyMedium']!.copyWith(
+            color: AppTheme.colors['error'],
+          ),
+        ),
+      ),
     );
   }
 
@@ -292,9 +295,7 @@ class MealTrackingCard extends ConsumerWidget {
           AppTheme.colors['gradientTextEnd']!,
         ],
       ),
-      padding: EdgeInsets.symmetric(
-        horizontal: 8.w,
-      ), // Added horizontal padding
+      padding: EdgeInsets.symmetric(horizontal: 8.w),
       child: Padding(
         padding: EdgeInsets.all(12.w),
         child: Column(

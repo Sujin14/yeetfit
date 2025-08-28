@@ -8,8 +8,8 @@ import '../widgets/plan_list_item.dart';
 import '../widgets/loading_card_widget.dart';
 import '../widgets/error_card_widget.dart';
 
-class FavoritePlansDisplay extends ConsumerWidget {
-  const FavoritePlansDisplay({super.key});
+class FavoritePlanDisplay extends ConsumerWidget {
+  const FavoritePlanDisplay({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -53,11 +53,6 @@ class FavoritePlansDisplay extends ConsumerWidget {
               extra: {
                 'plan': plan,
                 'category': category,
-                'onUnfavorite': () {
-                  if (!plan.isFavorite) {
-                    context.go('/favorites');
-                  }
-                },
               },
             );
           },

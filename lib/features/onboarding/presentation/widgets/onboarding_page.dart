@@ -1,12 +1,12 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../shared/theme/theme.dart';
-import '../../../../shared/widgets/gradient_text.dart';
 
 class OnboardingPage extends StatelessWidget {
-  final String imagePath, title, description;
+  final String imagePath;
+  final String title;
+  final String description;
 
   const OnboardingPage({
     super.key,
@@ -17,118 +17,34 @@ class OnboardingPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.colors['lightBackground'],
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final maxHeight = constraints.maxHeight;
-            final maxImageHeight = maxHeight * (kIsWeb ? 0.35 : 0.3);
-            final fontSize = (kIsWeb ? 80.sp : 70.sp).clamp(
-              30.0,
-              60.0,
-            );
-
-            return Column(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: Center(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Text.rich(
-                        TextSpan(
-                          children: [
-                            TextSpan(
-                              text: 'Yeet',
-                              style: GoogleFonts.fredoka(
-                                color: AppTheme.colors['fullProgress'],
-                                fontSize: fontSize,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            TextSpan(
-                              text: 'Fit',
-                              style: GoogleFonts.fredoka(
-                                color: AppTheme.colors['black'],
-                                fontSize: fontSize,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        softWrap: false,
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 3,
-                  child: Image.asset(
-                    imagePath,
-                    fit: BoxFit.contain,
-                    height: maxImageHeight.clamp(150.h, kIsWeb ? 350.h : 300.h),
-                    width: constraints.maxWidth,
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: kIsWeb ? 40.w : 32.w,
-                      vertical: kIsWeb ? 20.h : 16.h,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        GradientText(
-                          text: title,
-                          style: AppTheme.textStyles['heading']!.copyWith(
-                            fontWeight: FontWeight.bold,
-                            fontSize: (kIsWeb ? 28.sp : 24.sp).clamp(
-                              20.0,
-                              28.0,
-                            ),
-                          ),
-                          gradient: LinearGradient(
-                            colors: [
-                              AppTheme.colors['fullProgress']!,
-                              AppTheme.colors['halfProgress']!,
-                              AppTheme.colors['error']!,
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                        ),
-                        SizedBox(height: kIsWeb ? 12.h : 8.h),
-                        GradientText(
-                          text: description,
-                          style: AppTheme.textStyles['body']!.copyWith(
-                            fontSize: (kIsWeb ? 18.sp : 16.sp).clamp(
-                              14.0,
-                              18.0,
-                            ),
-                          ),
-                          gradient: LinearGradient(
-                            colors: [
-                              AppTheme.colors['indigo']!,
-                              AppTheme.colors['caloriesProgress']!,
-                              AppTheme.colors['carbsProgress']!,
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Image.asset(
+          imagePath,
+          height: kIsWeb ? 400.h : 300.h,
+          fit: BoxFit.contain,
         ),
-      ),
+        SizedBox(height: kIsWeb ? 40.h : 20.h),
+        Text(
+          title,
+          style: AppTheme.textStyles['heading']!.copyWith(
+            color: AppTheme.colors['onSurface'],
+          ),
+          textAlign: TextAlign.center,
+        ),
+        SizedBox(height: kIsWeb ? 20.h : 10.h),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: kIsWeb ? 40.w : 20.w),
+          child: Text(
+            description,
+            style: AppTheme.textStyles['bodyMedium']!.copyWith(
+              color: AppTheme.colors['onSurface']!.withOpacity(0.7),
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ],
     );
   }
 }

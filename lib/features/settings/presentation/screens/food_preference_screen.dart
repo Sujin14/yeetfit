@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import '../../../../shared/theme/theme.dart';
+import '../../../../shared/widgets/custom_appbar.dart';
 import '../../../user_info/presentation/providers/user_info_provider.dart';
 import '../widgets/food_preference_body.dart';
 
@@ -9,7 +8,8 @@ class FoodPreferencesScreen extends ConsumerStatefulWidget {
   const FoodPreferencesScreen({super.key});
 
   @override
-  ConsumerState<FoodPreferencesScreen> createState() => _FoodPreferencesScreenState();
+  ConsumerState<FoodPreferencesScreen> createState() =>
+      _FoodPreferencesScreenState();
 }
 
 class _FoodPreferencesScreenState extends ConsumerState<FoodPreferencesScreen> {
@@ -51,19 +51,11 @@ class _FoodPreferencesScreenState extends ConsumerState<FoodPreferencesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Food Preferences',
-          style: AppTheme.textStyles['title']!.copyWith(
-            color: AppTheme.colors['primaryText'],
-          ),
-        ),
-        backgroundColor: AppTheme.colors['lightBackground'],
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppTheme.colors['primaryText']),
-          onPressed: () => context.pop(),
-        ),
+      appBar: CustomAppBar(
+        title: 'Food Preferences',
+        showSettings: false,
+        onSettings: null,
+        showFavorite: false,
       ),
       body: FoodPreferencesBody(
         formKey: _formKey,
@@ -72,7 +64,8 @@ class _FoodPreferencesScreenState extends ConsumerState<FoodPreferencesScreen> {
         otherAllergy: _otherAllergy,
         cuisines: _cuisines,
         otherAllergyController: _otherAllergyController,
-        onDietPreferenceChanged: (value) => setState(() => _dietPreference = value),
+        onDietPreferenceChanged: (value) =>
+            setState(() => _dietPreference = value),
         onAllergyChanged: (allergy, value) => setState(() {
           _allergies[allergy] = value ?? false;
           if (allergy == 'Others' && !value!) {
@@ -81,7 +74,8 @@ class _FoodPreferencesScreenState extends ConsumerState<FoodPreferencesScreen> {
           }
         }),
         onOtherAllergyChanged: (value) => setState(() => _otherAllergy = value),
-        onCuisineChanged: (cuisine, value) => setState(() => _cuisines[cuisine] = value ?? false),
+        onCuisineChanged: (cuisine, value) =>
+            setState(() => _cuisines[cuisine] = value ?? false),
       ),
     );
   }

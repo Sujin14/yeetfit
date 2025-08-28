@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:yeetfit/shared/theme/theme.dart';
-import '../widgets/calorie_chart_card.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../../../shared/theme/theme.dart';
+import '../widgets/weekly_chart_screen_body.dart';
 
 class WeeklyCalorieChartScreen extends ConsumerWidget {
   const WeeklyCalorieChartScreen({super.key});
@@ -11,7 +11,6 @@ class WeeklyCalorieChartScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
-    
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppTheme.colors['transparent'],
@@ -25,10 +24,7 @@ class WeeklyCalorieChartScreen extends ConsumerWidget {
           onPressed: () => context.go('/modal/food'),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: CalorieChartCard(userId: userId),
-      ),
+      body: WeeklyCalorieChartScreenBody(userId: userId),
     );
   }
 }

@@ -33,10 +33,12 @@ class PaymentForm extends StatelessWidget {
             controller: nameController,
             decoration: InputDecoration(
               labelText: 'Name',
-              labelStyle: TextStyle(color: AppTheme.colors['']),
+              labelStyle: AppTheme.textStyles['body']!.copyWith(
+                color: AppTheme.colors['primaryText']!.withOpacity(0.7),
+              ),
               border: const OutlineInputBorder(),
             ),
-            style: TextStyle(
+            style: AppTheme.textStyles['body']!.copyWith(
               color: AppTheme.colors['primaryText']!.withOpacity(0.7),
             ),
             validator: PaymentValidators.validateName,
@@ -46,12 +48,12 @@ class PaymentForm extends StatelessWidget {
             controller: emailController,
             decoration: InputDecoration(
               labelText: 'Email',
-              labelStyle: TextStyle(
+              labelStyle: AppTheme.textStyles['body']!.copyWith(
                 color: AppTheme.colors['primaryText']!.withOpacity(0.7),
               ),
               border: const OutlineInputBorder(),
             ),
-            style: TextStyle(
+            style: AppTheme.textStyles['body']!.copyWith(
               color: AppTheme.colors['primaryText']!.withOpacity(0.7),
             ),
             keyboardType: TextInputType.emailAddress,
@@ -62,12 +64,12 @@ class PaymentForm extends StatelessWidget {
             controller: contactController,
             decoration: InputDecoration(
               labelText: 'Contact Number',
-              labelStyle: TextStyle(
+              labelStyle: AppTheme.textStyles['body']!.copyWith(
                 color: AppTheme.colors['primaryText']!.withOpacity(0.7),
               ),
               border: const OutlineInputBorder(),
             ),
-            style: TextStyle(
+            style: AppTheme.textStyles['body']!.copyWith(
               color: AppTheme.colors['primaryText']!.withOpacity(0.7),
             ),
             keyboardType: TextInputType.phone,
@@ -77,7 +79,7 @@ class PaymentForm extends StatelessWidget {
           ElevatedButton(
             onPressed: isLoading ? null : onPayPressed,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.colors['primaryButton'] ?? Colors.blue,
+              backgroundColor: AppTheme.colors['primaryButton'],
               padding: EdgeInsets.symmetric(horizontal: 32.w, vertical: 12.h),
             ),
             child: Text(

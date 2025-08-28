@@ -23,7 +23,7 @@ class ActivityDropdown extends StatelessWidget {
     ];
 
     return ListTile(
-      leading: Icon(Icons.directions_run, color: AppTheme.colors['primaryText']),
+      leading: Icon(Icons.directions_run, color: AppTheme.colors['primaryIcon']),
       title: DropdownButtonFormField<String>(
         value: value != null && activityLevels.contains(value) ? value : null,
         decoration: InputDecoration(
@@ -36,7 +36,12 @@ class ActivityDropdown extends StatelessWidget {
         items: activityLevels
             .map((level) => DropdownMenuItem(
                   value: level,
-                  child: Text(level),
+                  child: Text(
+                    level,
+                    style: AppTheme.textStyles['body']!.copyWith(
+                      color: AppTheme.colors['primaryText'],
+                    ),
+                  ),
                 ))
             .toList(),
         onChanged: onChanged,
@@ -44,6 +49,7 @@ class ActivityDropdown extends StatelessWidget {
           color: AppTheme.colors['primaryText'],
         ),
         validator: UserInfoValidators.validateActivityLevel,
+        dropdownColor: AppTheme.colors['cardBackground'],
       ),
     );
   }

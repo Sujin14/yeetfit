@@ -5,8 +5,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../../../../shared/theme/theme.dart';
-import '../../../steps_tracking/presentation/providers/steps_provider.dart';
 import '../providers/dashboard_provider.dart';
+import '../../../steps_tracking/presentation/providers/steps_provider.dart';
 import 'progress_card.dart';
 
 class ProgressCardsList extends ConsumerStatefulWidget {
@@ -26,10 +26,11 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
   @override
   void initState() {
     super.initState();
-    if (kDebugMode)
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _startAutoSwipe();
-    });
+    if (kDebugMode) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _startAutoSwipe();
+      });
+    }
   }
 
   void _startAutoSwipe() {
@@ -57,20 +58,19 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
 
   @override
   void dispose() {
-    if (kDebugMode)
-    _autoSwipeTimer?.cancel();
+    if (kDebugMode) _autoSwipeTimer?.cancel();
     _pageController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final ref = this.ref;
     final progressAsync = ref.watch(dailyProgressStreamProvider(widget.userId));
     final stepsAsync = ref.watch(stepsCountProvider(widget.userId));
 
     return progressAsync.when(
       data: (progress) {
-        // Combine Firestore data with real-time step count
         final steps = stepsAsync.when(
           data: (steps) => steps.toDouble(),
           loading: () => progress['steps'] as double,
@@ -174,7 +174,14 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
           ),
         ],
       ),
-      error: (error, _) => Center(child: Text('Error: $error')),
+      error: (error, _) => Center(
+        child: Text(
+          'Error: $error',
+          style: AppTheme.textStyles['bodyMedium']!.copyWith(
+            color: AppTheme.colors['error'],
+          ),
+        ),
+      ),
     );
   }
 }
