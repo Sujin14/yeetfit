@@ -87,7 +87,7 @@ class SettingsBody extends ConsumerWidget {
           SizedBox(height: 24.h),
           Center(
             child: Text(
-              'App Version: 1.0.0',
+              'App Version: 1.0.1',
               style: AppTheme.textStyles['body']!.copyWith(color: AppTheme.colors['secondaryText']),
             ),
           ),
