@@ -27,9 +27,9 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
   void initState() {
     super.initState();
     if (kDebugMode)
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _startAutoSwipe();
-    });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _startAutoSwipe();
+      });
   }
 
   void _startAutoSwipe() {
@@ -57,10 +57,25 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
 
   @override
   void dispose() {
-    if (kDebugMode)
-    _autoSwipeTimer?.cancel();
+    if (kDebugMode) _autoSwipeTimer?.cancel();
     _pageController.dispose();
     super.dispose();
+  }
+
+  /// Helper to compute weight progress dynamically
+  double _computeWeightPercent(double currentWeight, double goalWeight) {
+    if (currentWeight == goalWeight) return 1.0;
+    // Weight loss goal
+    if (goalWeight < currentWeight) {
+      final start = currentWeight; // starting weight
+      final end = goalWeight; // target weight
+      return ((start - currentWeight) / (start - end)).clamp(0.0, 1.0);
+    } else {
+      // Weight gain goal
+      final start = currentWeight;
+      final end = goalWeight;
+      return ((currentWeight - start) / (end - start)).clamp(0.0, 1.0);
+    }
   }
 
   @override
@@ -78,13 +93,11 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
         );
 
         final stepsGoal = progress['stepsGoal'] as double;
-        final stepsPercent = stepsGoal > 0
-            ? (steps / stepsGoal).clamp(0.0, 1.0)
-            : 0.0;
+
         final cards = [
           ProgressCard(
             title: 'Steps',
-            percent: stepsPercent,
+            percent: stepsGoal > 0 ? (steps / stepsGoal).clamp(0.0, 1.0) : 0.0,
             value: '${steps.toInt()}/${stepsGoal.toInt()} steps',
             icon: Icons.directions_walk,
             description: progress['stepsDescription'],
@@ -119,9 +132,9 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
           ),
           ProgressCard(
             title: 'Weight',
-            percent: (progress['currentWeight'] / progress['weightGoal']).clamp(
-              0.0,
-              1.0,
+            percent: _computeWeightPercent(
+              progress['currentWeight'],
+              progress['weightGoal'],
             ),
             value:
                 '${progress['currentWeight'].toStringAsFixed(1)}/${progress['weightGoal'].toStringAsFixed(1)} kg',

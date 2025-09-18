@@ -31,6 +31,7 @@ class CalorieSummary extends ConsumerWidget {
         return GlassmorphicContainer(
           color: AppTheme.colors['deepOrange']!,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
@@ -55,20 +56,16 @@ class CalorieSummary extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(width: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${totalCalories.toStringAsFixed(0)} of ${goalCalories.toStringAsFixed(0)} Cal',
-                        style: GoogleFonts.roboto(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.colors['onSurface'],
-                        ),
+                  Expanded(
+                    child: Text(
+                      '${totalCalories.toStringAsFixed(0)} of ${goalCalories.toStringAsFixed(0)} Cal',
+                      style: GoogleFonts.roboto(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.colors['onSurface'],
                       ),
-                    ],
+                    ),
                   ),
-                  const Spacer(),
                   GestureDetector(
                     onTap: () => context.push('/weekly-calorie-chart'),
                     child: Icon(
@@ -80,15 +77,26 @@ class CalorieSummary extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _buildNutrientProgress('Protein', nutrients['protein']!, nutrientGoals['protein']!, AppTheme.colors['navBarActive']!),
-                  _buildNutrientProgress('Fat', nutrients['fat']!, nutrientGoals['fat']!, AppTheme.colors['error']!),
-                  _buildNutrientProgress('Carbs', nutrients['carbs']!, nutrientGoals['carbs']!, AppTheme.colors['fullProgress']!),
-                  _buildNutrientProgress('Fiber', nutrients['fiber']!, nutrientGoals['fiber']!, AppTheme.colors['indigo']!),
-                ],
+
+              // 🔥 2 items per row layout
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final itemWidth = (constraints.maxWidth - 8) / 2;
+                  return Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _buildNutrientProgress('Protein', nutrients['protein']!,
+                          nutrientGoals['protein']!, AppTheme.colors['navBarActive']!, itemWidth),
+                      _buildNutrientProgress('Fat', nutrients['fat']!,
+                          nutrientGoals['fat']!, AppTheme.colors['error']!, itemWidth),
+                      _buildNutrientProgress('Carbs', nutrients['carbs']!,
+                          nutrientGoals['carbs']!, AppTheme.colors['fullProgress']!, itemWidth),
+                      _buildNutrientProgress('Fiber', nutrients['fiber']!,
+                          nutrientGoals['fiber']!, AppTheme.colors['indigo']!, itemWidth),
+                    ],
+                  );
+                },
               ),
             ],
           ),
@@ -97,10 +105,12 @@ class CalorieSummary extends ConsumerWidget {
     );
   }
 
-  Widget _buildNutrientProgress(String label, double value, double goal, Color color) {
+  Widget _buildNutrientProgress(
+      String label, double value, double goal, Color color, double width) {
     return SizedBox(
-      width: 150,
+      width: width,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             '$label: ${value.toStringAsFixed(1)} / ${goal.toStringAsFixed(0)}g',

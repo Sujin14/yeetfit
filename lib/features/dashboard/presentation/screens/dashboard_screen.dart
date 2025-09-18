@@ -46,8 +46,8 @@ class DashboardScreen extends ConsumerWidget {
             ),
           ),
           DraggableScrollableSheet(
-            initialChildSize: 0.7,
-            minChildSize: 0.7,
+            initialChildSize: 0.6,
+            minChildSize: 0.6,
             maxChildSize: 1.0,
             builder: (context, scrollController) => Container(
               decoration: BoxDecoration(

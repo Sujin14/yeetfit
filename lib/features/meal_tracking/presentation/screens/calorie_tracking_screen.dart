@@ -30,7 +30,6 @@ class CalorieTrackingScreen extends ConsumerWidget {
           child: ListView(
             padding: EdgeInsets.all(16.w),
             children: [
-              SizedBox(height: 80.h),
               Consumer(
                 builder: (context, ref, _) {
                   final totalCalories =

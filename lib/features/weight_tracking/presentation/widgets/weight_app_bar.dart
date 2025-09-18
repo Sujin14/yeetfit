@@ -15,14 +15,11 @@ class WeightAppBar extends ConsumerWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userId = ref.watch(firebaseAuthProvider).currentUser?.uid;
-    print(
-      'WeightAppBar: userId=$userId, authUid=${FirebaseAuth.instance.currentUser?.uid}',
-    );
     return AppBar(
       elevation: 2,
       leading: IconButton(
         onPressed: () => context.go('/user-dashboard'),
-        icon: Icon(Icons.arrow_back_ios_new_rounded),
+        icon: Icon(Icons.arrow_back),
       ),
       centerTitle: true,
       title: Text(

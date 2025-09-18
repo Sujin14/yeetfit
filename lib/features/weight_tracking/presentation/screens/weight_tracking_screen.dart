@@ -20,11 +20,7 @@ class WeightTrackingScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userId = FirebaseAuth.instance.currentUser?.uid;
-    print(
-      'WeightTrackingScreen: userId=$userId, authUid=${FirebaseAuth.instance.currentUser?.uid}',
-    );
     if (userId == null) {
-      print('WeightTrackingScreen: No authenticated user');
       return const Scaffold(
         body: Center(child: Text('Please log in to track weight')),
       );
@@ -38,9 +34,6 @@ class WeightTrackingScreen extends ConsumerWidget {
       next.whenData((currentWeight) {
         goalAsync.whenData((goal) {
           if ((currentWeight - goal.goalWeight).abs() < 0.1) {
-            print(
-              'WeightTrackingScreen: Goal weight achieved for userId=$userId, navigating to WeightSuccessPage',
-            );
             context.push(
               '/weight-success/${goal.goalWeight.toStringAsFixed(1)}',
             );
@@ -66,13 +59,7 @@ class WeightTrackingScreen extends ConsumerWidget {
             SizedBox(height: 25.h),
             Consumer(
               builder: (context, ref, _) {
-                print(
-                  'WeightTrackingScreen: Watching weightProgressProvider for userId=$userId',
-                );
                 final progressData = ref.watch(weightProgressProvider(userId));
-                print(
-                  'WeightTrackingScreen: Progress data for userId=$userId: progress=${progressData['progress']}',
-                );
                 return WeightProgressBar(
                   progress: progressData['progress'],
                   progressColor: progressData['color'],

@@ -7,15 +7,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../shared/theme/theme.dart';
 import '../providers/steps_provider.dart';
-import '../widgets/steps_action_button.dart';
 import '../widgets/steps_animation.dart';
 import '../widgets/steps_app_bar.dart';
-import '../widgets/steps_action_sheet.dart';
 import '../widgets/steps_calorie_card_container.dart';
 import '../widgets/steps_chart_card.dart';
 import '../widgets/steps_progress_card_container.dart';
 import '../widgets/steps_tip_card.dart';
-import '../widgets/steps_tracking_toggle.dart';
 
 class StepCounterScreen extends ConsumerStatefulWidget {
   const StepCounterScreen({super.key});
@@ -72,47 +69,24 @@ class _StepCounterScreenState extends ConsumerState<StepCounterScreen> {
             });
           });
 
-          return RefreshIndicator(
-            onRefresh: () async => ref.invalidate(stepsCountProvider(userId)),
-            child: SingleChildScrollView(
+          return SingleChildScrollView(
               padding: EdgeInsets.all(isDesktop ? 24.w : 16.w),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const StepsAnimation(),
-                  StepsTrackingModeToggle(
-                    isPedometerActive: _usePedometer,
-                    onToggle: (value) {
-                      setState(() {
-                        _usePedometer = value;
-                        ref.read(stepsCountProvider(userId).notifier).togglePedometer(value);
-                        if (value) {
-                          ref.invalidate(stepsCountProvider(userId));
-                        }
-                      });
-                    },
-                  ),
-                  SizedBox(height: 16.h),
+                  SizedBox(height: 18.h),
                   StepsProgressCardContainer(userId: userId, today: today),
-                  SizedBox(height: 18.h),
+                  SizedBox(height: 22.h),
                   StepsCaloriesCardContainer(userId: userId),
-                  SizedBox(height: 18.h),
+                  SizedBox(height: 22.h),
                   const StepsTipCard(),
-                  SizedBox(height: 18.h),
+                  SizedBox(height: 22.h),
                   StepsChartSection(userId: userId),
-                  SizedBox(height: 60.h),
                 ],
               ),
-            ),
           );
         },
-      ),
-      floatingActionButton: StepsActionButton(
-        onPressed: () => showModalBottomSheet(
-          context: context,
-          backgroundColor: AppTheme.colors['transparent'],
-          builder: (context) => StepsActionSheet(userId: userId),
-        ),
       ),
     );
   }

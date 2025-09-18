@@ -23,7 +23,7 @@ class WaterProgressCard extends ConsumerWidget {
     );
 
     return GlassmorphicContainer(
-      color: AppTheme.colors['navBarActive'] ?? Colors.grey,
+      color: AppTheme.colors['navBarActive']!,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -35,8 +35,7 @@ class WaterProgressCard extends ConsumerWidget {
                   fontWeight: FontWeight.bold,
                   fontSize: 18.sp,
                   color:
-                      AppTheme.colors['primaryText']?.withOpacity(0.7) ??
-                      Colors.grey,
+                      AppTheme.colors['primaryText']?.withOpacity(0.7)
                 ),
               ),
               const Spacer(),
@@ -99,7 +98,7 @@ class WaterGoalDialog extends ConsumerWidget {
       title: Text(
         'Edit Water Goal',
         style: GoogleFonts.roboto(
-          color: AppTheme.colors['white'] ?? Colors.white,
+          color: AppTheme.colors['onSurface'],
         ),
       ),
       content: TextField(
@@ -109,14 +108,14 @@ class WaterGoalDialog extends ConsumerWidget {
           labelText: 'Glasses per Day',
           hintText: 'Enter number of glasses',
           labelStyle: GoogleFonts.roboto(
-            color: AppTheme.colors['white']?.withOpacity(0.7) ?? Colors.white70,
+            color: AppTheme.colors['onSurface']?.withOpacity(0.7),
           ),
           hintStyle: GoogleFonts.roboto(
-            color: AppTheme.colors['white']?.withOpacity(0.5) ?? Colors.white70,
+            color: AppTheme.colors['onSurface']?.withOpacity(0.5),
           ),
         ),
         style: GoogleFonts.roboto(
-          color: AppTheme.colors['white'] ?? Colors.white,
+          color: AppTheme.colors['onSurface'],
         ),
       ),
       actions: [
@@ -125,19 +124,19 @@ class WaterGoalDialog extends ConsumerWidget {
           child: Text(
             'Cancel',
             style: GoogleFonts.roboto(
-              color: AppTheme.colors['white'] ?? Colors.white,
+              color: AppTheme.colors['onSurface'],
             ),
           ),
         ),
         ElevatedButton(
           onPressed: () => state.submitGoal(context),
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppTheme.colors['navBarActive'] ?? Colors.grey,
+            backgroundColor: AppTheme.colors['navBarActive'],
           ),
           child: Text(
             'Save',
             style: GoogleFonts.roboto(
-              color: AppTheme.colors['white'] ?? Colors.white,
+              color: AppTheme.colors['white'],
             ),
           ),
         ),

@@ -57,7 +57,7 @@ class WaterTrackingScreen extends ConsumerWidget {
           SizedBox(height: 16.h),
           const WaterProgressCard(),
           SizedBox(height: 30.h),
-          WaterCircularIndicator(progress: progress), // ✅ fixed
+          WaterCircularIndicator(progress: progress),
           SizedBox(height: 15.h),
           WaterActionButtons(
             onAdd: () =>

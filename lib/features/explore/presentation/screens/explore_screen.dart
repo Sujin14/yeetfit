@@ -18,10 +18,10 @@ class ExploreScreen extends ConsumerWidget {
             children: [
               SizedBox(height: 16.h),
               Text(
-                'Your Plans',
+                'Plans',
                 style:
                     AppTheme.textStyles['heading']?.copyWith(
-                      color: AppTheme.colors['primaryText'] ?? Colors.black,
+                      color: AppTheme.colors['primaryText'],
                       fontSize: 24.sp,
                     ) ??
                     TextStyle(fontSize: 24.sp, color: Colors.black),

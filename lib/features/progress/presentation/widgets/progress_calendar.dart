@@ -13,10 +13,6 @@ class ProgressCalendar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (dataset.isNotEmpty) {
-      final sample = dataset.entries.take(8).map((e) => '${e.key.toIso8601String().substring(0,10)}:${e.value}').join(', ');
-    }
-
     if (dataset.isEmpty) {
       return const Center(child: Text("No data available"));
     }
@@ -29,20 +25,21 @@ class ProgressCalendar extends StatelessWidget {
     final hasNonZero = normalizedDataset.values.any((v) => v > 0);
     final safeDataset = hasNonZero ? normalizedDataset : {DateTime.now(): 1};
 
-
-    return HeatMapCalendar(
-      datasets: safeDataset,
-      colorMode: ColorMode.opacity,
-      colorsets: {1: baseColor},
-      showColorTip: true,
-      monthFontSize: 16,
-      weekFontSize: 12,
-      textColor: Colors.black,
-      defaultColor: Colors.grey[200]!,
-      size: 32,
-      margin: const EdgeInsets.all(4),
-      onClick: (date) {
-      },
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: HeatMapCalendar(
+        datasets: safeDataset,
+        colorMode: ColorMode.opacity,
+        colorsets: {1: baseColor},
+        showColorTip: true,
+        monthFontSize: 16,
+        weekFontSize: 12,
+        textColor: Colors.black,
+        defaultColor: Colors.grey[200]!,
+        size: 32,
+        margin: const EdgeInsets.all(4),
+        onClick: (date) {},
+      ),
     );
   }
 }

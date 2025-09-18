@@ -96,7 +96,7 @@ class UserInfoStepper extends ConsumerWidget {
             else
               const SizedBox.shrink(),
             SizedBox(
-              width: 100.w,
+              width: 150.w,
               height: 48.h,
               child: isSaving
                   ? ShimmerLoading(width: 100.w, height: 48.h)

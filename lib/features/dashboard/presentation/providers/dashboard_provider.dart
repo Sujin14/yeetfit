@@ -2,19 +2,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:rxdart/rxdart.dart';
-import '../../../meal_tracking/data/model/food_model.dart';
 import '../../../steps_tracking/presentation/providers/steps_provider.dart';
 import '../../../../shared/theme/theme.dart';
 
 final selectedDateProvider = StateProvider<DateTime>((ref) => DateTime.now());
 
+// --- BMI Providers ---
 final bmiStreamProvider = StreamProvider.family<double, String>((ref, userId) {
   final date = ref.watch(selectedDateProvider).toIso8601String().split('T')[0];
 
-  final userStream = FirebaseFirestore.instance
-      .collection('users')
-      .doc(userId)
-      .snapshots();
+  final userStream =
+      FirebaseFirestore.instance.collection('users').doc(userId).snapshots();
 
   final weightStream = FirebaseFirestore.instance
       .collection('users')
@@ -25,18 +23,15 @@ final bmiStreamProvider = StreamProvider.family<double, String>((ref, userId) {
       .doc(date)
       .snapshots();
 
-  return Rx.combineLatest2(userStream, weightStream, (
-    DocumentSnapshot<Map<String, dynamic>> userDoc,
-    DocumentSnapshot<Map<String, dynamic>> weightDoc,
-  ) {
+  return Rx.combineLatest2(userStream, weightStream,
+      (DocumentSnapshot<Map<String, dynamic>> userDoc,
+          DocumentSnapshot<Map<String, dynamic>> weightDoc) {
     final height = (userDoc.data()?['height'] as num?)?.toDouble() ?? 0.0;
-
     final weight = weightDoc.exists
         ? (weightDoc.data()?['currentWeight'] as num?)?.toDouble()
         : (userDoc.data()?['currentWeight'] as num?)?.toDouble();
 
     if (height <= 0 || weight == null) return 0.0;
-
     return weight / ((height / 100) * (height / 100));
   });
 });
@@ -75,23 +70,36 @@ final progressColorProvider = Provider.family<Color, double>((ref, percent) {
   return AppTheme.colors['fullProgress']!;
 });
 
+// --- User Data Future Provider ---
 final userDataFutureProvider =
     FutureProvider.family<Map<String, dynamic>?, String>((ref, userId) async {
-  final doc =
-      await FirebaseFirestore.instance.collection('users').doc(userId).get();
+  final doc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
   return doc.data();
 });
 
+// --- Daily Progress Stream Provider ---
 final dailyProgressStreamProvider =
     StreamProvider.family<Map<String, dynamic>, String>((ref, userId) async* {
+  final firestore = FirebaseFirestore.instance;
   final date = ref.watch(selectedDateProvider).toIso8601String().split('T')[0];
   final today = DateTime.now().toIso8601String().split('T')[0];
 
-  // --- Core streams ---
-  final userStream =
-      FirebaseFirestore.instance.collection('users').doc(userId).snapshots();
+  // --- Helpers ---
+  double _asDouble(Map<String, dynamic>? m, String key, double fallback) {
+    final v = m == null ? null : m[key];
+    if (v is num) return v.toDouble();
+    if (v is String) return double.tryParse(v) ?? fallback;
+    return fallback;
+  }
 
-  final stepsStream = FirebaseFirestore.instance
+  String _asString(Map<String, dynamic>? m, String key, String fallback) {
+    final v = m == null ? null : m[key];
+    return v?.toString() ?? fallback;
+  }
+
+  // --- Streams ---
+  final userStream = firestore.collection('users').doc(userId).snapshots();
+  final stepsDocStream = firestore
       .collection('users')
       .doc(userId)
       .collection('progress')
@@ -99,8 +107,7 @@ final dailyProgressStreamProvider =
       .collection('steps')
       .doc(date)
       .snapshots();
-
-  final waterStream = FirebaseFirestore.instance
+  final waterDocStream = firestore
       .collection('users')
       .doc(userId)
       .collection('progress')
@@ -108,8 +115,7 @@ final dailyProgressStreamProvider =
       .collection('water')
       .doc(date)
       .snapshots();
-
-  final sleepStream = FirebaseFirestore.instance
+  final sleepDocStream = firestore
       .collection('users')
       .doc(userId)
       .collection('progress')
@@ -117,17 +123,7 @@ final dailyProgressStreamProvider =
       .collection('sleep')
       .doc(date)
       .snapshots();
-
-  final foodStream = FirebaseFirestore.instance
-      .collection('users')
-      .doc(userId)
-      .collection('progress')
-      .doc('food')
-      .collection('food')
-      .where('date', isEqualTo: date)
-      .snapshots();
-
-  final weightStream = FirebaseFirestore.instance
+  final weightDocStream = firestore
       .collection('users')
       .doc(userId)
       .collection('progress')
@@ -135,214 +131,143 @@ final dailyProgressStreamProvider =
       .collection('weight')
       .doc(date)
       .snapshots();
-
-  // --- Goal streams ---
-  final stepsGoalStream = FirebaseFirestore.instance
+  final foodCollectionStream = firestore
       .collection('users')
       .doc(userId)
       .collection('progress')
-      .doc('steps')
-      .collection('steps')
-      .doc('$date-goal')
+      .doc('food')
+      .collection('food')
       .snapshots();
 
-  final waterGoalStream = FirebaseFirestore.instance
-      .collection('users')
-      .doc(userId)
-      .collection('progress')
-      .doc('water')
-      .collection('water')
-      .doc('$date-goal')
-      .snapshots();
-
-  final sleepGoalStream = FirebaseFirestore.instance
-      .collection('users')
-      .doc(userId)
-      .collection('progress')
-      .doc('sleep')
-      .collection('sleep')
-      .doc('$date-goal')
-      .snapshots();
-
-  // --- Live steps provider (today only) ---
   final stepsProviderStream = date == today
-      ? ref
-          .watch(stepsCountStreamProvider(userId).stream)
-          .startWith(0.0)
-          .onErrorReturn(0.0)
+      ? ref.watch(stepsCountStreamProvider(userId).stream).startWith(0.0).onErrorReturn(0.0)
       : Stream.value(0.0);
 
-  // --- Combine all streams ---
+  // --- Combine streams ---
   await for (final snapshots in CombineLatestStream.list([
     userStream,
-    stepsStream,
-    waterStream,
-    sleepStream,
-    foodStream,
-    weightStream,
+    stepsDocStream,
+    waterDocStream,
+    sleepDocStream,
+    foodCollectionStream,
+    weightDocStream,
     stepsProviderStream,
-    stepsGoalStream,
-    waterGoalStream,
-    sleepGoalStream,
   ])) {
     final userDoc = snapshots[0] as DocumentSnapshot<Map<String, dynamic>>;
     final stepsDoc = snapshots[1] as DocumentSnapshot<Map<String, dynamic>>;
     final waterDoc = snapshots[2] as DocumentSnapshot<Map<String, dynamic>>;
     final sleepDoc = snapshots[3] as DocumentSnapshot<Map<String, dynamic>>;
-    final foodSnapshot = snapshots[4] as QuerySnapshot<Map<String, dynamic>>;
+    final foodDoc = snapshots[4] as QuerySnapshot<Map<String, dynamic>>;
     final weightDoc = snapshots[5] as DocumentSnapshot<Map<String, dynamic>>;
     final liveSteps = snapshots[6] as double;
-    final stepsGoalDoc = snapshots[7] as DocumentSnapshot<Map<String, dynamic>>;
-    final waterGoalDoc = snapshots[8] as DocumentSnapshot<Map<String, dynamic>>;
-    final sleepGoalDoc = snapshots[9] as DocumentSnapshot<Map<String, dynamic>>;
 
-    // --- Food totals ---
-    double calories = 0.0, protein = 0.0, carbs = 0.0, fat = 0.0;
-    bool hasData = foodSnapshot.docs.isNotEmpty;
-    for (final doc in foodSnapshot.docs) {
-      final foodItem = FoodItem.fromMap(doc.data());
-      calories += foodItem.calories;
-      protein += foodItem.protein;
-      carbs += foodItem.carbs;
-      fat += foodItem.fat;
+    // --- Food totals & goal ---
+    double calories = 0, protein = 0, carbs = 0, fat = 0;
+    double caloriesGoal = 0, proteinGoal = 0, carbsGoal = 0, fatGoal = 0;
+    bool hasFoodData = false;
+
+    for (final doc in foodDoc.docs) {
+      final data = doc.data();
+      if (doc.id == '$date-goal') {
+        caloriesGoal = _asDouble(data, 'caloriesGoal', 0);
+        proteinGoal = _asDouble(data, 'proteinGoal', 0);
+        carbsGoal = _asDouble(data, 'carbsGoal', 0);
+        fatGoal = _asDouble(data, 'fatGoal', 0);
+      } else if (_asString(data, 'date', '') == date) {
+        calories += _asDouble(data, 'calories', 0);
+        protein += _asDouble(data, 'protein', 0);
+        carbs += _asDouble(data, 'carbs', 0);
+        fat += _asDouble(data, 'fat', 0);
+        hasFoodData = true;
+      }
     }
 
-    // --- Goals from daily_goals (food) ---
-    final dailyGoalsDocRef = FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
-        .collection('progress')
-        .doc('food')
-        .collection('daily_goals')
-        .doc(date);
-
-    final dailyGoalsSnap = await dailyGoalsDocRef.get();
-    final Map<String, dynamic>? goalsData =
-        dailyGoalsSnap.exists ? dailyGoalsSnap.data() : null;
-
-    double effectiveCaloriesGoal = 0;
-    double effectiveProteinGoal = 0;
-    double effectiveCarbsGoal = 0;
-    double effectiveFatGoal = 0;
-
-    if (goalsData != null) {
-      effectiveCaloriesGoal =
-          (goalsData['caloriesGoal'] as num?)?.toDouble() ?? 0;
-      effectiveProteinGoal =
-          (goalsData['proteinGoal'] as num?)?.toDouble() ?? 0;
-      effectiveCarbsGoal = (goalsData['carbsGoal'] as num?)?.toDouble() ?? 0;
-      effectiveFatGoal = (goalsData['fatGoal'] as num?)?.toDouble() ?? 0;
-    }
-
-    // --- Fallback calculation ---
-    if (effectiveCaloriesGoal <= 0) {
+    // --- Fallback food goals ---
+    if (caloriesGoal <= 0) {
       final userMap = userDoc.data();
-      final gender = (userMap?['gender'] as String?) ?? 'female';
-      final weight = (userMap?['currentWeight'] as num?)?.toDouble() ?? 70.0;
-      final height = (userMap?['height'] as num?)?.toDouble() ?? 170.0;
-      final age = (userMap?['age'] as num?)?.toDouble() ?? 30.0;
-      final activity =
-          (userMap?['activityLevel'] as String?) ?? 'Lightly Active';
-      final goal = (userMap?['goal'] as String?) ?? 'Maintenance';
+      final gender = (_asString(userMap, 'gender', 'female')).toLowerCase();
+      final weight = _asDouble(userMap, 'currentWeight', 70);
+      final height = _asDouble(userMap, 'height', 170);
+      final age = _asDouble(userMap, 'age', 30);
+      final activity = _asString(userMap, 'activityLevel', 'Lightly Active');
+      final goal = _asString(userMap, 'goal', 'Maintenance');
 
-      double bmr;
-      if (gender.toLowerCase() == 'male') {
-        bmr = 10 * weight + 6.25 * height - 5 * age + 5;
-      } else {
-        bmr = 10 * weight + 6.25 * height - 5 * age - 161;
-      }
+      double bmr = gender == 'male'
+          ? 10 * weight + 6.25 * height - 5 * age + 5
+          : 10 * weight + 6.25 * height - 5 * age - 161;
 
-      double activityFactor =
-          activity == 'Moderately Active' ? 1.55 : 1.2;
+      double activityFactor = activity == 'Moderately Active' ? 1.55 : 1.2;
       double totalCalories = bmr * activityFactor;
-      if (goal.toLowerCase() == 'weight loss') totalCalories -= 500;
+      if (goal == 'weight loss') totalCalories -= 500;
 
-      effectiveCaloriesGoal = totalCalories;
-      effectiveProteinGoal = (totalCalories * 0.20) / 4;
-      effectiveFatGoal = (totalCalories * 0.30) / 9;
-      effectiveCarbsGoal = (totalCalories * 0.45) / 4;
-    } else {
-      if (effectiveProteinGoal <= 0) {
-        effectiveProteinGoal = (effectiveCaloriesGoal * 0.20) / 4;
-      }
-      if (effectiveFatGoal <= 0) {
-        effectiveFatGoal = (effectiveCaloriesGoal * 0.30) / 9;
-      }
-      if (effectiveCarbsGoal <= 0) {
-        effectiveCarbsGoal = (effectiveCaloriesGoal * 0.45) / 4;
-      }
+      caloriesGoal = totalCalories;
+      proteinGoal = (totalCalories * 0.20) / 4;
+      fatGoal = (totalCalories * 0.30) / 9;
+      carbsGoal = (totalCalories * 0.45) / 4;
     }
 
     // --- Steps ---
-    final steps = date == today && liveSteps > 0
+    final steps = (date == today && liveSteps > 0)
         ? liveSteps
-        : (stepsDoc.exists
-            ? (stepsDoc.data()?['steps'] as num?)?.toDouble() ?? 0.0
-            : 0.0);
+        : _asDouble(stepsDoc.data(), 'steps', 0);
+    final stepsGoal = _asDouble(stepsDoc.data(), 'goalSteps', 10000);
+    final stepsDescription = _asString(
+        stepsDoc.data(), 'description', 'Steps improve heart health and boost stamina.');
 
-    hasData = hasData ||
-        steps > 0 ||
-        stepsDoc.exists ||
-        waterDoc.exists ||
-        sleepDoc.exists ||
-        weightDoc.exists;
+    // --- Water ---
+    final water = _asDouble(waterDoc.data(), 'glassesConsumed', 0);
+    final waterGoal = _asDouble(waterDoc.data(), 'goalGlasses', 8);
+    final waterDescription = _asString(
+        waterDoc.data(), 'description', 'Hydration supports metabolism and energy levels.');
 
-    // --- Final progress map ---
-    final progress = {
+    // --- Sleep ---
+    final sleep = _asDouble(sleepDoc.data(), 'duration', 0);
+    final sleepGoal = _asDouble(sleepDoc.data(), 'goalHours', 8);
+    final sleepDescription = _asString(
+        sleepDoc.data(), 'description', 'Sleep enhances recovery and mental focus.');
+
+    // --- Weight ---
+    final currentWeight = _asDouble(weightDoc.data(), 'currentWeight',
+        _asDouble(userDoc.data(), 'currentWeight', 77));
+    final weightGoal =
+        _asDouble(weightDoc.data(), 'goalWeight', _asDouble(userDoc.data(), 'goalWeight', 70));
+    final weightDescription = 'Track your weight to monitor progress.';
+
+    final hasData =
+        hasFoodData || steps > 0 || water > 0 || sleep > 0 || currentWeight > 0;
+
+    yield {
+      // steps
       'steps': steps,
-      'stepsGoal': stepsGoalDoc.exists
-          ? (stepsGoalDoc.data()?['goalSteps'] as num?)?.toDouble() ?? 10000.0
-          : 10000.0,
-      'stepsDescription': stepsDoc.exists && stepsDoc.data() != null
-          ? stepsDoc.data()!['description'] as String? ??
-              'Steps improve heart health and boost stamina.'
-          : 'Steps improve heart health and boost stamina.',
-      'water': waterDoc.exists
-          ? (waterDoc.data()?['glassesConsumed'] as num?)?.toDouble() ?? 0.0
-          : 0.0,
-      'waterGoal': waterGoalDoc.exists
-          ? (waterGoalDoc.data()?['goalGlasses'] as num?)?.toDouble() ?? 8.0
-          : 8.0,
-      'waterDescription': waterDoc.exists && waterDoc.data() != null
-          ? waterDoc.data()!['description'] as String? ??
-              'Hydration supports metabolism and energy levels.'
-          : 'Hydration supports metabolism and energy levels.',
+      'stepsGoal': stepsGoal,
+      'stepsDescription': stepsDescription,
+
+      // water
+      'water': water,
+      'waterGoal': waterGoal,
+      'waterDescription': waterDescription,
+
+      // food/macros
       'calories': calories,
-      'caloriesGoal': effectiveCaloriesGoal,
+      'caloriesGoal': caloriesGoal,
       'protein': protein,
-      'proteinGoal': effectiveProteinGoal,
+      'proteinGoal': proteinGoal,
       'carbs': carbs,
-      'carbsGoal': effectiveCarbsGoal,
+      'carbsGoal': carbsGoal,
       'fat': fat,
-      'fatGoal': effectiveFatGoal,
-      'caloriesDescription':
-          goalsData != null && goalsData['description'] != null
-              ? goalsData['description'] as String
-              : 'Track your daily nutrition to meet your goals.',
-      'sleep': sleepDoc.exists
-          ? (sleepDoc.data()?['duration'] as num?)?.toDouble() ?? 0.0
-          : 0.0,
-      'sleepGoal': sleepGoalDoc.exists
-          ? (sleepGoalDoc.data()?['goalHours'] as num?)?.toDouble() ?? 8.0
-          : 8.0,
-      'sleepDescription': sleepDoc.exists && sleepDoc.data() != null
-          ? sleepDoc.data()!['description'] as String? ??
-              'Sleep enhances recovery and mental focus.'
-          : 'Sleep enhances recovery and mental focus.',
-      'currentWeight': weightDoc.exists
-          ? (weightDoc.data()?['currentWeight'] as num?)?.toDouble() ??
-              (userDoc.data()?['currentWeight'] as num?)?.toDouble() ??
-              77.0
-          : (userDoc.data()?['currentWeight'] as num?)?.toDouble() ?? 77.0,
-      'weightGoal': weightDoc.exists
-          ? (weightDoc.data()?['goalWeight'] as num?)?.toDouble() ??
-              (userDoc.data()?['goalWeight'] as num?)?.toDouble() ??
-              70.0
-          : (userDoc.data()?['goalWeight'] as num?)?.toDouble() ?? 70.0,
-      'weightDescription': 'Track your weight to monitor progress.',
+      'fatGoal': fatGoal,
+
+      // sleep
+      'sleep': sleep,
+      'sleepGoal': sleepGoal,
+      'sleepDescription': sleepDescription,
+
+      // weight
+      'currentWeight': currentWeight,
+      'weightGoal': weightGoal,
+      'weightDescription': weightDescription,
+
       'hasData': hasData,
     };
-
-    yield progress;
   }
 });

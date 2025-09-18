@@ -14,9 +14,9 @@ class ProgressHeader extends ConsumerWidget {
     final selected = ref.watch(selectedMetricProvider) ?? 'All Metrics';
 
     return Container(
-      padding: EdgeInsets.all(isDesktop ? 20.w : 16.w),
+      padding: EdgeInsets.all(isDesktop ? 20.w : 16.w), // ✅ Uniform padding
       decoration: BoxDecoration(
-        color: AppTheme.colors['indigo']!,
+        color: AppTheme.colors['indigo']!.withOpacity(0.7),
         borderRadius: BorderRadius.circular(12.r),
       ),
       child: Row(
@@ -31,7 +31,7 @@ class ProgressHeader extends ConsumerWidget {
           ),
           DropdownButton<String>(
             value: selected,
-            dropdownColor: AppTheme.colors['indigo']!.withOpacity(0.5),
+            dropdownColor: AppTheme.colors['white'],
             style: AppTheme.textStyles['body']!.copyWith(
               color: AppTheme.colors['primaryText'],
               fontSize: isDesktop ? 16.sp : 14.sp,

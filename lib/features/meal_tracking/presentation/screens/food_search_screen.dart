@@ -18,7 +18,7 @@ class FoodSearchScreen extends ConsumerWidget {
         elevation: 0,
         title: Text(
           'Search Food - $mealType',
-          style: TextStyle(color: AppTheme.colors['white']!),
+          style: TextStyle(color: AppTheme.colors['onSurface']!),
         ),
       ),
       body: Padding(

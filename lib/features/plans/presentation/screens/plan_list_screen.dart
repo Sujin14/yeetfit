@@ -14,7 +14,9 @@ class PlanListScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final plansAsync = ref.watch(category == 'diet' ? dietPlanProvider : workoutPlanProvider);
+    final plansAsync = ref.watch(
+      category == 'diet' ? dietPlanProvider : workoutPlanProvider,
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -36,17 +38,18 @@ class PlanListScreen extends ConsumerWidget {
             if (plan == null) {
               return Center(
                 child: Text(
-                  'No ${category == 'diet' ? 'diet' : 'workout'} plans available',
+                  'No plans have been assigned.',
                   style: GoogleFonts.roboto(
                     fontSize: 16.sp,
-                    color: AppTheme.colors['onSurfaceDark']!.withOpacity(0.8),
+                    color: AppTheme.colors['onSurface']!.withOpacity(0.8),
                   ),
                 ),
               );
             }
+
             return ListView.builder(
               padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
-              itemCount: 1, // Single plan as per provider
+              itemCount: 1,
               itemBuilder: (context, index) {
                 return Padding(
                   padding: EdgeInsets.only(bottom: 16.h),

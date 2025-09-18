@@ -30,31 +30,34 @@ class BMISuggestions extends ConsumerWidget {
           width: double.infinity,
           color: bmiColor.withOpacity(0.3),
           child: SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                userData.when(
-                  data: (u) => WelcomeText(name: u?['name'] ?? 'User'),
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (e, _) => Text('Error: $e', style: AppTheme.textStyles['body']),
-                ),
-                SizedBox(height: 12.h),
-                Text(
-                  'Your BMI: ${bmi.toStringAsFixed(1)}',
-                  style: AppTheme.textStyles['heading']!.copyWith(
-                    fontSize: 24.sp,
-                    color: AppTheme.colors['primaryText'],
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  userData.when(
+                    data: (u) => WelcomeText(name: u?['name'] ?? 'User'),
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (e, _) => Text('Error: $e', style: AppTheme.textStyles['body']),
                   ),
-                ),
-                SizedBox(height: 6.h),
-                Text(
-                  'BMI Category: $bmiCategory\nRecommendation: $bmiSuggestion',
-                  style: AppTheme.textStyles['body']!.copyWith(
-                    fontSize: 16.sp,
-                    color: AppTheme.colors['secondaryText'],
+                  SizedBox(height: 12.h),
+                  Text(
+                    'Your BMI: ${bmi.toStringAsFixed(1)}',
+                    style: AppTheme.textStyles['heading']!.copyWith(
+                      fontSize: 24.sp,
+                      color: AppTheme.colors['primaryText'],
+                    ),
                   ),
-                ),
-              ],
+                  SizedBox(height: 6.h),
+                  Text(
+                    'BMI Category: $bmiCategory\nRecommendation: $bmiSuggestion',
+                    style: AppTheme.textStyles['body']!.copyWith(
+                      fontSize: 16.sp,
+                      color: AppTheme.colors['secondaryText'],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );

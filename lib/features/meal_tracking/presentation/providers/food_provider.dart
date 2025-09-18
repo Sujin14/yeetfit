@@ -28,7 +28,7 @@ final getWeeklyFoodDataProvider = Provider<GetWeeklyFoodData>(
   (ref) => GetWeeklyFoodData(ref.read(foodRepositoryProvider)),
 );
 
-/// ✅ User info is now family-based, scoped by userId
+//User info is now family-based, scoped by userId
 final userInfoProvider = FutureProvider.family<UserInfoModel, String>((ref, userId) async {
   if (userId.isEmpty) {
     throw Exception('User not logged in');
@@ -93,7 +93,7 @@ final calorieGoalProvider = StateNotifierProvider.autoDispose
   ),
 );
 
-/// ✅ Uses userInfoProvider(userId)
+// Uses userInfoProvider(userId)
 final nutrientGoalsProvider = Provider.family<Map<String, double>, String>((ref, userId) {
   final userInfoAsync = ref.watch(userInfoProvider(userId));
   return userInfoAsync.when(
@@ -139,7 +139,7 @@ final nutrientGoalsProvider = Provider.family<Map<String, double>, String>((ref,
   );
 });
 
-/// ✅ Uses userInfoProvider(userId)
+//Uses userInfoProvider(userId)
 final mealCalorieGoalsProvider = Provider.family<Map<String, double>, String>((ref, userId) {
   final userInfoAsync = ref.watch(userInfoProvider(userId));
   return userInfoAsync.when(
@@ -183,7 +183,7 @@ final mealCalorieGoalsProvider = Provider.family<Map<String, double>, String>((r
   );
 });
 
-/// ✅ Now waits for real calorie goal before computing progress
+// Now waits for real calorie goal before computing progress
 final dailyCalorieProgressColorProvider = Provider.autoDispose.family<Color, String>(
   (ref, userIdAndDate) {
     final parts = userIdAndDate.split('|');
