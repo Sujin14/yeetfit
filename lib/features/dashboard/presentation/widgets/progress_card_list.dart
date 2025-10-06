@@ -162,7 +162,7 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
               effect: ExpandingDotsEffect(
                 dotWidth: 8.w,
                 dotHeight: 8.h,
-                activeDotColor: AppTheme.colors['gradientTextStart']!,
+                activeDotColor: AppTheme.colors['primaryAccent']!,
                 dotColor: AppTheme.colors['secondaryText']!.withOpacity(0.5),
                 spacing: 4.w,
               ),
@@ -180,7 +180,7 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
             effect: ExpandingDotsEffect(
               dotWidth: 8.w,
               dotHeight: 8.h,
-              activeDotColor: AppTheme.colors['gradientTextStart']!,
+              activeDotColor: AppTheme.colors['primaryAccent']!,
               dotColor: AppTheme.colors['secondaryText']!.withOpacity(0.5),
               spacing: 4.w,
             ),

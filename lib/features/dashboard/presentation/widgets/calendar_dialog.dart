@@ -14,7 +14,6 @@ class CalendarDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedDate = ref.watch(selectedDateProvider);
-    
 
     return Dialog(
       backgroundColor: AppTheme.colors['white'],
@@ -33,7 +32,7 @@ class CalendarDialog extends ConsumerWidget {
         ),
         borderGradient: LinearGradient(
           colors: [
-            AppTheme.colors['gradientTextStart']!,
+            AppTheme.colors['primaryAccent']!,
             AppTheme.colors['gradientTextEnd']!,
           ],
         ),

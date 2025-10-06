@@ -27,16 +27,20 @@ class MessageBubble extends ConsumerWidget {
       child: Align(
         alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
         child: Column(
-          crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          crossAxisAlignment: isMe
+              ? CrossAxisAlignment.end
+              : CrossAxisAlignment.start,
           children: [
             GestureDetector(
               onLongPress: () => _showMessageOptions(context),
               child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.7,
+                ),
                 child: GlassmorphicContainer(
                   padding: EdgeInsets.all(8.w),
                   color: isMe
-                      ? AppTheme.colors['primaryButton']!
+                      ? AppTheme.colors['primaryAccent']!
                       : AppTheme.colors['secondaryAccent']!,
                   borderRadius: 12.r,
                   child: Text(
@@ -44,9 +48,11 @@ class MessageBubble extends ConsumerWidget {
                     softWrap: true,
                     overflow: TextOverflow.ellipsis,
                     maxLines: 10,
-                    style: AppTheme.textStyles['bodyMedium']?.copyWith(
-                      color: AppTheme.colors['primaryText'],
-                    ) ?? TextStyle(color: AppTheme.colors['white']),
+                    style:
+                        AppTheme.textStyles['bodyMedium']?.copyWith(
+                          color: AppTheme.colors['primaryText'],
+                        ) ??
+                        TextStyle(color: AppTheme.colors['white']),
                   ),
                 ),
               ),
@@ -54,13 +60,17 @@ class MessageBubble extends ConsumerWidget {
             SizedBox(height: 4.h),
             Row(
               mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+              mainAxisAlignment: isMe
+                  ? MainAxisAlignment.end
+                  : MainAxisAlignment.start,
               children: [
                 Text(
                   DateFormat('hh:mm a').format(message.timestamp),
-                  style: AppTheme.textStyles['bodySmall']?.copyWith(
-                    color: AppTheme.colors['secondaryText'],
-                  ) ?? TextStyle(color: AppTheme.colors['gray']),
+                  style:
+                      AppTheme.textStyles['bodySmall']?.copyWith(
+                        color: AppTheme.colors['secondaryText'],
+                      ) ??
+                      TextStyle(color: AppTheme.colors['gray']),
                 ),
                 if (isMe) ...[
                   SizedBox(width: 4.w),
@@ -81,7 +91,8 @@ class MessageBubble extends ConsumerWidget {
         return AlertDialog(
           title: Text(
             'Message Options',
-            style: AppTheme.textStyles['titleMedium'] ?? TextStyle(fontSize: 18),
+            style:
+                AppTheme.textStyles['titleMedium'] ?? TextStyle(fontSize: 18),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -89,7 +100,9 @@ class MessageBubble extends ConsumerWidget {
               ListTile(
                 title: Text(
                   'Copy',
-                  style: AppTheme.textStyles['bodyMedium'] ?? TextStyle(fontSize: 16),
+                  style:
+                      AppTheme.textStyles['bodyMedium'] ??
+                      TextStyle(fontSize: 16),
                 ),
                 onTap: () {
                   controller.copyMessageToClipboard(context, message.content);
@@ -99,9 +112,11 @@ class MessageBubble extends ConsumerWidget {
               ListTile(
                 title: Text(
                   'Delete',
-                  style: AppTheme.textStyles['bodyMedium']?.copyWith(
-                    color: AppTheme.colors['error'],
-                  ) ?? TextStyle(color: AppTheme.colors['error']),
+                  style:
+                      AppTheme.textStyles['bodyMedium']?.copyWith(
+                        color: AppTheme.colors['error'],
+                      ) ??
+                      TextStyle(color: AppTheme.colors['error']),
                 ),
                 onTap: () {
                   controller.deleteMessages(context, message.id);

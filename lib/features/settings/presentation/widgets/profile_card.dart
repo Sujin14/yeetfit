@@ -20,7 +20,10 @@ class ProfileCard extends StatelessWidget {
               radius: 50.r,
               backgroundImage: userInfo.profileImageUrl != null
                   ? NetworkImage(userInfo.profileImageUrl!)
-                  : const AssetImage('assets/images/profile_image_placeholder.png') as ImageProvider,
+                  : const AssetImage(
+                          'assets/images/profile_image_placeholder.png',
+                        )
+                        as ImageProvider,
             ),
             Positioned(
               bottom: 0,
@@ -30,9 +33,12 @@ class ProfileCard extends StatelessWidget {
                 child: Container(
                   padding: EdgeInsets.all(4.w),
                   decoration: BoxDecoration(
-                    color: AppTheme.colors['primaryButton'],
+                    color: AppTheme.colors['primaryAccent'],
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppTheme.colors['lightBackground']!, width: 2.w),
+                    border: Border.all(
+                      color: AppTheme.colors['lightBackground']!,
+                      width: 2.w,
+                    ),
                   ),
                   child: Icon(
                     Icons.edit,
@@ -47,7 +53,9 @@ class ProfileCard extends StatelessWidget {
         SizedBox(height: 8.h),
         Text(
           userInfo.name.isNotEmpty ? userInfo.name : 'User',
-          style: AppTheme.textStyles['heading']!.copyWith(color: AppTheme.colors['primaryText']),
+          style: AppTheme.textStyles['heading']!.copyWith(
+            color: AppTheme.colors['primaryText'],
+          ),
         ),
       ],
     );

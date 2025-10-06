@@ -57,7 +57,9 @@ class PlanDetailPage extends ConsumerWidget {
                 : AppTheme.colors['secondaryText'],
             onFavorite: () async {
               try {
-                await ref.read(favoritePlansProvider.notifier).toggleFavorite(
+                await ref
+                    .read(favoritePlansProvider.notifier)
+                    .toggleFavorite(
                       updatedPlan.id!,
                       updatedPlan.type,
                       !updatedPlan.isFavorite,
@@ -68,11 +70,13 @@ class PlanDetailPage extends ConsumerWidget {
                       updatedPlan.isFavorite
                           ? 'Removed from favorites'
                           : 'Added to favorites',
-                      style: AppTheme.textStyles['body']?.copyWith(
-                        color: AppTheme.colors['primaryText'],
-                      ) ?? TextStyle(color: AppTheme.colors['black']),
+                      style:
+                          AppTheme.textStyles['body']?.copyWith(
+                            color: AppTheme.colors['primaryText'],
+                          ) ??
+                          TextStyle(color: AppTheme.colors['black']),
                     ),
-                    backgroundColor: AppTheme.colors['primaryButton'],
+                    backgroundColor: AppTheme.colors['primaryAccent'],
                   ),
                 );
                 if (!updatedPlan.isFavorite && onUnfavorite != null) {
@@ -85,9 +89,11 @@ class PlanDetailPage extends ConsumerWidget {
                       e.toString().contains('PERMISSION_DENIED')
                           ? 'Permission denied: Only admins can update plans'
                           : 'Error: $e',
-                      style: AppTheme.textStyles['body']?.copyWith(
-                        color: AppTheme.colors['primaryText'],
-                      ) ?? TextStyle(color: AppTheme.colors['black']),
+                      style:
+                          AppTheme.textStyles['body']?.copyWith(
+                            color: AppTheme.colors['primaryText'],
+                          ) ??
+                          TextStyle(color: AppTheme.colors['black']),
                     ),
                     backgroundColor: AppTheme.colors['error'],
                   ),

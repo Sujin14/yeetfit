@@ -73,7 +73,10 @@ class FoodPreferencesBody extends ConsumerWidget {
                   ),
                 ),
                 items: ['Vegetarian', 'Non-Vegetarian', 'Vegan']
-                    .map((diet) => DropdownMenuItem(value: diet, child: Text(diet)))
+                    .map(
+                      (diet) =>
+                          DropdownMenuItem(value: diet, child: Text(diet)),
+                    )
                     .toList(),
                 onChanged: onDietPreferenceChanged,
                 style: AppTheme.textStyles['body']!.copyWith(
@@ -151,7 +154,9 @@ class FoodPreferencesBody extends ConsumerWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.colors['error'],
                         minimumSize: Size(150.w, 48.h),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
                       ),
                       child: Text(
                         'Cancel',
@@ -167,18 +172,22 @@ class FoodPreferencesBody extends ConsumerWidget {
                     child: ElevatedButton(
                       onPressed: isSaving
                           ? null
-                          : () => ref.read(settingsControllerProvider.notifier).saveFoodPreferences(
-                                context: context,
-                                dietPreference: dietPreference,
-                                allergies: allergies,
-                                otherAllergy: otherAllergy,
-                                cuisines: cuisines,
-                                formKey: formKey,
-                              ),
+                          : () => ref
+                                .read(settingsControllerProvider.notifier)
+                                .saveFoodPreferences(
+                                  context: context,
+                                  dietPreference: dietPreference,
+                                  allergies: allergies,
+                                  otherAllergy: otherAllergy,
+                                  cuisines: cuisines,
+                                  formKey: formKey,
+                                ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.colors['primaryButton'],
+                        backgroundColor: AppTheme.colors['primaryAccent'],
                         minimumSize: Size(150.w, 48.h),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
                       ),
                       child: isSaving
                           ? SizedBox(

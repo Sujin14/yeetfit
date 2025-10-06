@@ -82,11 +82,13 @@ class ProgressCard extends ConsumerWidget {
       ),
       borderGradient: LinearGradient(
         colors: [
-          AppTheme.colors['gradientTextStart']!,
+          AppTheme.colors['primaryAccent']!,
           AppTheme.colors['gradientTextEnd']!,
         ],
       ),
-       padding: EdgeInsets.symmetric(horizontal: 8.w), // Added horizontal padding
+      padding: EdgeInsets.symmetric(
+        horizontal: 8.w,
+      ), // Added horizontal padding
       child: Row(
         children: [
           Expanded(

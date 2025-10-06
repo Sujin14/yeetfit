@@ -27,7 +27,7 @@ class FoodPreferencesCard extends StatelessWidget {
         ),
         borderGradient: LinearGradient(
           colors: [
-            AppTheme.colors['gradientTextStart']!,
+            AppTheme.colors['primaryAccent']!,
             AppTheme.colors['gradientTextEnd']!,
           ],
         ),

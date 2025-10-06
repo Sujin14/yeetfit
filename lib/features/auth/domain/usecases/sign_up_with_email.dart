@@ -1,4 +1,4 @@
-import '../../data/repositories/auth_repository.dart';
+import '../repositories/auth_repository.dart';
 
 class SignUpWithEmail {
   final AuthRepository repository;

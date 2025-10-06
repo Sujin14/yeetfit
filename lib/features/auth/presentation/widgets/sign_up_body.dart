@@ -15,24 +15,34 @@ class SignUpBody extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'User Registration',
-          style: AppTheme.textStyles['titleMedium']!.copyWith(
-            fontSize: (kIsWeb ? 22.sp : 20.sp).clamp(18.0, 22.0),
-            color: AppTheme.colors['primaryText'],
+        title: const Text(''),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
+        backgroundColor: AppTheme.colors['transparent'],
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppTheme.colors['primaryAccent']!.withOpacity(0.8),
+                AppTheme.colors['primaryAccent']!.withOpacity(0),
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
           ),
         ),
-        backgroundColor: AppTheme.colors['transparent']!,
-        elevation: 0,
       ),
       body: Column(
         children: [
-          SignUpHeader(),
-          SizedBox(height: kIsWeb ? 30.h : 20.h),
+          const SignUpHeader(),
+          SizedBox(height: 24.h),
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: Theme.of(context).highlightColor,
+                color: Theme.of(context).scaffoldBackgroundColor,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(30.r),
                   topRight: Radius.circular(30.r),
@@ -40,7 +50,7 @@ class SignUpBody extends StatelessWidget {
               ),
               padding: EdgeInsets.symmetric(
                 horizontal: kIsWeb ? 40.w : 24.w,
-                vertical: kIsWeb ? 24.h : 16.h,
+                vertical: 24.h,
               ),
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
@@ -53,16 +63,16 @@ class SignUpBody extends StatelessWidget {
                       ),
                       child: const SignUpForm(),
                     ),
-                    SizedBox(height: 30.h),
+                    SizedBox(height: 32.h),
                     ConstrainedBox(
                       constraints: BoxConstraints(
                         maxWidth: kIsWeb ? 400.w : 350.w,
                       ),
                       child: const LoginOptionsDivider(),
                     ),
-                    SizedBox(height: 30.h),
+                    SizedBox(height: 24.h),
                     const LoginSocialButtons(),
-                    SizedBox(height: 30.h),
+                    SizedBox(height: 32.h),
                     const Center(child: SignInRedirect()),
                   ],
                 ),

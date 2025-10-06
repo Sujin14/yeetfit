@@ -44,6 +44,7 @@ dependencies:
   firebase_storage: ^13.0.0
   shimmer: ^3.0.0
   flutter_heatmap_calendar: ^1.0.5
+  animated_text_kit: ^4.2.3
   
 dev_dependencies:
   flutter_test:

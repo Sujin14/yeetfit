@@ -1,4 +1,4 @@
-import '../../data/repositories/auth_repository.dart';
+import '../repositories/auth_repository.dart';
 
 class SendPasswordResetEmail {
   final AuthRepository repository;

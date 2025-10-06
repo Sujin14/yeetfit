@@ -38,7 +38,10 @@ class SettingsBody extends ConsumerWidget {
               ],
             ),
             borderGradient: LinearGradient(
-              colors: [AppTheme.colors['gradientTextStart']!, AppTheme.colors['gradientTextEnd']!],
+              colors: [
+                AppTheme.colors['primaryAccent']!,
+                AppTheme.colors['gradientTextEnd']!,
+              ],
             ),
             child: Padding(
               padding: EdgeInsets.all(16.w),
@@ -47,12 +50,18 @@ class SettingsBody extends ConsumerWidget {
                 children: [
                   AboutCard(onTap: () => context.push('/about')),
                   HelpCard(onTap: () => context.push('/help')),
-                  TermsAndConditionsCard(onTap: () => context.push('/terms-and-conditions')),
+                  TermsAndConditionsCard(
+                    onTap: () => context.push('/terms-and-conditions'),
+                  ),
                   ContactUsCard(onTap: () => context.push('/contact-us')),
-                  PrivacyPolicyCard(onTap: () => context.push('/privacy-policy')),
+                  PrivacyPolicyCard(
+                    onTap: () => context.push('/privacy-policy'),
+                  ),
                   AccountCard(
                     onAccountTap: () => context.push('/account'),
-                    onDeleteTap: () => ref.read(settingsControllerProvider.notifier).deleteAccount(context),
+                    onDeleteTap: () => ref
+                        .read(settingsControllerProvider.notifier)
+                        .deleteAccount(context),
                   ),
                 ],
               ),
@@ -62,11 +71,15 @@ class SettingsBody extends ConsumerWidget {
           ElevatedButton(
             onPressed: isSaving
                 ? null
-                : () => ref.read(settingsControllerProvider.notifier).logout(context),
+                : () => ref
+                      .read(settingsControllerProvider.notifier)
+                      .logout(context),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.colors['error'],
               minimumSize: Size(double.infinity, 48.h),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.r),
+              ),
             ),
             child: isSaving
                 ? SizedBox(
@@ -88,7 +101,9 @@ class SettingsBody extends ConsumerWidget {
           Center(
             child: Text(
               'App Version: 1.0.1',
-              style: AppTheme.textStyles['body']!.copyWith(color: AppTheme.colors['secondaryText']),
+              style: AppTheme.textStyles['body']!.copyWith(
+                color: AppTheme.colors['secondaryText'],
+              ),
             ),
           ),
         ],

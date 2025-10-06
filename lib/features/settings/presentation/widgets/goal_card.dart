@@ -34,7 +34,7 @@ class GoalCard extends StatelessWidget {
       ),
       borderGradient: LinearGradient(
         colors: [
-          AppTheme.colors['gradientTextStart']!,
+          AppTheme.colors['primaryAccent']!,
           AppTheme.colors['gradientTextEnd']!,
         ],
       ),
@@ -76,7 +76,7 @@ class GoalCard extends StatelessWidget {
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.r),
                   borderSide: BorderSide(
-                    color: AppTheme.colors['gradientTextStart']!,
+                    color: AppTheme.colors['primaryAccent']!,
                   ),
                 ),
               ),

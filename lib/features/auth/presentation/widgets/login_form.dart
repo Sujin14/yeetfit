@@ -20,9 +20,11 @@ class _LoginFormState extends ConsumerState<LoginForm> {
   final _formKey = GlobalKey<FormState>();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  bool _obscurePassword = true;
 
   void _login() async {
     if (_formKey.currentState!.validate()) {
+      FocusScope.of(context).unfocus(); // Dismiss keyboard
       final controller = ref.read(emailAuthControllerProvider.notifier);
       final success = await controller.login(
         emailController.text.trim(),
@@ -49,11 +51,14 @@ class _LoginFormState extends ConsumerState<LoginForm> {
 
     return Form(
       key: _formKey,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           TextFormField(
             controller: emailController,
             keyboardType: TextInputType.emailAddress,
+            textInputAction: TextInputAction.next,
             decoration: InputDecoration(
               labelText: 'Email',
               prefixIcon: Icon(
@@ -63,41 +68,90 @@ class _LoginFormState extends ConsumerState<LoginForm> {
               labelStyle: AppTheme.textStyles['body']!.copyWith(
                 color: AppTheme.colors['secondaryText'],
               ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12.r),
+                borderSide: BorderSide(
+                  color: AppTheme.colors['primaryAccent']!,
+                  width: 2,
+                ),
+              ),
             ),
             validator: AuthValidators.validateEmail,
           ),
-          SizedBox(height: kIsWeb ? 20.h : 16.h),
+          SizedBox(height: 16.h),
           TextFormField(
             controller: passwordController,
-            obscureText: true,
+            obscureText: _obscurePassword,
+            textInputAction: TextInputAction.done,
             decoration: InputDecoration(
               labelText: 'Password',
               prefixIcon: Icon(
                 Icons.lock_outline,
                 color: AppTheme.colors['primaryAccent'],
               ),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                  color: AppTheme.colors['primaryAccent'],
+                ),
+                onPressed: () {
+                  setState(() {
+                    _obscurePassword = !_obscurePassword;
+                  });
+                },
+              ),
               labelStyle: AppTheme.textStyles['body']!.copyWith(
                 color: AppTheme.colors['secondaryText'],
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12.r),
+                borderSide: BorderSide(
+                  color: AppTheme.colors['primaryAccent']!,
+                  width: 2,
+                ),
               ),
             ),
             validator: AuthValidators.validatePassword,
           ),
-          SizedBox(height: kIsWeb ? 12.h : 8.h),
+          SizedBox(height: 8.h),
           Align(
             alignment: Alignment.centerRight,
             child: const ForgotPasswordButton(),
           ),
-          SizedBox(height: kIsWeb ? 32.h : 24.h),
+          SizedBox(height: 24.h),
           ConstrainedBox(
             constraints: BoxConstraints(maxWidth: maxButtonWidth),
             child: ElevatedButton(
               onPressed: isLoading ? null : _login,
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(vertical: 16.h),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                elevation: 0,
+                shadowColor: AppTheme.colors['transparent'],
+              ),
               child: isLoading
-                  ? ShimmerLoading(width: 100.w, height: 20.h)
+                  ? ShimmerLoading.text(
+                      key: UniqueKey(),
+                      text: 'Login',
+                      textStyle: AppTheme.textStyles['body']!.copyWith(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.colors['primaryText'],
+                      ),
+                    )
                   : Text(
                       'Login',
                       style: AppTheme.textStyles['body']!.copyWith(
-                        fontSize: (kIsWeb ? 16.sp : 14.sp).clamp(12.0, 16.0),
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w600,
                         color: AppTheme.colors['primaryText'],
                       ),
                     ),
@@ -106,5 +160,12 @@ class _LoginFormState extends ConsumerState<LoginForm> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 }

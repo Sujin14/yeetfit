@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import '../datasources/email_auth_service.dart';
 import '../datasources/google_auth_service.dart';
-import 'auth_repository.dart';
+import '../../domain/repositories/auth_repository.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final EmailAuthService emailService;

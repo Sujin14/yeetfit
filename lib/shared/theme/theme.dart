@@ -7,7 +7,6 @@ class AppTheme {
     'darkBackground': Color(0xFF0E0E11),
     'primaryAccent': Color(0xFF8EC5FC),
     'secondaryAccent': Color(0xFFE0C3FC),
-    'primaryButton': Color(0xFF8EC5FC),
     'primaryText': Color(0xFF212121),
     'secondaryText': Color(0xFF616161),
     'error': Color(0xFFD32F2F),
@@ -16,11 +15,10 @@ class AppTheme {
     'navBarInactiveOpacity': Color.fromRGBO(97, 97, 97, 0.6),
     'borderGradientStart': Color.fromRGBO(142, 197, 252, 0.3),
     'borderGradientEnd': Color.fromRGBO(224, 195, 252, 0.3),
-    'gradientTextStart': Color(0xFF8EC5FC),
     'gradientTextMiddle': Color.fromRGBO(142, 197, 252, 0.7),
     'gradientTextEnd': Color(0xFFE0C3FC),
     'deepOrange': Color(0xFFFF5722),
-    'teal': Color(0xFF26A69A), 
+    'teal': Color(0xFF26A69A),
     'indigo': Color(0xFF3F51B5),
     'onSurface': Color(0xFF212121),
     'onSurfaceDark': Color.fromRGBO(245, 245, 245, 0.9),
@@ -49,11 +47,20 @@ class AppTheme {
   static final textStyles = {
     'heading': GoogleFonts.roboto(fontSize: 28, fontWeight: FontWeight.bold),
     'title': GoogleFonts.roboto(fontSize: 20, fontWeight: FontWeight.w600),
-    'titleMedium': GoogleFonts.roboto(fontSize: 18, fontWeight: FontWeight.w500),
+    'titleMedium': GoogleFonts.roboto(
+      fontSize: 18,
+      fontWeight: FontWeight.w500,
+    ),
     'subtitle': GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.w500),
     'body': GoogleFonts.roboto(fontSize: 14, fontWeight: FontWeight.normal),
-    'bodyMedium': GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.normal),
-    'bodySmall': GoogleFonts.roboto(fontSize: 12, fontWeight: FontWeight.normal),
+    'bodyMedium': GoogleFonts.roboto(
+      fontSize: 16,
+      fontWeight: FontWeight.normal,
+    ),
+    'bodySmall': GoogleFonts.roboto(
+      fontSize: 12,
+      fontWeight: FontWeight.normal,
+    ),
     'caption': GoogleFonts.roboto(fontSize: 12, fontWeight: FontWeight.w300),
   };
 
@@ -73,7 +80,7 @@ class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: colors['primaryButton'],
+          backgroundColor: colors['primaryAccent'],
           foregroundColor: colors['primaryText'],
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -81,10 +88,18 @@ class AppTheme {
         ),
       ),
       textTheme: GoogleFonts.robotoTextTheme().copyWith(
-        headlineLarge: textStyles['heading']!.copyWith(color: colors['primaryText']),
-        titleMedium: textStyles['titleMedium']!.copyWith(color: colors['primaryText']),
-        bodyMedium: textStyles['bodyMedium']!.copyWith(color: colors['primaryText']),
-        bodySmall: textStyles['bodySmall']!.copyWith(color: colors['secondaryText']),
+        headlineLarge: textStyles['heading']!.copyWith(
+          color: colors['primaryText'],
+        ),
+        titleMedium: textStyles['titleMedium']!.copyWith(
+          color: colors['primaryText'],
+        ),
+        bodyMedium: textStyles['bodyMedium']!.copyWith(
+          color: colors['primaryText'],
+        ),
+        bodySmall: textStyles['bodySmall']!.copyWith(
+          color: colors['secondaryText'],
+        ),
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
@@ -118,19 +133,28 @@ class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: colors['primaryButton'],
+          backgroundColor: colors['primaryAccent'],
           foregroundColor: colors['onSurfaceDark'],
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
         ),
       ),
-      textTheme: GoogleFonts.robotoTextTheme(ThemeData.dark().textTheme).copyWith(
-        headlineLarge: textStyles['heading']!.copyWith(color: colors['onSurfaceDark']),
-        titleMedium: textStyles['titleMedium']!.copyWith(color: colors['onSurfaceDark']),
-        bodyMedium: textStyles['bodyMedium']!.copyWith(color: colors['onSurfaceDark']),
-        bodySmall: textStyles['bodySmall']!.copyWith(color: Color.fromRGBO(255, 255, 255, 0.6)),
-      ),
+      textTheme: GoogleFonts.robotoTextTheme(ThemeData.dark().textTheme)
+          .copyWith(
+            headlineLarge: textStyles['heading']!.copyWith(
+              color: colors['onSurfaceDark'],
+            ),
+            titleMedium: textStyles['titleMedium']!.copyWith(
+              color: colors['onSurfaceDark'],
+            ),
+            bodyMedium: textStyles['bodyMedium']!.copyWith(
+              color: colors['onSurfaceDark'],
+            ),
+            bodySmall: textStyles['bodySmall']!.copyWith(
+              color: Color.fromRGBO(255, 255, 255, 0.6),
+            ),
+          ),
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,

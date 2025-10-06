@@ -23,8 +23,9 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
-  void _submit(BuildContext context) async {
+  void _submit() async {
     if (_formKey.currentState!.validate()) {
+      FocusScope.of(context).unfocus(); // Dismiss keyboard
       final success = await ref
           .read(emailAuthControllerProvider.notifier)
           .signUp(
@@ -49,32 +50,43 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
 
     return Form(
       key: _formKey,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          SizedBox(height: kIsWeb ? 20.h : 16.h),
           TextFormField(
             controller: _emailController,
+            textInputAction: TextInputAction.next,
             decoration: InputDecoration(
-              labelText: 'Email',
-              labelStyle: AppTheme.textStyles['body']!.copyWith(
-                color: AppTheme.colors['secondaryText'],
-              ),
+              labelText: 'example@gmail.com',
               prefixIcon: Icon(
                 Icons.email_outlined,
                 color: AppTheme.colors['primaryAccent'],
+              ),
+              labelStyle: AppTheme.textStyles['body']!.copyWith(
+                color: AppTheme.colors['secondaryText'],
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12.r),
+                borderSide: BorderSide(
+                  color: AppTheme.colors['primaryAccent']!,
+                  width: 2,
+                ),
               ),
             ),
             keyboardType: TextInputType.emailAddress,
             validator: AuthValidators.validateEmail,
           ),
-          SizedBox(height: kIsWeb ? 20.h : 16.h),
+          SizedBox(height: 16.h),
           TextFormField(
             controller: _passwordController,
+            obscureText: _obscurePassword,
+            textInputAction: TextInputAction.next,
             decoration: InputDecoration(
               labelText: 'Password',
-              labelStyle: AppTheme.textStyles['body']!.copyWith(
-                color: AppTheme.colors['secondaryText'],
-              ),
               prefixIcon: Icon(
                 Icons.lock_outline,
                 color: AppTheme.colors['primaryAccent'],
@@ -90,18 +102,29 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
                   });
                 },
               ),
-            ),
-            obscureText: _obscurePassword,
-            validator: AuthValidators.validatePassword,
-          ),
-          SizedBox(height: kIsWeb ? 20.h : 16.h),
-          TextFormField(
-            controller: _confirmPasswordController,
-            decoration: InputDecoration(
-              labelText: 'Confirm Password',
               labelStyle: AppTheme.textStyles['body']!.copyWith(
                 color: AppTheme.colors['secondaryText'],
               ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12.r),
+                borderSide: BorderSide(
+                  color: AppTheme.colors['primaryAccent']!,
+                  width: 2,
+                ),
+              ),
+            ),
+            validator: AuthValidators.validatePassword,
+          ),
+          SizedBox(height: 16.h),
+          TextFormField(
+            controller: _confirmPasswordController,
+            obscureText: _obscureConfirmPassword,
+            textInputAction: TextInputAction.done,
+            decoration: InputDecoration(
+              labelText: 'Confirm Password',
               prefixIcon: Icon(
                 Icons.lock_outline,
                 color: AppTheme.colors['primaryAccent'],
@@ -119,26 +142,55 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
                   });
                 },
               ),
+              labelStyle: AppTheme.textStyles['body']!.copyWith(
+                color: AppTheme.colors['secondaryText'],
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12.r),
+                borderSide: BorderSide(
+                  color: AppTheme.colors['primaryAccent']!,
+                  width: 2,
+                ),
+              ),
             ),
-            obscureText: _obscureConfirmPassword,
             validator: (value) =>
                 AuthValidators.confirmPassword(value, _passwordController.text),
           ),
-          SizedBox(height: kIsWeb ? 32.h : 24.h),
+          SizedBox(height: 24.h),
           ConstrainedBox(
             constraints: BoxConstraints(maxWidth: maxButtonWidth),
-            child: isLoading
-                ? ShimmerLoading(width: 100.w, height: 20.h)
-                : ElevatedButton(
-                    onPressed: () => _submit(context),
-                    child: Text(
+            child: ElevatedButton(
+              onPressed: isLoading ? null : _submit,
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(vertical: 16.h),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                elevation: 0,
+                shadowColor: AppTheme.colors['transparent'],
+              ),
+              child: isLoading
+                  ? ShimmerLoading.text(
+                      key: UniqueKey(),
+                      text: 'Sign Up',
+                      textStyle: AppTheme.textStyles['body']!.copyWith(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.colors['primaryText'],
+                      ),
+                    )
+                  : Text(
                       "Sign Up",
                       style: AppTheme.textStyles['body']!.copyWith(
-                        fontSize: (kIsWeb ? 16.sp : 14.sp).clamp(12.0, 16.0),
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w600,
                         color: AppTheme.colors['primaryText'],
                       ),
                     ),
-                  ),
+            ),
           ),
         ],
       ),
