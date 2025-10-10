@@ -106,6 +106,9 @@ class StepsDataSource {
     DateTime startDate,
     DateTime endDate,
   ) async {
+    // FIXED: Adjust timestamps to full day ranges for accurate query
+    final queryStartDate = DateTime(startDate.year, startDate.month, startDate.day);
+    final queryEndDate = DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59);
     final querySnapshot = await _firestore
         .collection('users')
         .doc(userId)
@@ -114,9 +117,9 @@ class StepsDataSource {
         .collection('steps')
         .where(
           'timestamp',
-          isGreaterThanOrEqualTo: Timestamp.fromDate(startDate),
+          isGreaterThanOrEqualTo: Timestamp.fromDate(queryStartDate),
         )
-        .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
+        .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(queryEndDate))
         .get();
 
     final firestoreData = querySnapshot.docs
@@ -127,8 +130,8 @@ class StepsDataSource {
     final prefs = await SharedPreferences.getInstance();
     final localData = <StepsData>[];
     for (
-      var date = startDate;
-      date.isBefore(endDate.add(const Duration(days: 1)));
+      var date = queryStartDate;
+      date.isBefore(queryEndDate.add(const Duration(days: 1)));
       date = date.add(const Duration(days: 1))
     ) {
       final dateString = date.toIso8601String().split('T')[0];

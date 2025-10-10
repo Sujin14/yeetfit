@@ -22,7 +22,8 @@ class StepsGoalDialog extends ConsumerStatefulWidget {
 class _StepsGoalDialogState extends ConsumerState<StepsGoalDialog> {
   @override
   void dispose() {
-    widget.controller.dispose(); // Dispose of the controller when the dialog is closed
+    widget.controller
+        .dispose(); // Dispose of the controller when the dialog is closed
     super.dispose();
   }
 
@@ -52,7 +53,9 @@ class _StepsGoalDialogState extends ConsumerState<StepsGoalDialog> {
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10.r),
-              borderSide: BorderSide(color: AppTheme.colors['primaryText']!.withOpacity(0.8)),
+              borderSide: BorderSide(
+                color: AppTheme.colors['primaryText']!.withOpacity(0.8),
+              ),
             ),
           ),
           keyboardType: TextInputType.number,
@@ -77,7 +80,9 @@ class _StepsGoalDialogState extends ConsumerState<StepsGoalDialog> {
           onPressed: () {
             final newGoal = int.tryParse(widget.controller.text);
             if (newGoal != null && newGoal > 0) {
-              ref.read(stepsGoalProvider(widget.userId).notifier).setGoal(newGoal);
+              ref
+                  .read(stepsGoalProvider(widget.userId).notifier)
+                  .setGoal(newGoal);
               Navigator.pop(context);
             } else {
               ScaffoldMessenger.of(context).showSnackBar(

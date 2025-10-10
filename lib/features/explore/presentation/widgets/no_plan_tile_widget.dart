@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../shared/theme/theme.dart';
 
-class LoadingTileWidget extends StatelessWidget {
-  const LoadingTileWidget({super.key});
+class NoPlanTileWidget extends StatelessWidget {
+  final String message;
+
+  const NoPlanTileWidget({super.key, required this.message});
 
   @override
   Widget build(BuildContext context) {
@@ -16,19 +18,21 @@ class LoadingTileWidget extends StatelessWidget {
       child: Row(
         children: [
           Icon(
-            Icons.hourglass_empty,
+            Icons.info_outline,
             size: 24.sp,
             color: AppTheme.colors['secondaryIcon'],
           ),
           SizedBox(width: 16.w),
-          Text(
-            'Loading...',
-            style:
-                AppTheme.textStyles['body']?.copyWith(
-                  color: AppTheme.colors['secondaryText'],
-                  fontSize: 16.sp,
-                ) ??
-                TextStyle(fontSize: 16.sp, color: AppTheme.colors['gray']),
+          Expanded(
+            child: Text(
+              message,
+              style:
+                  AppTheme.textStyles['body']?.copyWith(
+                    color: AppTheme.colors['secondaryText'],
+                    fontSize: 16.sp,
+                  ) ??
+                  TextStyle(fontSize: 16.sp, color: AppTheme.colors['gray']),
+            ),
           ),
         ],
       ),

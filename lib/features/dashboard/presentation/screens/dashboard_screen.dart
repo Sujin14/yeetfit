@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../payment/presentation/providers/payment_provider.dart';
-import '../providers/dashboard_provider.dart';
-import '../widgets/dashboard_body.dart';
+import '../providers/bmi_provider.dart';
+import '../providers/user_data_provider.dart';
 import '../widgets/bmi_suggestions.dart';
+import '../widgets/dashboard_body.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -32,10 +32,8 @@ class DashboardScreen extends ConsumerWidget {
       body: Stack(
         children: [
           bmiAsync.when(
-            data: (bmi) => BMISuggestions(
-              userData: userDataAsync,
-              userId: userId,
-            ),
+            data: (bmi) =>
+                BMISuggestions(userData: userDataAsync, userId: userId),
             loading: () => Container(
               color: AppTheme.colors['secondaryText']!.withOpacity(0.2),
               child: const Center(child: CircularProgressIndicator()),
@@ -52,7 +50,7 @@ class DashboardScreen extends ConsumerWidget {
             builder: (context, scrollController) => Container(
               decoration: BoxDecoration(
                 color: AppTheme.colors['lightBackground'],
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
               ),
               child: SingleChildScrollView(
                 controller: scrollController,
@@ -61,21 +59,21 @@ class DashboardScreen extends ConsumerWidget {
             ),
           ),
           Positioned(
-            bottom: 90.h,
-            right: 16.w,
+            bottom: 90,
+            right: 16,
             child: GestureDetector(
               onTap: () => context.go('/chatbot'),
               child: Image.asset(
                 'assets/images/chatbot.png',
-                width: 56.w,
-                height: 56.w,
+                width: 56,
+                height: 56,
                 fit: BoxFit.contain,
               ),
             ),
           ),
           Positioned(
-            bottom: 16.h,
-            right: 16.w,
+            bottom: 16,
+            right: 16,
             child: FloatingActionButton(
               backgroundColor: AppTheme.colors['primaryAccent'],
               foregroundColor: AppTheme.colors['onSurfaceDark'],
@@ -103,7 +101,7 @@ class DashboardScreen extends ConsumerWidget {
                 );
               },
               heroTag: 'chat_fab',
-              child: Icon(Icons.chat, size: 24.sp),
+              child: Icon(Icons.chat, size: 24),
             ),
           ),
         ],

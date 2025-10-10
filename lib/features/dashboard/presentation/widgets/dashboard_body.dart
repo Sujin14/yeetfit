@@ -1,10 +1,11 @@
+// lib/features/dashboard/presentation/widgets/dashboard_body.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yeetfit/shared/widgets/drag_handle.dart';
-import '../providers/dashboard_provider.dart';
-import 'progress_card_list.dart';
+import '../providers/daily_progress_provider.dart';
 import 'meal_tracking_card.dart';
+import 'progress_card_list.dart';
 
 class DashboardBody extends ConsumerWidget {
   final String userId;

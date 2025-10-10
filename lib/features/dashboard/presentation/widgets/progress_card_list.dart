@@ -1,3 +1,4 @@
+// lib/features/dashboard/presentation/widgets/progress_card_list.dart
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -6,7 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../steps_tracking/presentation/providers/steps_provider.dart';
-import '../providers/dashboard_provider.dart';
+import '../providers/daily_progress_provider.dart';
 import 'progress_card.dart';
 
 class ProgressCardsList extends ConsumerStatefulWidget {

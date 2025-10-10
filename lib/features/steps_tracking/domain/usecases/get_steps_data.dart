@@ -6,7 +6,7 @@ class GetStepsData {
 
   GetStepsData(this._repository);
 
-  Future<StepsData?> call(String userId) async {
-    return await _repository.getStepsData(userId);
+  Future<StepsData?> call(String userId, String date) async {
+    return await _repository.getStepsData(userId, date);
   }
 }

@@ -24,7 +24,7 @@ class ExploreScreen extends ConsumerWidget {
                       color: AppTheme.colors['primaryText'],
                       fontSize: 24.sp,
                     ) ??
-                    TextStyle(fontSize: 24.sp, color: Colors.black),
+                    TextStyle(fontSize: 24.sp, color: AppTheme.colors['black']),
               ),
               SizedBox(height: 16.h),
               const Expanded(child: PlanListDisplay()),

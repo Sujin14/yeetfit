@@ -1,10 +1,11 @@
+// lib/features/dashboard/presentation/widgets/calendar_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:glassmorphism/glassmorphism.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../../../shared/theme/theme.dart';
-import '../providers/dashboard_provider.dart';
+import '../providers/selected_date_provider.dart';
 
 class CalendarDialog extends ConsumerWidget {
   final String userId;

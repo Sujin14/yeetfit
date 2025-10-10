@@ -1,8 +1,9 @@
+// lib/features/dashboard/presentation/widgets/bmi_suggestions.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../shared/theme/theme.dart';
-import '../providers/dashboard_provider.dart';
+import '../providers/bmi_provider.dart';
 import 'welcome_text.dart';
 
 class BMISuggestions extends ConsumerWidget {

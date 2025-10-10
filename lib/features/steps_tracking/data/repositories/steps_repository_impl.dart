@@ -9,15 +9,13 @@ class StepsRepositoryImpl implements StepsRepository {
   StepsRepositoryImpl(this._dataSource);
 
   @override
-  Future<StepsData?> getStepsData(String userId) async {
-    final today = DateTime.now().toIso8601String().split('T')[0];
-    return await _dataSource.getStepsData(userId, today);
+  Future<StepsData?> getStepsData(String userId, String date) async {
+    return await _dataSource.getStepsData(userId, date);
   }
 
   @override
-  Future<int> getStepsGoal(String userId) async {
-    final today = DateTime.now().toIso8601String().split('T')[0];
-    return await _dataSource.getStepsGoal(userId, today);
+  Future<int> getStepsGoal(String userId, String date) async {
+    return await _dataSource.getStepsGoal(userId, date);
   }
 
   @override
@@ -69,5 +67,12 @@ class StepsRepositoryImpl implements StepsRepository {
   @override
   Future<void> syncLocalData(String userId) async {
     await _dataSource.syncLocalData(userId);
+  }
+
+  @override
+  Future<void> updateDailySteps(String userId, String date, int steps) async {
+    final goalSteps = await getStepsGoal(userId, date);
+    final caloriesBurned = steps * 0.04;
+    await _dataSource.addStepsEntry(userId, date, steps, goalSteps, caloriesBurned);
   }
 }

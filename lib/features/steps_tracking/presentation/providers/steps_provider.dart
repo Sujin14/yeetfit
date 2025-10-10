@@ -10,12 +10,39 @@ import '../../data/datasources/steps_datasource.dart';
 import '../../data/model/steps_model.dart';
 import '../../data/repositories/steps_repository_impl.dart';
 import '../../domain/usecases/get_steps_data.dart';
+import '../../domain/usecases/add_steps_entry.dart';
 import '../../domain/usecases/get_weekly_steps.dart';
 import '../../domain/usecases/set_steps_goal.dart';
+import '../../domain/usecases/update_daily_steps.dart';
 import '../../../../shared/theme/theme.dart';
 
-// Workmanager task identifier
+// Workmanager task identifiers
 const String midnightResetTask = 'midnight_steps_reset_task';
+const String periodicSaveTask = 'periodic_steps_save_task';
+
+// Helper to query current total steps (used in app and background)
+Future<int> getCurrentTotalSteps() async {
+  try {
+    final completer = Completer<int>();
+    StreamSubscription<StepCount>? sub;
+    sub = Pedometer.stepCountStream.listen(
+      (StepCount event) {
+        sub?.cancel();
+        completer.complete(event.steps);
+      },
+      onError: (error) {
+        sub?.cancel();
+        completer.completeError(error);
+      },
+      cancelOnError: true,
+    );
+    final steps = await completer.future.timeout(const Duration(seconds: 5));
+    return steps;
+  } catch (e) {
+    if (kDebugMode) print('getCurrentTotalSteps failed: $e');
+    rethrow;
+  }
+}
 
 // Repository provider
 final stepsRepositoryProvider = Provider<StepsRepositoryImpl>(
@@ -23,6 +50,10 @@ final stepsRepositoryProvider = Provider<StepsRepositoryImpl>(
 );
 
 // UseCase providers
+final addStepsEntryProvider = Provider<AddStepsEntry>(
+  (ref) => AddStepsEntry(ref.read(stepsRepositoryProvider)),
+);
+
 final setStepsGoalProvider = Provider<SetStepsGoal>(
   (ref) => SetStepsGoal(ref.read(stepsRepositoryProvider)),
 );
@@ -33,6 +64,11 @@ final getStepsDataProvider = Provider<GetStepsData>(
 
 final getWeeklyStepsDataProvider = Provider<GetWeeklyStepsData>(
   (ref) => GetWeeklyStepsData(ref.read(stepsRepositoryProvider)),
+);
+
+// Provider for update daily steps
+final updateDailyStepsProvider = Provider<UpdateDailySteps>(
+  (ref) => UpdateDailySteps(ref.read(stepsRepositoryProvider)),
 );
 
 // StepsInitializer for handling initialization and Workmanager scheduling
@@ -54,25 +90,39 @@ class StepsInitializer {
 
     try {
       // Initialize pedometer with a simple check to ensure it's accessible
-      final stepCount = await Pedometer.stepCountStream.first.timeout(
-        const Duration(seconds: 5),
-        onTimeout: () => throw TimeoutException('Pedometer initialization timeout'),
-      );
-      if (kDebugMode) print('Steps detected: ${stepCount.steps}');
+      await getCurrentTotalSteps();
+      if (kDebugMode) print('Pedometer initialized successfully');
     } catch (e) {
       if (kDebugMode) print('Error initializing step counter: $e');
     }
   }
 
   void scheduleWorkmanagerTask(String userId) {
+    // Unique task names per user to avoid conflicts
+    final midnightName = 'midnight_$userId';
+    final periodicName = 'periodic_$userId';
+
+    // Midnight reset (daily)
     Workmanager().registerPeriodicTask(
-      midnightResetTask,
+      midnightName,
       midnightResetTask,
       inputData: {'userId': userId},
       frequency: const Duration(hours: 24),
       initialDelay: _calculateInitialDelay(),
       constraints: Constraints(networkType: NetworkType.connected),
     );
+
+    // Periodic save (hourly)
+    Workmanager().registerPeriodicTask(
+      periodicName,
+      periodicSaveTask,
+      inputData: {'userId': userId},
+      frequency: const Duration(hours: 1),
+      initialDelay: const Duration(minutes: 5),
+      constraints: Constraints(networkType: NetworkType.connected),
+    );
+
+    if (kDebugMode) print('Workmanager tasks scheduled for user $userId');
   }
 
   Duration _calculateInitialDelay() {
@@ -230,9 +280,8 @@ class StepsCountNotifier extends StateNotifier<AsyncValue<int>> with WidgetsBind
   int _initialStepCount = 0;
   int _currentStepCount = 0;
   DateTime _lastResetTime = DateTime.now();
-  static const String _lastStepCountKey = 'last_step_count';
-  static const String _lastStepDateKey = 'last_step_date';
-  static const String _lastResetTimeKey = 'last_reset_time';
+  static const String _baselineStepsKey = 'baseline_steps';
+  static const String _baselineDateKey = 'baseline_date';
   bool _isPedometerActive = true;
 
   StepsCountNotifier(this._ref, this._getStepsData, this._userId)
@@ -246,35 +295,33 @@ class StepsCountNotifier extends StateNotifier<AsyncValue<int>> with WidgetsBind
       await _requestPermissions();
       await _initializeWorkmanager();
       final now = DateTime.now();
+      final today = now.toIso8601String().split('T')[0];
       final prefs = await SharedPreferences.getInstance();
-      final lastStepDate = prefs.getString('$_lastStepDateKey$_userId');
-      final lastStepCount = prefs.getInt('$_lastStepCountKey$_userId') ?? 0;
-      final lastResetTimeString = prefs.getString('$_lastResetTimeKey$_userId');
-      _lastResetTime = lastResetTimeString != null
-          ? DateTime.parse(lastResetTimeString)
-          : DateTime.now();
-      final today = DateTime.now().toIso8601String().split('T')[0];
+      final baselineStr = prefs.getString('$_baselineStepsKey$_userId');
+      final baselineDateStr = prefs.getString('$_baselineDateKey$_userId');
+      final baseline = baselineStr != null ? int.tryParse(baselineStr) : null;
+      final baselineDate = baselineDateStr != null ? DateTime.parse(baselineDateStr) : null;
+      _lastResetTime = baselineDate ?? DateTime(now.year, now.month, now.day);
 
-      if (lastStepDate != today && lastStepDate != null && lastStepCount > 0) {
-        final goalSteps = await _getUserStepsGoal();
-        await _saveSteps(lastStepDate, lastStepCount, goalSteps);
-        await prefs.setInt('$_lastStepCountKey$_userId', 0);
-        await prefs.setString('$_lastStepDateKey$_userId', today);
-        _lastResetTime = DateTime(now.year, now.month, now.day);
-        await prefs.setString('$_lastResetTimeKey$_userId', _lastResetTime.toIso8601String());
-      }
+      final currentTotal = await getCurrentTotalSteps();
 
-      final initialStepCount = await _getInitialStepCount();
-      if (initialStepCount != null) {
-        _initialStepCount = initialStepCount;
+      if (baseline != null && baselineDateStr == today) {
+        // Same day: Compute from baseline
+        _currentStepCount = currentTotal - baseline;
+        _initialStepCount = baseline;
       } else {
-        _isPedometerActive = false;
-        state = AsyncValue.error('Failed to initialize pedometer', StackTrace.current);
-        return;
+        // New day or no baseline: Reset (midnight task should handle, but safe-guard)
+        if (kDebugMode) print('StepsCountNotifier: New day detected on init, resetting baseline');
+        _currentStepCount = 0;
+        _initialStepCount = currentTotal;
+        await prefs.setString('$_baselineStepsKey$_userId', currentTotal.toString());
+        await prefs.setString('$_baselineDateKey$_userId', today);
+        _lastResetTime = DateTime(now.year, now.month, now.day);
       }
 
-      final todayStepsData = await _getStepsData.call(_userId);
-      _currentStepCount = todayStepsData?.steps ?? lastStepCount;
+      final todayStepsData = await _getStepsData.call(_userId, today);
+      // Override with computed if local outdated
+      _currentStepCount = todayStepsData?.steps ?? _currentStepCount;
 
       if (_isPedometerActive) _startListening();
       await _ref.read(stepsRepositoryProvider).syncLocalData(_userId);
@@ -287,22 +334,22 @@ class StepsCountNotifier extends StateNotifier<AsyncValue<int>> with WidgetsBind
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused) {
-      _stepCountStream?.cancel();
-      if (kDebugMode) print('StepsCountNotifier: App paused, pausing pedometer stream for userId=$_userId');
+      // Don't cancel stream on pause—keep listening for background (plugin handles)
+      if (kDebugMode) print('StepsCountNotifier: App paused, stream continues for background');
     } else if (state == AppLifecycleState.resumed) {
       if (_isPedometerActive) {
         _startListening();
-        if (kDebugMode) print('StepsCountNotifier: App resumed, restarting pedometer stream for userId=$_userId');
+        if (kDebugMode) print('StepsCountNotifier: App resumed, ensuring stream active');
       }
     }
   }
 
-  Future<int> _getUserStepsGoal() async {
-    return await _ref.read(stepsRepositoryProvider).getStepsGoal(_userId);
+  Future<int> _getUserStepsGoal(String date) async {
+    return await _ref.read(stepsRepositoryProvider).getStepsGoal(_userId, date);
   }
 
-  Future<void> _saveSteps(String date, int steps, int goalSteps) async {
-    await _ref.read(stepsRepositoryProvider).addStepsEntry(_userId, steps);
+  Future<void> _saveSteps(String date, int steps) async {
+    await _ref.read(updateDailyStepsProvider).call(_userId, date, steps);
   }
 
   Future<void> _requestPermissions() async {
@@ -314,38 +361,13 @@ class StepsCountNotifier extends StateNotifier<AsyncValue<int>> with WidgetsBind
     }
   }
 
-  Future<int?> _getInitialStepCount() async {
-    try {
-      final completer = Completer<int>();
-      final subscription = Pedometer.stepCountStream.listen(
-        (event) => completer.complete(event.steps),
-        onError: (error) => completer.completeError(error),
-        cancelOnError: true,
-      );
-      final steps = await completer.future.timeout(const Duration(seconds: 5));
-      await subscription.cancel();
-      return steps;
-    } catch (e) {
-      if (kDebugMode) print('StepsCountNotifier: Failed to get initial step count: $e');
-      return null;
-    }
+  Future<int> _getInitialStepCount() async {
+    return await getCurrentTotalSteps();
   }
 
   Future<void> _initializeWorkmanager() async {
-    await Workmanager().registerPeriodicTask(
-      midnightResetTask,
-      midnightResetTask,
-      frequency: const Duration(hours: 24),
-      initialDelay: _calculateInitialDelay(),
-      constraints: Constraints(networkType: NetworkType.connected),
-      inputData: {'userId': _userId},
-    );
-  }
-
-  Duration _calculateInitialDelay() {
-    final now = DateTime.now();
-    final midnight = DateTime(now.year, now.month, now.day + 1);
-    return midnight.difference(now);
+    final initializer = _ref.read(stepsInitializerProvider);
+    initializer.scheduleWorkmanagerTask(_userId);
   }
 
   void _startListening() {
@@ -367,36 +389,37 @@ class StepsCountNotifier extends StateNotifier<AsyncValue<int>> with WidgetsBind
     final prefs = await SharedPreferences.getInstance();
 
     if (!_isSameDay(now, _lastResetTime)) {
-      final prevSteps = _currentStepCount;
+      // New day: Save previous day's final steps
       final prevDate = _lastResetTime.toIso8601String().split('T')[0];
-      if (prevSteps > 0) {
-        final goalSteps = await _getUserStepsGoal();
-        await _saveSteps(prevDate, prevSteps, goalSteps);
+      if (_currentStepCount > 0) {
+        final goalSteps = await _getUserStepsGoal(prevDate);
+        await _saveSteps(prevDate, _currentStepCount);
       }
+      // Reset baseline to current total
       _initialStepCount = event.steps;
       _currentStepCount = 0;
       _lastResetTime = DateTime(now.year, now.month, now.day);
-      await prefs.setString('$_lastResetTimeKey$_userId', _lastResetTime.toIso8601String());
-      await prefs.setInt('$_lastStepCountKey$_userId', 0);
-      await prefs.setString('$_lastStepDateKey$_userId', today);
+      await prefs.setString('$_baselineStepsKey$_userId', event.steps.toString());
+      await prefs.setString('$_baselineDateKey$_userId', today);
+      if (kDebugMode) print('StepsCountNotifier: New day reset, baseline set to ${event.steps}');
     } else {
       final newSteps = event.steps - _initialStepCount;
       if (newSteps >= 0) {
         _currentStepCount = newSteps;
       } else {
-        if (kDebugMode) print('StepsCountNotifier: Reset detected, recalibrating initial step count');
-        final todayStepsData = await _getStepsData.call(_userId);
-        _initialStepCount = event.steps - (todayStepsData?.steps ?? 0);
-        _currentStepCount = todayStepsData?.steps ?? 0;
+        // Recalibrate on reset (rare)
+        if (kDebugMode) print('StepsCountNotifier: Sensor reset detected, recalibrating');
+        final today = now.toIso8601String().split('T')[0];
+        final todayStepsData = await _getStepsData.call(_userId, today);
+        final savedSteps = todayStepsData?.steps ?? 0;
+        _initialStepCount = event.steps - savedSteps;
+        _currentStepCount = savedSteps;
       }
     }
 
-    await prefs.setInt('$_lastStepCountKey$_userId', _currentStepCount);
-    await prefs.setString('$_lastStepDateKey$_userId', today);
-
+    // No need to save prefs for count (computed from baseline); save to DB every 100 steps
     if (_currentStepCount % 100 == 0 && _currentStepCount > 0) {
-      final goalSteps = await _getUserStepsGoal();
-      await _saveSteps(today, _currentStepCount, goalSteps);
+      await _saveSteps(today, _currentStepCount);
     }
 
     state = AsyncValue.data(_currentStepCount);
@@ -406,8 +429,9 @@ class StepsCountNotifier extends StateNotifier<AsyncValue<int>> with WidgetsBind
     if (kDebugMode) print('StepsCountNotifier: Pedometer error: $error');
     _isPedometerActive = false;
     state = AsyncValue.error(error, StackTrace.current);
-    Future.delayed(const Duration(seconds: 5), () {
-      if (_isPedometerActive) _startListening();
+    // Retry after delay
+    Future.delayed(const Duration(seconds: 10), () {
+      if (mounted && _isPedometerActive) _startListening();
     });
   }
 
@@ -418,8 +442,9 @@ class StepsCountNotifier extends StateNotifier<AsyncValue<int>> with WidgetsBind
   Future<void> forceSyncSteps() async {
     try {
       state = const AsyncValue.loading();
-      final goalSteps = await _getUserStepsGoal();
-      await _saveSteps(DateTime.now().toIso8601String().split('T')[0], _currentStepCount, goalSteps);
+      final today = DateTime.now().toIso8601String().split('T')[0];
+      final goalSteps = await _getUserStepsGoal(today);
+      await _saveSteps(today, _currentStepCount);
       await _ref.read(stepsRepositoryProvider).syncLocalData(_userId);
       state = AsyncValue.data(_currentStepCount);
     } catch (e, st) {
@@ -458,7 +483,8 @@ class StepsGoalNotifier extends StateNotifier<AsyncValue<int>> {
   Future<void> _fetchGoal() async {
     try {
       state = const AsyncValue.loading();
-      final goal = await _repository.getStepsGoal(_userId);
+      final today = DateTime.now().toIso8601String().split('T')[0];
+      final goal = await _repository.getStepsGoal(_userId, today);
       state = AsyncValue.data(goal);
     } catch (e, stackTrace) {
       state = AsyncValue.error(e, stackTrace);
@@ -478,30 +504,62 @@ class StepsGoalNotifier extends StateNotifier<AsyncValue<int>> {
 @pragma('vm:entry-point')
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
-    if (task == midnightResetTask) {
-      final userId = inputData?['userId'] as String?;
-      if (userId == null) return false;
+    final userId = inputData?['userId'] as String?;
+    if (userId == null) return false;
 
-      final prefs = await SharedPreferences.getInstance();
-      final lastStepCount = prefs.getInt('last_step_count$userId') ?? 0;
-      final lastStepDate = prefs.getString('last_step_date$userId');
-      final today = DateTime.now().toIso8601String().split('T')[0];
+    final prefs = await SharedPreferences.getInstance();
+    final dataSource = StepsDataSource();
+    final today = DateTime.now().toIso8601String().split('T')[0];
 
-      if (lastStepDate != null && lastStepDate != today && lastStepCount > 0) {
-        final dataSource = StepsDataSource();
-        final goalSteps = await dataSource.getStepsGoal(userId, lastStepDate);
-        await dataSource.addStepsEntry(
-          userId,
-          lastStepDate,
-          lastStepCount,
-          goalSteps,
-          lastStepCount * 0.04,
-        );
-        await prefs.setInt('last_step_count$userId', 0);
-        await prefs.setString('last_step_date$userId', today);
-        await prefs.setString('last_reset_time$userId', DateTime.now().toIso8601String());
+    try {
+      final currentTotal = await getCurrentTotalSteps();
+      final baselineStr = prefs.getString('${StepsCountNotifier._baselineStepsKey}$userId');
+      final baselineDateStr = prefs.getString('${StepsCountNotifier._baselineDateKey}$userId');
+      final baseline = baselineStr != null ? int.parse(baselineStr) : 0;
+      final baselineDate = baselineDateStr != null ? DateTime.parse(baselineDateStr) : DateTime.now();
+
+      if (task == periodicSaveTask) {
+        // Periodic: Save current daily for today
+        if (baselineDateStr == today) {
+          final dailySteps = currentTotal - baseline;
+          final goalSteps = await dataSource.getStepsGoal(userId, today);
+          await dataSource.addStepsEntry(
+            userId,
+            today,
+            dailySteps,
+            goalSteps,
+            dailySteps * 0.04,
+          );
+          if (kDebugMode) print('Background periodic save: $dailySteps steps for $today');
+        }
+        return true;
       }
-      return true;
+
+      if (task == midnightResetTask) {
+        // Midnight: Reset baseline (periodic handles save)
+        if (baselineDateStr != today) {
+          // Ensure previous day saved (fallback)
+          final prevDate = baselineDate.toIso8601String().split('T')[0];
+          final prevDaily = currentTotal - baseline;
+          if (prevDaily > 0) {
+            final goalSteps = await dataSource.getStepsGoal(userId, prevDate);
+            await dataSource.addStepsEntry(
+              userId,
+              prevDate,
+              prevDaily,
+              goalSteps,
+              prevDaily * 0.04,
+            );
+          }
+        }
+        // Set new baseline
+        await prefs.setString('${StepsCountNotifier._baselineStepsKey}$userId', currentTotal.toString());
+        await prefs.setString('${StepsCountNotifier._baselineDateKey}$userId', today);
+        if (kDebugMode) print('Background midnight reset: Baseline set to $currentTotal for $today');
+        return true;
+      }
+    } catch (e) {
+      if (kDebugMode) print('Background task error: $e');
     }
     return false;
   });

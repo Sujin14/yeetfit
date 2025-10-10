@@ -22,21 +22,23 @@ void main() async {
   if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
     await Workmanager().initialize(callbackDispatcher);
 
-    // Initialize step counter and Workmanager tasks
+    // Initialize step counter
     final stepsInitializer = container.read(stepsInitializerProvider);
     await stepsInitializer.initStepCounter();
 
+    // Schedule on auth change
     FirebaseAuth.instance.authStateChanges().listen((User? user) {
       if (user != null) {
         if (kDebugMode) print('User signed in: ${user.uid}');
         stepsInitializer.scheduleWorkmanagerTask(user.uid);
       } else {
-        if (kDebugMode) print('No user signed in');
+        if (kDebugMode) print('User signed out');
+        // Optional: Cancel tasks (Workmanager().cancelAll();)
       }
     });
   } else {
     if (kDebugMode) {
-      print("Workmanager is not supported on Web/Desktop");
+      print("Workmanager not supported on Web/Desktop");
     }
   }
 
