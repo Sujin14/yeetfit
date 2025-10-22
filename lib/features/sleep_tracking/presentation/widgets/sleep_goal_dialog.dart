@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../shared/theme/theme.dart';
 import '../providers/sleep_provider.dart';
 
+// Dialog for setting sleep goal.
 class SleepGoalDialog extends ConsumerWidget {
   final String userId;
 
@@ -18,10 +19,7 @@ class SleepGoalDialog extends ConsumerWidget {
       contentPadding: EdgeInsets.zero,
       title: Text(
         'Set Sleep Goal (hours)',
-        style: GoogleFonts.roboto(
-          fontWeight: FontWeight.bold,
-          color: AppTheme.colors['white'],
-        ),
+        style: GoogleFonts.roboto(fontWeight: FontWeight.bold, color: AppTheme.colors['white']),
       ),
       content: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -31,14 +29,10 @@ class SleepGoalDialog extends ConsumerWidget {
             fillColor: AppTheme.colors['white']!.withOpacity(0.6),
             filled: true,
             hintText: 'Enter hours (e.g., 7.5)',
-            hintStyle: GoogleFonts.roboto(
-              color: AppTheme.colors['white']!.withOpacity(0.7),
-            ),
+            hintStyle: GoogleFonts.roboto(color: AppTheme.colors['white']!.withOpacity(0.7)),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(
-                color: AppTheme.colors['white']!.withOpacity(0.3),
-              ),
+              borderSide: BorderSide(color: AppTheme.colors['white']!.withOpacity(0.3)),
             ),
           ),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -48,20 +42,12 @@ class SleepGoalDialog extends ConsumerWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text(
-            'Cancel',
-            style: GoogleFonts.roboto(color: AppTheme.colors['white']),
-          ),
+          child: Text('Cancel', style: GoogleFonts.roboto(color: AppTheme.colors['white'])),
         ),
         ElevatedButton(
           onPressed: () => state.submitGoal(context),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppTheme.colors['deepOrange']!.withOpacity(0.8),
-          ),
-          child: Text(
-            'Save',
-            style: GoogleFonts.roboto(color: AppTheme.colors['white']),
-          ),
+          style: ElevatedButton.styleFrom(backgroundColor: AppTheme.colors['deepOrange']!.withOpacity(0.8)),
+          child: Text('Save', style: GoogleFonts.roboto(color: AppTheme.colors['white'])),
         ),
       ],
     );

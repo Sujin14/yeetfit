@@ -6,7 +6,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../../../../shared/theme/theme.dart';
-import '../../../steps_tracking/presentation/providers/steps_provider.dart';
 import '../providers/daily_progress_provider.dart';
 import 'progress_card.dart';
 
@@ -82,17 +81,12 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
   @override
   Widget build(BuildContext context) {
     final progressAsync = ref.watch(dailyProgressStreamProvider(widget.userId));
-    final stepsAsync = ref.watch(stepsCountProvider(widget.userId));
 
     return progressAsync.when(
       data: (progress) {
-        // Combine Firestore data with real-time step count
-        final steps = stepsAsync.when(
-          data: (steps) => steps.toDouble(),
-          loading: () => progress['steps'] as double,
-          error: (_, __) => progress['steps'] as double,
-        );
-
+        // Use progress['steps'] directly—it already incorporates live steps for today
+        // and historical Firestore data for past dates (or 0 if unavailable).
+        final steps = progress['steps'] as double;
         final stepsGoal = progress['stepsGoal'] as double;
 
         final cards = [

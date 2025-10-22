@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+// Model for sleep data entries and goals.
 class SleepData {
   final String date;
   final DateTime? bedtime;
@@ -15,6 +16,7 @@ class SleepData {
     required this.goalHours,
   });
 
+  // Creates from Firestore map.
   factory SleepData.fromMap(Map<String, dynamic> map) {
     return SleepData(
       date: map['date'] ?? DateTime.now().toIso8601String().split('T')[0],
@@ -25,6 +27,7 @@ class SleepData {
     );
   }
 
+  // Converts to Firestore map.
   Map<String, dynamic> toMap() {
     return {
       'date': date,

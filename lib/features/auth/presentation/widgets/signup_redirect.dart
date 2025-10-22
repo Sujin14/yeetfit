@@ -2,15 +2,17 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/routes/auth_route_constants.dart';
 import '../../../../shared/theme/theme.dart';
 
+// Redirect text to sign up screen.
 class SignupRedirect extends StatelessWidget {
   const SignupRedirect({super.key});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => context.go('/signup'),
+      onTap: () => context.go(AuthRouteConstants.signup),
       child: Text(
         "Don't have an account? Sign up",
         style: AppTheme.textStyles['body']!.copyWith(

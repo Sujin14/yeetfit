@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:yeetfit/shared/theme/theme.dart';
+import '../../../../shared/theme/theme.dart';
 
+// Shimmer placeholder for water chart loading.
 class WaterChartShimmer extends StatelessWidget {
   const WaterChartShimmer({super.key});
 

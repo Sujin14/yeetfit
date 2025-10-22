@@ -37,7 +37,8 @@
         android:label="yeetfit"
         android:name="${applicationName}"
         android:hardwareAccelerated="true"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:enableOnBackInvokedCallback="true">
 
         <!-- Existing activity -->
         <activity

@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
 
+// Card for calories burned display.
 class StepsCaloriesCard extends StatelessWidget {
   final double caloriesBurned;
   final double goalCalories;

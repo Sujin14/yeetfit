@@ -1,13 +1,13 @@
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../data/model/sleep_model.dart';
 import '../repositories/sleep_repository.dart';
 
+// Use case for fetching weekly sleep data.
 class GetWeeklySleepData {
   final SleepRepository _repository;
 
-  GetWeeklySleepData(this._repository);
+  const GetWeeklySleepData(this._repository);
 
-  Future<AsyncValue<List<SleepData>>> call(String userId) async {
+  Future<List<SleepData>> call(String userId) async {
     return await _repository.getWeeklySleepData(userId);
   }
 }

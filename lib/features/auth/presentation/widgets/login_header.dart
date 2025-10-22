@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../shared/theme/theme.dart';
 
+// Header widget for login screen with animated text.
 class LoginHeader extends StatefulWidget {
   const LoginHeader({super.key});
 

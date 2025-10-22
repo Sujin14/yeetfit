@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+// Model for water intake data.
 class WaterData {
   final String date;
   final int glassesConsumed;
@@ -11,6 +12,7 @@ class WaterData {
     required this.goalGlasses,
   });
 
+  // Creates from Firestore map.
   factory WaterData.fromMap(Map<String, dynamic> map) {
     return WaterData(
       date: map['date'] ?? DateTime.now().toIso8601String().split('T')[0],
@@ -19,6 +21,7 @@ class WaterData {
     );
   }
 
+  // Converts to Firestore map.
   Map<String, dynamic> toMap() {
     return {
       'date': date,

@@ -1,4 +1,6 @@
+// Utility class for authentication-related validations.
 class AuthValidators {
+  // Validates email format.
   static String? validateEmail(String? value) {
     if (value == null || value.isEmpty) return 'Email is required';
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
@@ -8,6 +10,7 @@ class AuthValidators {
     return null;
   }
 
+  // Validates password strength.
   static String? validatePassword(String? value) {
     if (value == null || value.isEmpty) return 'Password is required';
     if (value.length < 8) return 'Minimum 8 characters';
@@ -31,6 +34,7 @@ class AuthValidators {
     return null;
   }
 
+  // Validates password confirmation.
   static String? confirmPassword(String? value, String password) {
     if (value == null || value.isEmpty) return 'Confirm Password';
     if (value.length < 8) return 'Minimum 8 characters';

@@ -1,13 +1,13 @@
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../data/model/weight_model.dart';
 import '../repositories/weight_repository.dart';
 
+// Use case for fetching weekly weight data.
 class GetWeeklyWeightData {
   final WeightRepository _repository;
 
-  GetWeeklyWeightData(this._repository);
+  const GetWeeklyWeightData(this._repository);
 
-  Future<AsyncValue<List<WeightData>>> call(String userId) async {
+  Future<List<WeightData>> call(String userId) async {
     return await _repository.getWeeklyWeightData(userId);
   }
 }

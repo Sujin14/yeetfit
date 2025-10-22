@@ -3,12 +3,13 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../../../shared/theme/theme.dart';
 import '../../data/model/water_model.dart';
 import '../providers/water_provider.dart';
+import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
 import 'water_chart_shimmer.dart';
 
+// Section for weekly water trend chart.
 class WaterChartSection extends ConsumerWidget {
   final String userId;
 
@@ -37,7 +38,8 @@ class WaterChartSection extends ConsumerWidget {
           SizedBox(
             height: 200.h,
             child: weeklyDataAsync.when(
-              data: (weeklyData) => _buildBarChart(context, ref, weeklyData, startOfWeek, now),
+              data: (weeklyData) =>
+                  _buildBarChart(context, ref, weeklyData, startOfWeek, now),
               loading: () => const WaterChartShimmer(),
               error: (error, _) => Text(
                 'Error: $error',
@@ -57,19 +59,24 @@ class WaterChartSection extends ConsumerWidget {
     DateTime startOfWeek,
     DateTime now,
   ) {
-    final cachedWeeklyData = ref.watch(weeklyWaterDataProvider(userId)).value ?? [];
+    final cachedWeeklyData =
+        ref.watch(weeklyWaterDataProvider(userId)).value ?? [];
 
     return BarChart(
       BarChartData(
         barGroups: List.generate(7, (index) {
           final date = startOfWeek.add(Duration(days: index));
           final dateString = date.toIso8601String().split('T')[0];
-          final isToday = date.year == now.year && date.month == now.month && date.day == now.day;
+          final isToday =
+              date.year == now.year &&
+              date.month == now.month &&
+              date.day == now.day;
 
           final data = isToday
               ? WaterData(
                   date: dateString,
-                  glassesConsumed: ref.watch(glassesConsumedProvider(userId)).value ?? 0,
+                  glassesConsumed:
+                      ref.watch(glassesConsumedProvider(userId)).value ?? 0,
                   goalGlasses: ref.watch(waterGoalProvider(userId)).value ?? 8,
                 )
               : cachedWeeklyData.firstWhere(
@@ -81,7 +88,9 @@ class WaterChartSection extends ConsumerWidget {
                   ),
                 );
 
-          final progressColor = ref.watch(dailyProgressColorProvider('$userId|$dateString'));
+          final progressColor = ref.watch(
+            dailyProgressColorProvider('$userId|$dateString'),
+          );
 
           return BarChartGroupData(
             x: index,
@@ -112,8 +121,19 @@ class WaterChartSection extends ConsumerWidget {
               reservedSize: 32.h,
               getTitlesWidget: (value, _) {
                 final date = startOfWeek.add(Duration(days: value.toInt()));
-                final isToday = date.year == now.year && date.month == now.month && date.day == now.day;
-                final dayName = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][date.weekday - 1];
+                final isToday =
+                    date.year == now.year &&
+                    date.month == now.month &&
+                    date.day == now.day;
+                final dayName = [
+                  'Mon',
+                  'Tue',
+                  'Wed',
+                  'Thu',
+                  'Fri',
+                  'Sat',
+                  'Sun',
+                ][date.weekday - 1];
                 return Padding(
                   padding: EdgeInsets.only(top: 8.h),
                   child: Text(
@@ -122,17 +142,23 @@ class WaterChartSection extends ConsumerWidget {
                       fontSize: 12.sp,
                       fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
                       color: isToday
-                          ? (AppTheme.colors['white'])
-                          : (AppTheme.colors['white']?.withOpacity(0.6)),
+                          ? AppTheme.colors['white']
+                          : AppTheme.colors['white']?.withOpacity(0.6),
                     ),
                   ),
                 );
               },
             ),
           ),
-          leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          leftTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
         ),
       ),
     );

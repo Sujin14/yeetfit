@@ -3,12 +3,13 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../../../shared/theme/theme.dart';
 import '../../data/model/sleep_model.dart';
 import '../providers/sleep_provider.dart';
+import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
 import 'sleep_chart_shimmer.dart';
 
+// Section for weekly sleep trend chart.
 class SleepChartSection extends ConsumerWidget {
   final String userId;
 
@@ -40,10 +41,7 @@ class SleepChartSection extends ConsumerWidget {
             child: weeklyDataAsync.when(
               data: (weeklyData) => _buildBarChart(ref, weeklyData, startOfWeek, now),
               loading: () => const SleepChartShimmer(),
-              error: (error, _) => Text(
-                'Error: $error',
-                style: TextStyle(color: AppTheme.colors['white']),
-              ),
+              error: (error, _) => Text('Error: $error', style: TextStyle(color: AppTheme.colors['white'])),
             ),
           ),
         ],
@@ -52,13 +50,13 @@ class SleepChartSection extends ConsumerWidget {
   }
 
   Widget _buildBarChart(
-      WidgetRef ref,
-      List<SleepData> weeklyData,
-      DateTime startOfWeek,
-      DateTime now,
-      ) {
+    WidgetRef ref,
+    List<SleepData> weeklyData,
+    DateTime startOfWeek,
+    DateTime now,
+  ) {
     // Determine max goal for chart scaling
-    final maxGoal = weeklyData.map((d) => d.goalHours).fold<double>(0.0, (a, b) => a > b ? a : b);
+    final maxGoal = weeklyData.map((d) => d.goalHours).reduce((a, b) => a > b ? a : b);
     final interval = maxGoal <= 10 ? 2.0 : 4.0;
 
     return BarChart(
@@ -74,9 +72,7 @@ class SleepChartSection extends ConsumerWidget {
             orElse: () => SleepData(date: dateString, duration: 0.0, goalHours: 8.0),
           );
 
-          final progressColor = ref.watch(
-            dailySleepProgressColorProvider('$userId|$dateString'),
-          );
+          final progressColor = ref.watch(dailySleepProgressColorProvider('$userId|$dateString'));
 
           return BarChartGroupData(
             x: index,
@@ -122,9 +118,7 @@ class SleepChartSection extends ConsumerWidget {
               reservedSize: 30.h,
               getTitlesWidget: (index, _) {
                 final date = startOfWeek.add(Duration(days: index.toInt()));
-                final isToday = date.year == now.year &&
-                    date.month == now.month &&
-                    date.day == now.day;
+                final isToday = date.year == now.year && date.month == now.month && date.day == now.day;
 
                 final weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
                 final dayName = weekdays[date.weekday - 1];
@@ -140,8 +134,8 @@ class SleepChartSection extends ConsumerWidget {
               },
             ),
           ),
-          topTitles: AxisTitles(),
-          rightTitles: AxisTitles(),
+          topTitles: const AxisTitles(),
+          rightTitles: const AxisTitles(),
         ),
         barTouchData: BarTouchData(
           enabled: true,

@@ -1,12 +1,12 @@
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../datasources/steps_datasource.dart';
 import '../model/steps_model.dart';
 import '../../domain/repositories/steps_repository.dart';
 
+// Implementation of [StepsRepository] with offline support.
 class StepsRepositoryImpl implements StepsRepository {
   final StepsDataSource _dataSource;
 
-  StepsRepositoryImpl(this._dataSource);
+  const StepsRepositoryImpl(this._dataSource);
 
   @override
   Future<StepsData?> getStepsData(String userId, String date) async {
@@ -49,19 +49,10 @@ class StepsRepositoryImpl implements StepsRepository {
   }
 
   @override
-  Future<AsyncValue<List<StepsData>>> getWeeklyStepsData(String userId) async {
-    try {
-      final endDate = DateTime.now();
-      final startDate = endDate.subtract(const Duration(days: 6));
-      final data = await _dataSource.getWeeklyStepsData(
-        userId,
-        startDate,
-        endDate,
-      );
-      return AsyncValue.data(data);
-    } catch (e, stackTrace) {
-      return AsyncValue.error(e, stackTrace);
-    }
+  Future<List<StepsData>> getWeeklyStepsData(String userId) async {
+    final endDate = DateTime.now();
+    final startDate = endDate.subtract(const Duration(days: 6));
+    return await _dataSource.getWeeklyStepsData(userId, startDate, endDate);
   }
 
   @override
@@ -73,6 +64,12 @@ class StepsRepositoryImpl implements StepsRepository {
   Future<void> updateDailySteps(String userId, String date, int steps) async {
     final goalSteps = await getStepsGoal(userId, date);
     final caloriesBurned = steps * 0.04;
-    await _dataSource.addStepsEntry(userId, date, steps, goalSteps, caloriesBurned);
+    await _dataSource.addStepsEntry(
+      userId,
+      date,
+      steps,
+      goalSteps,
+      caloriesBurned,
+    );
   }
 }

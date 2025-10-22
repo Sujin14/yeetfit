@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:yeetfit/shared/theme/theme.dart';
-import '../../../../shared/widgets/glassmorphic_container.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../../../core/routes/tracking_routes_constants.dart';
 import '../../data/model/food_model.dart';
 import '../../domain/services/food_search_api.dart';
 import '../providers/food_provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../../../../shared/theme/theme.dart';
+import '../../../../shared/widgets/glassmorphic_container.dart';
 
+// Search bar for food items.
 class FoodSearchBar extends ConsumerStatefulWidget {
   final String mealType;
 
@@ -31,14 +34,16 @@ class _FoodSearchBarState extends ConsumerState<FoodSearchBar> {
   }
 
   Future<void> _searchFood(String query) async {
+    if (query.isEmpty) {
+      setState(() => _searchResults = []);
+      return;
+    }
     try {
       final results = await searchFood(query);
       setState(() => _searchResults = results);
     } catch (e) {
-      setState(() => _searchResults = []); // Clear results on error
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error searching food: $e')),
-      );
+      setState(() => _searchResults = []);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error searching food: $e')));
     }
   }
 
@@ -57,7 +62,7 @@ class _FoodSearchBarState extends ConsumerState<FoodSearchBar> {
                   onChanged: _searchFood,
                   decoration: InputDecoration(
                     labelText: 'Enter food name',
-                    labelStyle: GoogleFonts.roboto(color: AppTheme.colors['onSurface']!),
+                    labelStyle: GoogleFonts.roboto(color: AppTheme.colors['onSurface']),
                     filled: true,
                     fillColor: Colors.transparent,
                     prefixIcon: Icon(Icons.fastfood, color: AppTheme.colors['onSurface']),
@@ -69,15 +74,15 @@ class _FoodSearchBarState extends ConsumerState<FoodSearchBar> {
               ),
               const SizedBox(width: 8),
               SizedBox(
-                width: 100,
+                width: 100.w,
                 child: TextField(
                   controller: _quantityController,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                     labelText: 'Qty (g)',
-                    labelStyle: GoogleFonts.roboto(color: AppTheme.colors['onSurface']!),
+                    labelStyle: GoogleFonts.roboto(color: AppTheme.colors['onSurface']),
                     filled: true,
-                    fillColor: Colors.transparent,
+                    fillColor: AppTheme.colors['transparent'],
                     border: InputBorder.none,
                   ),
                   style: GoogleFonts.roboto(color: AppTheme.colors['onSurface']),
@@ -107,19 +112,17 @@ class _FoodSearchBarState extends ConsumerState<FoodSearchBar> {
                       style: GoogleFonts.roboto(color: AppTheme.colors['onSurface']!.withOpacity(0.7)),
                     ),
                     onTap: () {
-                      ref
-                          .read(dailyFoodItemsProvider('$userId|${widget.mealType}').notifier)
-                          .addFoodItem(
-                            foodItem.foodName,
-                            foodItem.calories,
-                            foodItem.protein,
-                            foodItem.fat,
-                            foodItem.carbs,
-                            foodItem.fiber,
-                            quantity,
-                            foodItem.image,
-                          );
-                      context.go('/modal/food');
+                      ref.read(dailyFoodItemsProvider('$userId|${widget.mealType}').notifier).addFoodItem(
+                        foodItem.foodName,
+                        foodItem.calories,
+                        foodItem.protein,
+                        foodItem.fat,
+                        foodItem.carbs,
+                        foodItem.fiber,
+                        quantity,
+                        foodItem.image,
+                      );
+                      context.go(TrackingRouteConstants.foodSearch);
                     },
                   );
                 } catch (e) {
@@ -128,10 +131,7 @@ class _FoodSearchBarState extends ConsumerState<FoodSearchBar> {
                       food['label'] ?? 'Unknown Food',
                       style: GoogleFonts.roboto(color: AppTheme.colors['onSurface']),
                     ),
-                    subtitle: Text(
-                      'Error loading nutrition data',
-                      style: GoogleFonts.roboto(color: AppTheme.colors['error']),
-                    ),
+                    subtitle: const Text('Error loading nutrition data', style: TextStyle(color: Colors.red)),
                   );
                 }
               },

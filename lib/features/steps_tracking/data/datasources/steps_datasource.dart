@@ -1,12 +1,14 @@
-import 'dart:convert' show json;
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../model/steps_model.dart';
 
+// Data source for steps tracking with Firestore and local offline support.
 class StepsDataSource {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   static const String _localStepsKey = 'last_steps_data';
 
+  // Fetches steps data for a date (Firestore + local fallback).
   Future<StepsData?> getStepsData(String userId, String date) async {
     final docRef = _firestore
         .collection('users')
@@ -16,10 +18,15 @@ class StepsDataSource {
         .collection('steps')
         .doc(date);
 
-    final doc = await docRef.get();
-    if (doc.exists) {
-      return StepsData.fromMap(doc.data()!);
+    try {
+      final doc = await docRef.get();
+      if (doc.exists) {
+        return StepsData.fromMap(doc.data()!);
+      }
+    } catch (e) {
+      // Fall through to local on Firestore error
     }
+
     final prefs = await SharedPreferences.getInstance();
     final localData = prefs.getString('$_localStepsKey$userId$date');
     if (localData != null) {
@@ -28,12 +35,13 @@ class StepsDataSource {
           Map<String, dynamic>.from(json.decode(localData)),
         );
       } catch (_) {
-        return null;
+        // Ignore parse errors
       }
     }
     return null;
   }
 
+  // Fetches steps goal for a date (Firestore + local fallback).
   Future<int> getStepsGoal(String userId, String date) async {
     final docRef = _firestore
         .collection('users')
@@ -43,11 +51,15 @@ class StepsDataSource {
         .collection('steps')
         .doc(date);
 
-    final doc = await docRef.get();
-    if (doc.exists) {
-      return (doc.data()!['goalSteps'] as num?)?.toInt() ?? 10000;
+    try {
+      final doc = await docRef.get();
+      if (doc.exists) {
+        return (doc.data()?['goalSteps'] as num?)?.toInt() ?? 10000;
+      }
+    } catch (e) {
+      // Fall through to local
     }
-    // Check local storage
+
     final prefs = await SharedPreferences.getInstance();
     final localData = prefs.getString('$_localStepsKey$userId$date');
     if (localData != null) {
@@ -55,12 +67,13 @@ class StepsDataSource {
         final map = Map<String, dynamic>.from(json.decode(localData));
         return (map['goalSteps'] as num?)?.toInt() ?? 10000;
       } catch (_) {
-        return 10000;
+        // Ignore
       }
     }
     return 10000;
   }
 
+  // Adds or updates steps entry (Firestore + local).
   Future<void> addStepsEntry(
     String userId,
     String date,
@@ -76,7 +89,6 @@ class StepsDataSource {
         .collection('steps')
         .doc(date);
 
-    // Data for Firestore (includes timestamp)
     final firestoreData = {
       'date': date,
       'steps': steps,
@@ -85,7 +97,6 @@ class StepsDataSource {
       'timestamp': Timestamp.fromDate(DateTime.parse('$date 00:00:00')),
     };
 
-    // Data for SharedPreferences (excludes timestamp)
     final localData = {
       'date': date,
       'steps': steps,
@@ -93,22 +104,38 @@ class StepsDataSource {
       'caloriesBurned': caloriesBurned,
     };
 
-    // Save to Firestore (offline support handles no internet)
-    await docRef.set(firestoreData, SetOptions(merge: true));
+    try {
+      await docRef.set(firestoreData, SetOptions(merge: true));
+    } catch (e) {
+      // Firestore fail—local only
+    }
 
-    // Save to local storage
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('$_localStepsKey$userId$date', json.encode(localData));
+    await prefs.setString(
+      '$_localStepsKey$userId$date',
+      json.encode(localData),
+    );
   }
 
+  // Fetches weekly steps data (Firestore + local supplement).
   Future<List<StepsData>> getWeeklyStepsData(
     String userId,
     DateTime startDate,
     DateTime endDate,
   ) async {
-    // FIXED: Adjust timestamps to full day ranges for accurate query
-    final queryStartDate = DateTime(startDate.year, startDate.month, startDate.day);
-    final queryEndDate = DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59);
+    final queryStartDate = DateTime(
+      startDate.year,
+      startDate.month,
+      startDate.day,
+    );
+    final queryEndDate = DateTime(
+      endDate.year,
+      endDate.month,
+      endDate.day,
+      23,
+      59,
+      59,
+    );
     final querySnapshot = await _firestore
         .collection('users')
         .doc(userId)
@@ -119,14 +146,16 @@ class StepsDataSource {
           'timestamp',
           isGreaterThanOrEqualTo: Timestamp.fromDate(queryStartDate),
         )
-        .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(queryEndDate))
+        .where(
+          'timestamp',
+          isLessThanOrEqualTo: Timestamp.fromDate(queryEndDate),
+        )
         .get();
 
     final firestoreData = querySnapshot.docs
         .map((doc) => StepsData.fromMap(doc.data()))
         .toList();
 
-    // Supplement with local data if needed
     final prefs = await SharedPreferences.getInstance();
     final localData = <StepsData>[];
     for (
@@ -142,7 +171,9 @@ class StepsDataSource {
         try {
           final map = Map<String, dynamic>.from(json.decode(localString));
           localData.add(StepsData.fromMap(map));
-        } catch (_) {}
+        } catch (_) {
+          // Ignore
+        }
       }
     }
 
@@ -151,6 +182,7 @@ class StepsDataSource {
     return allData;
   }
 
+  // Syncs local data to Firestore.
   Future<void> syncLocalData(String userId) async {
     final prefs = await SharedPreferences.getInstance();
     final keys = prefs
@@ -163,8 +195,9 @@ class StepsDataSource {
         try {
           final map = Map<String, dynamic>.from(json.decode(localData));
           final date = map['date'] as String;
-          // Add timestamp for Firestore
-          map['timestamp'] = Timestamp.fromDate(DateTime.parse('$date 00:00:00'));
+          map['timestamp'] = Timestamp.fromDate(
+            DateTime.parse('$date 00:00:00'),
+          );
           final docRef = _firestore
               .collection('users')
               .doc(userId)

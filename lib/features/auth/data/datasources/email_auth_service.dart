@@ -1,34 +1,46 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../../../core/utils/auth_error_mapper.dart';
+import '../../domain/entities/auth_result.dart';
 
 class EmailAuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  Future<UserCredential?> signInWithEmail(String email, String password) async {
+  Future<AuthResult> signInWithEmail(String email, String password) async {
     try {
-      return await _auth.signInWithEmailAndPassword(
+      final credential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-    } catch (_) {
-      return null;
-    }
-  }
-
-  Future<UserCredential?> signUpWithEmail(String email, String password) async {
-    try {
-      return await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      return AuthResult.success(uid: credential.user?.uid);
     } on FirebaseAuthException catch (e) {
-      print('Signup failed: ${e.code} - ${e.message}');
-      return null;
-    } catch (e) {
-      return null;
+      return AuthResult.failure(AuthErrorMapper.mapFirebaseError(e.code));
+    } catch (_) {
+      return AuthResult.failure('Something went wrong. Please try again.');
     }
   }
 
-  Future<void> sendPasswordResetEmail(String email) async {
-    await _auth.sendPasswordResetEmail(email: email);
+  Future<AuthResult> signUpWithEmail(String email, String password) async {
+    try {
+      final credential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      return AuthResult.success(uid: credential.user?.uid);
+    } on FirebaseAuthException catch (e) {
+      return AuthResult.failure(AuthErrorMapper.mapFirebaseError(e.code));
+    } catch (_) {
+      return AuthResult.failure('Something went wrong. Please try again.');
+    }
+  }
+
+  Future<AuthResult> sendPasswordResetEmail(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+      return AuthResult.success(message: 'Password reset link sent to your email.');
+    } on FirebaseAuthException catch (e) {
+      return AuthResult.failure(AuthErrorMapper.mapFirebaseError(e.code));
+    } catch (_) {
+      return AuthResult.failure('Something went wrong. Please try again.');
+    }
   }
 }

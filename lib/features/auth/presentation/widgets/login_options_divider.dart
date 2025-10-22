@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../shared/theme/theme.dart';
 
+// Divider widget with "or continue with" text.
 class LoginOptionsDivider extends StatelessWidget {
   const LoginOptionsDivider({super.key});
 

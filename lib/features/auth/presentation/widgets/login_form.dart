@@ -4,11 +4,16 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yeetfit/shared/widgets/shimmer_widget.dart';
-import '../providers/email_auth_controller.dart';
-import '../../domain/validators/auth_validators.dart';
+import '../../../../core/routes/auth_route_constants.dart';
+import '../../../../core/routes/shell_route_constants.dart';
+import '../../../../shared/widgets/custom_text_form_field.dart';
+import '../../domain/entities/auth_result.dart';
+import '../providers/auth_providers.dart';
+import '../validators/auth_validators.dart';
 import 'forgot_password_button.dart';
 import '../../../../shared/theme/theme.dart';
 
+// Form widget for email login.
 class LoginForm extends ConsumerStatefulWidget {
   const LoginForm({super.key});
 
@@ -20,27 +25,33 @@ class _LoginFormState extends ConsumerState<LoginForm> {
   final _formKey = GlobalKey<FormState>();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
-  bool _obscurePassword = true;
 
+  // Handles login submission.
   void _login() async {
     if (_formKey.currentState!.validate()) {
-      FocusScope.of(context).unfocus(); // Dismiss keyboard
-      final controller = ref.read(emailAuthControllerProvider.notifier);
-      final success = await controller.login(
-        emailController.text.trim(),
-        passwordController.text.trim(),
-        context,
-      );
+      FocusScope.of(context).unfocus();
+      final result = await ref.read(emailAuthControllerProvider.notifier).login(
+            emailController.text.trim(),
+            passwordController.text.trim(),
+          );
+      _handleAuthResult(result);
+    }
+  }
 
-      if (success) {
-        context.go('/user-dashboard');
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("User not found, please create an account"),
-          ),
-        );
-      }
+  // Handles post-auth result.
+  void _handleAuthResult(AuthResult result) {
+    if (!result.success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result.message ?? 'Login failed')),
+      );
+      return;
+    }
+
+    final exists = result.userExists;
+    if (exists == true) {
+      context.go(ShellRouteConstants.dashboard);
+    } else {
+      context.go(AuthRouteConstants.userInfoStep.replaceAll(':step', '0'));
     }
   }
 
@@ -55,69 +66,22 @@ class _LoginFormState extends ConsumerState<LoginForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          TextFormField(
+          CustomTextFormField(
             controller: emailController,
+            labelText: 'Email',
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.next,
-            decoration: InputDecoration(
-              labelText: 'Email',
-              prefixIcon: Icon(
-                Icons.email_outlined,
-                color: AppTheme.colors['primaryAccent'],
-              ),
-              labelStyle: AppTheme.textStyles['body']!.copyWith(
-                color: AppTheme.colors['secondaryText'],
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.r),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.r),
-                borderSide: BorderSide(
-                  color: AppTheme.colors['primaryAccent']!,
-                  width: 2,
-                ),
-              ),
-            ),
             validator: AuthValidators.validateEmail,
+            prefixIcon: Icons.email_outlined,
           ),
           SizedBox(height: 16.h),
-          TextFormField(
+          CustomTextFormField(
             controller: passwordController,
-            obscureText: _obscurePassword,
+            labelText: 'Password',
             textInputAction: TextInputAction.done,
-            decoration: InputDecoration(
-              labelText: 'Password',
-              prefixIcon: Icon(
-                Icons.lock_outline,
-                color: AppTheme.colors['primaryAccent'],
-              ),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                  color: AppTheme.colors['primaryAccent'],
-                ),
-                onPressed: () {
-                  setState(() {
-                    _obscurePassword = !_obscurePassword;
-                  });
-                },
-              ),
-              labelStyle: AppTheme.textStyles['body']!.copyWith(
-                color: AppTheme.colors['secondaryText'],
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.r),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.r),
-                borderSide: BorderSide(
-                  color: AppTheme.colors['primaryAccent']!,
-                  width: 2,
-                ),
-              ),
-            ),
             validator: AuthValidators.validatePassword,
+            isPassword: true,
+            prefixIcon: Icons.lock_outline,
           ),
           SizedBox(height: 8.h),
           Align(
@@ -147,12 +111,11 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                         color: AppTheme.colors['primaryText'],
                       ),
                     )
-                  : Text(
+                  : const Text(
                       'Login',
-                      style: AppTheme.textStyles['body']!.copyWith(
-                        fontSize: 16.sp,
+                      style: TextStyle(
+                        fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: AppTheme.colors['primaryText'],
                       ),
                     ),
             ),

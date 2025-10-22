@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:yeetfit/shared/theme/theme.dart';
+import '../../../../core/routes/onboarding_route_constants.dart';
 import '../providers/onboarding_controller.dart';
+import 'onboarding_indicators.dart';
 import 'onboarding_page.dart';
 
+// Main body for onboarding with PageView and controls.
 class OnboardingBody extends ConsumerStatefulWidget {
   const OnboardingBody({super.key});
 
@@ -23,11 +25,16 @@ class _OnboardingBodyState extends ConsumerState<OnboardingBody> {
     });
   }
 
+  // Helper to get responsive values based on platform (web vs mobile).
+  T _responsiveValue<T>(T webValue, T mobileValue) {
+    return kIsWeb ? webValue : mobileValue;
+  }
+
   @override
   Widget build(BuildContext context) {
     final controller = ref.watch(onboardingControllerProvider);
 
-    final pages = const [
+    const pages = [
       OnboardingPage(
         imagePath: 'assets/images/onboarding1.png',
         title: 'Track Your Fitness',
@@ -56,51 +63,36 @@ class _OnboardingBodyState extends ConsumerState<OnboardingBody> {
           ),
           if (controller.currentPage < 2)
             Positioned(
-              top: kIsWeb ? 30.h : 20.h,
-              right: kIsWeb ? 30.w : 20.w,
+              top: _responsiveValue(30.h, 20.h),
+              right: _responsiveValue(30.w, 20.w),
               child: TextButton(
-                onPressed: () => context.go('/welcome'),
+                onPressed: () => context.go(OnboardingRouteConstants.welcome),
                 child: Text(
                   "Skip",
-                  style: TextStyle(fontSize: (kIsWeb ? 18.sp : 16.sp).clamp(14.0, 18.0)),
+                  style: TextStyle(fontSize: _responsiveValue(18.sp, 16.sp).clamp(14.0, 18.0)),
                 ),
               ),
             ),
           Positioned(
-            bottom: kIsWeb ? 80.h : 60.h,
+            bottom: _responsiveValue(80.h, 60.h),
             left: 0,
             right: 0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(3, (index) {
-                final isActive = index == controller.currentPage;
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  margin: EdgeInsets.symmetric(horizontal: kIsWeb ? 6.w : 4.w),
-                  height: kIsWeb ? 10.h : 8.h,
-                  width: isActive ? (kIsWeb ? 24.w : 20.w) : (kIsWeb ? 10.w : 8.w),
-                  decoration: BoxDecoration(
-                    color: AppTheme.colors['orangeAccent'],
-                    borderRadius: BorderRadius.circular(20.r),
-                  ),
-                );
-              }),
-            ),
+            child: OnboardingIndicators(currentPage: controller.currentPage),
           ),
           Positioned(
-            bottom: kIsWeb ? 30.h : 20.h,
-            right: kIsWeb ? 30.w : 20.w,
+            bottom: _responsiveValue(30.h, 20.h),
+            right: _responsiveValue(30.w, 20.w),
             child: ElevatedButton(
               onPressed: () {
                 if (controller.currentPage < 2) {
                   controller.nextPage();
                 } else {
-                  context.go('/welcome');
+                  context.go(OnboardingRouteConstants.welcome);
                 }
               },
               child: Text(
                 controller.currentPage < 2 ? 'Next' : 'Get Started',
-                style: TextStyle(fontSize: (kIsWeb ? 18.sp : 16.sp).clamp(14.0, 18.0)),
+                style: TextStyle(fontSize: _responsiveValue(18.sp, 16.sp).clamp(14.0, 18.0)),
               ),
             ),
           ),

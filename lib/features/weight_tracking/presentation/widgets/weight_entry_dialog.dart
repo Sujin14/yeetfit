@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../providers/weight_provider.dart';
 import '../../../../shared/theme/theme.dart';
 
+/// Dialog for entering current weight.
 class WeightEntryDialog extends ConsumerStatefulWidget {
   final String userId;
 
@@ -21,14 +21,8 @@ class _WeightEntryDialogState extends ConsumerState<WeightEntryDialog> {
   @override
   void initState() {
     super.initState();
-    print(
-      'WeightEntryDialog: Initializing for userId=${widget.userId}, authUid=${FirebaseAuth.instance.currentUser?.uid}',
-    );
     final currentWeight =
         ref.read(currentWeightProvider(widget.userId)).value ?? 75.0;
-    print(
-      'WeightEntryDialog: Initial currentWeight=$currentWeight for userId=${widget.userId}',
-    );
     weightController.text = currentWeight.toStringAsFixed(1);
   }
 
@@ -82,12 +76,7 @@ class _WeightEntryDialogState extends ConsumerState<WeightEntryDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: () {
-            print(
-              'WeightEntryDialog: Cancel pressed for userId=${widget.userId}',
-            );
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
           child: Text(
             'Cancel',
             style: GoogleFonts.roboto(
@@ -99,21 +88,12 @@ class _WeightEntryDialogState extends ConsumerState<WeightEntryDialog> {
         ElevatedButton(
           onPressed: () {
             final currentWeight = double.tryParse(weightController.text);
-            print(
-              'WeightEntryDialog: Save pressed for userId=${widget.userId}, currentWeight=$currentWeight',
-            );
             if (currentWeight != null && currentWeight > 0) {
               ref
                   .read(currentWeightProvider(widget.userId).notifier)
-                  .updateWeight(currentWeight);
-              print(
-                'WeightEntryDialog: Saving currentWeight for userId=${widget.userId}',
-              );
+                  .updateWeight(currentWeight, context);
               Navigator.pop(context);
             } else {
-              print(
-                'WeightEntryDialog: Invalid weight for userId=${widget.userId}',
-              );
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Please enter a valid weight')),
               );
@@ -136,7 +116,6 @@ class _WeightEntryDialogState extends ConsumerState<WeightEntryDialog> {
 
   @override
   void dispose() {
-    print('WeightEntryDialog: Disposing for userId=${widget.userId}');
     weightController.dispose();
     super.dispose();
   }

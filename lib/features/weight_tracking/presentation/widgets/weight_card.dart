@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
 
+/// Reusable card for displaying weight values.
 class WeightCard extends StatelessWidget {
   final String title;
   final double weight;

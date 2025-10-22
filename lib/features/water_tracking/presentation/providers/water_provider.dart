@@ -1,26 +1,33 @@
-import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../data/datasources/water_datasource.dart';
 import '../../data/model/water_model.dart';
 import '../../data/repositories/water_repository_impl.dart';
+import '../../domain/repositories/water_repository.dart';
 import '../../domain/usecases/add_glass.dart';
-import '../../domain/usecases/remove_glass.dart';
-import '../../domain/usecases/set_water_goal.dart';
 import '../../domain/usecases/get_water_data.dart';
 import '../../domain/usecases/get_weekly_water_data.dart';
+import '../../domain/usecases/remove_glass.dart';
+import '../../domain/usecases/set_water_goal.dart';
 
-/// Firebase Auth Provider
+// Provider for Firebase Auth instance.
 final firebaseAuthProvider = Provider((ref) => FirebaseAuth.instance);
 
-/// Repository provider
-final waterRepositoryProvider = Provider<WaterRepositoryImpl>(
+// Provider for current authenticated user ID.
+final authUserIdProvider = Provider<String?>((ref) {
+  final auth = ref.watch(firebaseAuthProvider);
+  return auth.currentUser?.uid;
+});
+
+// Provider for water repository.
+final waterRepositoryProvider = Provider<WaterRepository>(
   (ref) => WaterRepositoryImpl(WaterDataSource()),
 );
 
-/// UseCase providers
+// Use case providers.
 final addGlassProvider = Provider<AddGlass>(
   (ref) => AddGlass(ref.read(waterRepositoryProvider)),
 );
@@ -41,7 +48,7 @@ final getWeeklyWaterDataProvider = Provider<GetWeeklyWaterData>(
   (ref) => GetWeeklyWaterData(ref.read(waterRepositoryProvider)),
 );
 
-/// Provider for glasses consumed
+// Glasses consumed notifier.
 final glassesConsumedProvider = StateNotifierProvider.autoDispose
     .family<GlassesConsumedNotifier, AsyncValue<int>, String>(
   (ref, userId) => GlassesConsumedNotifier(
@@ -53,7 +60,7 @@ final glassesConsumedProvider = StateNotifierProvider.autoDispose
   ),
 );
 
-/// Provider for water goal
+// Water goal notifier.
 final waterGoalProvider = StateNotifierProvider.autoDispose
     .family<WaterGoalNotifier, AsyncValue<int>, String>(
   (ref, userId) => WaterGoalNotifier(
@@ -64,7 +71,7 @@ final waterGoalProvider = StateNotifierProvider.autoDispose
   ),
 );
 
-/// Provider for daily progress color for a specific date
+// Daily progress color for date.
 final dailyProgressColorProvider = Provider.autoDispose.family<Color, String>(
   (ref, userIdAndDate) {
     final parts = userIdAndDate.split('|');
@@ -98,18 +105,14 @@ final dailyProgressColorProvider = Provider.autoDispose.family<Color, String>(
   },
 );
 
-/// Weekly Water Data Provider
-final weeklyWaterDataProvider = FutureProvider.family<List<WaterData>, String>(
+// Weekly water data, merged with today.
+final weeklyWaterDataProvider = FutureProvider.autoDispose.family<List<WaterData>, String>(
   (ref, userId) async {
-    final asyncResult = await ref.read(getWeeklyWaterDataProvider).call(userId);
-    final weeklyData = asyncResult.when(
-      data: (data) => data,
-      error: (e, _) => throw e,
-      loading: () => [],
-    );
+    final weeklyData = await ref.read(getWeeklyWaterDataProvider).call(userId);
     final today = DateTime.now().toIso8601String().split('T')[0];
     final glassesConsumed = ref.watch(glassesConsumedProvider(userId).select((value) => value.value ?? 0));
     final goalGlasses = ref.watch(waterGoalProvider(userId).select((value) => value.value ?? 8));
+
     final updatedData = weeklyData.where((data) => data.date != today).toList()
       ..add(WaterData(
         date: today,
@@ -117,11 +120,17 @@ final weeklyWaterDataProvider = FutureProvider.family<List<WaterData>, String>(
         goalGlasses: goalGlasses,
       ));
     updatedData.sort((a, b) => a.date.compareTo(b.date));
-    return updatedData.cast<WaterData>();
+    return updatedData;
   },
 );
 
-/// Notifier for glasses consumed
+// Navigation notifier for success page.
+final waterTrackingNavigationProvider = StateNotifierProvider.autoDispose
+    .family<WaterTrackingNavigationNotifier, bool, String>(
+  (ref, userId) => WaterTrackingNavigationNotifier(ref, userId),
+);
+
+// Notifier for glasses consumed.
 class GlassesConsumedNotifier extends StateNotifier<AsyncValue<int>> {
   final Ref _ref;
   final GetWaterData _getWaterData;
@@ -168,10 +177,10 @@ class GlassesConsumedNotifier extends StateNotifier<AsyncValue<int>> {
   String? get lastDate => _lastDate;
 }
 
-/// Notifier for water goal
+// Notifier for water goal.
 class WaterGoalNotifier extends StateNotifier<AsyncValue<int>> {
   final Ref _ref;
-  final WaterRepositoryImpl _repository;
+  final WaterRepository _repository;
   final SetWaterGoal _setWaterGoal;
   final String _userId;
 
@@ -200,11 +209,7 @@ class WaterGoalNotifier extends StateNotifier<AsyncValue<int>> {
   }
 }
 
-/// State for WaterTrackingScreen navigation
-final waterTrackingNavigationProvider = StateNotifierProvider.family<WaterTrackingNavigationNotifier, bool, String>(
-  (ref, userId) => WaterTrackingNavigationNotifier(ref, userId),
-);
-
+// Notifier for success navigation.
 class WaterTrackingNavigationNotifier extends StateNotifier<bool> {
   final Ref _ref;
   final String _userId;
@@ -229,7 +234,6 @@ class WaterTrackingNavigationNotifier extends StateNotifier<bool> {
       if (glassesConsumed == goalGlasses && !state && _lastNavigatedDate != today) {
         state = true;
         _lastNavigatedDate = today;
-        // Navigation is handled in the screen
       }
     });
   }
@@ -237,11 +241,12 @@ class WaterTrackingNavigationNotifier extends StateNotifier<bool> {
   bool get hasNavigatedToSuccess => state;
 }
 
-/// State for WaterProgressCard dialog
-final waterGoalDialogStateProvider = StateProvider.family<WaterGoalDialogState, String>((ref, userId) {
-  return WaterGoalDialogState(ref, userId);
-});
+// State provider for water goal dialog.
+final waterGoalDialogStateProvider = StateProvider.autoDispose.family<WaterGoalDialogState, String>(
+  (ref, userId) => WaterGoalDialogState(ref, userId),
+);
 
+// State for water goal dialog.
 class WaterGoalDialogState {
   final Ref ref;
   final String userId;
@@ -256,7 +261,7 @@ class WaterGoalDialogState {
     final newGoal = int.tryParse(controller.text);
     if (newGoal != null && newGoal > 0) {
       ref.read(waterGoalProvider(userId).notifier).setGoal(newGoal);
-      context.pop();
+      if (context.mounted) context.pop();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter a valid number')),

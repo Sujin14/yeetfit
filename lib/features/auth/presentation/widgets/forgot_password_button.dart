@@ -2,9 +2,11 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../providers/email_auth_controller.dart';
+import '../../domain/entities/auth_result.dart';
+import '../providers/auth_providers.dart';
 import '../../../../shared/theme/theme.dart';
 
+// Button to trigger password reset dialog.
 class ForgotPasswordButton extends ConsumerWidget {
   const ForgotPasswordButton({super.key});
 
@@ -14,9 +16,10 @@ class ForgotPasswordButton extends ConsumerWidget {
       onPressed: () async {
         final email = await _askForEmailDialog(context);
         if (email != null && email.trim().isNotEmpty) {
-          await ref
+          final result = await ref
               .read(emailAuthControllerProvider.notifier)
-              .resetPassword(email.trim(), context);
+              .resetPassword(email.trim());
+          _showSnackBar(context, result);
         }
       },
       child: Text(
@@ -29,6 +32,7 @@ class ForgotPasswordButton extends ConsumerWidget {
     );
   }
 
+  // Shows dialog to input email for reset.
   Future<String?> _askForEmailDialog(BuildContext context) async {
     String email = '';
     return showDialog<String>(
@@ -71,6 +75,16 @@ class ForgotPasswordButton extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // Shows success/error SnackBar based on result.
+  void _showSnackBar(BuildContext context, AuthResult result) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(result.message ?? 'Unknown error'),
+        backgroundColor: result.success ? AppTheme.colors['success'] : AppTheme.colors['error'] ,
       ),
     );
   }

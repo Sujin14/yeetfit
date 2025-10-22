@@ -4,10 +4,15 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yeetfit/shared/widgets/shimmer_widget.dart';
-import '../providers/email_auth_controller.dart';
-import '../../domain/validators/auth_validators.dart';
+import '../../../../core/routes/auth_route_constants.dart';
+import '../../../../core/routes/shell_route_constants.dart';
+import '../../../../shared/widgets/custom_text_form_field.dart';
+import '../../domain/entities/auth_result.dart';
+import '../providers/auth_providers.dart';
+import '../validators/auth_validators.dart';
 import '../../../../shared/theme/theme.dart';
 
+// Form widget for email sign up.
 class SignUpForm extends ConsumerStatefulWidget {
   const SignUpForm({super.key});
 
@@ -20,26 +25,35 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
 
+  // Handles sign up submission.
   void _submit() async {
     if (_formKey.currentState!.validate()) {
-      FocusScope.of(context).unfocus(); // Dismiss keyboard
-      final success = await ref
+      FocusScope.of(context).unfocus();
+      final result = await ref
           .read(emailAuthControllerProvider.notifier)
           .signUp(
             _emailController.text.trim(),
             _passwordController.text.trim(),
-            context,
           );
-      if (success) {
-        context.go('/user-info-step/0');
-      } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Signup failed')));
-      }
+      _handleAuthResult(result);
+    }
+  }
+
+  // Handles post-auth result.
+  void _handleAuthResult(AuthResult result) {
+    if (!result.success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result.message ?? 'Signup failed')),
+      );
+      return;
+    }
+
+    final exists = result.userExists;
+    if (exists == true) {
+      context.go(ShellRouteConstants.dashboard);
+    } else {
+      context.go(AuthRouteConstants.userInfoStep.replaceAll(':step', '0'));
     }
   }
 
@@ -54,110 +68,34 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          TextFormField(
+          CustomTextFormField(
             controller: _emailController,
-            textInputAction: TextInputAction.next,
-            decoration: InputDecoration(
-              labelText: 'example@gmail.com',
-              prefixIcon: Icon(
-                Icons.email_outlined,
-                color: AppTheme.colors['primaryAccent'],
-              ),
-              labelStyle: AppTheme.textStyles['body']!.copyWith(
-                color: AppTheme.colors['secondaryText'],
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.r),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.r),
-                borderSide: BorderSide(
-                  color: AppTheme.colors['primaryAccent']!,
-                  width: 2,
-                ),
-              ),
-            ),
+            labelText: 'example@gmail.com',
             keyboardType: TextInputType.emailAddress,
-            validator: AuthValidators.validateEmail,
-          ),
-          SizedBox(height: 16.h),
-          TextFormField(
-            controller: _passwordController,
-            obscureText: _obscurePassword,
             textInputAction: TextInputAction.next,
-            decoration: InputDecoration(
-              labelText: 'Password',
-              prefixIcon: Icon(
-                Icons.lock_outline,
-                color: AppTheme.colors['primaryAccent'],
-              ),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                  color: AppTheme.colors['primaryAccent'],
-                ),
-                onPressed: () {
-                  setState(() {
-                    _obscurePassword = !_obscurePassword;
-                  });
-                },
-              ),
-              labelStyle: AppTheme.textStyles['body']!.copyWith(
-                color: AppTheme.colors['secondaryText'],
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.r),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.r),
-                borderSide: BorderSide(
-                  color: AppTheme.colors['primaryAccent']!,
-                  width: 2,
-                ),
-              ),
-            ),
-            validator: AuthValidators.validatePassword,
+            validator: AuthValidators.validateEmail,
+            prefixIcon: Icons.email_outlined,
           ),
           SizedBox(height: 16.h),
-          TextFormField(
+          CustomTextFormField(
+            controller: _passwordController,
+            labelText: 'Password',
+            textInputAction: TextInputAction.next,
+            validator: AuthValidators.validatePassword,
+            isPassword: true,
+            prefixIcon: Icons.lock_outline,
+          ),
+          SizedBox(height: 16.h),
+          CustomTextFormField(
             controller: _confirmPasswordController,
-            obscureText: _obscureConfirmPassword,
+            labelText: 'Confirm Password',
             textInputAction: TextInputAction.done,
-            decoration: InputDecoration(
-              labelText: 'Confirm Password',
-              prefixIcon: Icon(
-                Icons.lock_outline,
-                color: AppTheme.colors['primaryAccent'],
-              ),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscureConfirmPassword
-                      ? Icons.visibility_off
-                      : Icons.visibility,
-                  color: AppTheme.colors['primaryAccent'],
-                ),
-                onPressed: () {
-                  setState(() {
-                    _obscureConfirmPassword = !_obscureConfirmPassword;
-                  });
-                },
-              ),
-              labelStyle: AppTheme.textStyles['body']!.copyWith(
-                color: AppTheme.colors['secondaryText'],
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.r),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.r),
-                borderSide: BorderSide(
-                  color: AppTheme.colors['primaryAccent']!,
-                  width: 2,
-                ),
-              ),
+            validator: (value) => AuthValidators.confirmPassword(
+              value,
+              _passwordController.text,
             ),
-            validator: (value) =>
-                AuthValidators.confirmPassword(value, _passwordController.text),
+            isPassword: true,
+            prefixIcon: Icons.lock_outline,
           ),
           SizedBox(height: 24.h),
           ConstrainedBox(
@@ -182,12 +120,11 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
                         color: AppTheme.colors['primaryText'],
                       ),
                     )
-                  : Text(
+                  : const Text(
                       "Sign Up",
-                      style: AppTheme.textStyles['body']!.copyWith(
-                        fontSize: 16.sp,
+                      style: TextStyle(
+                        fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: AppTheme.colors['primaryText'],
                       ),
                     ),
             ),

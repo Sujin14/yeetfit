@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
 
+/// Progress bar for weight goal achievement.
 class WeightProgressBar extends StatelessWidget {
   final double progress;
   final Color progressColor;

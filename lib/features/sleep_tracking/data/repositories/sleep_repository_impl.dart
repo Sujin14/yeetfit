@@ -1,12 +1,12 @@
-import 'package:hooks_riverpod/hooks_riverpod.dart';
+import '../datasource/sleep_data_source.dart';
 import '../model/sleep_model.dart';
 import '../../domain/repositories/sleep_repository.dart';
-import '../datasource/sleep_data_source.dart';
 
+// Implementation of [SleepRepository] using Firestore.
 class SleepRepositoryImpl implements SleepRepository {
   final SleepDataSource _dataSource;
 
-  SleepRepositoryImpl(this._dataSource);
+  const SleepRepositoryImpl(this._dataSource);
 
   @override
   Future<SleepData?> getSleepData(String userId) async {
@@ -39,14 +39,9 @@ class SleepRepositoryImpl implements SleepRepository {
   }
 
   @override
-  Future<AsyncValue<List<SleepData>>> getWeeklySleepData(String userId) async {
-    try {
-      final endDate = DateTime.now();
-      final startDate = endDate.subtract(const Duration(days: 6));
-      final data = await _dataSource.getWeeklySleepData(userId, startDate, endDate);
-      return AsyncValue.data(data);
-    } catch (e, stackTrace) {
-      return AsyncValue.error(e, stackTrace);
-    }
+  Future<List<SleepData>> getWeeklySleepData(String userId) async {
+    final endDate = DateTime.now();
+    final startDate = endDate.subtract(const Duration(days: 6));
+    return await _dataSource.getWeeklySleepData(userId, startDate, endDate);
   }
 }
