@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -105,7 +106,19 @@ class MessageBubble extends ConsumerWidget {
                       TextStyle(fontSize: 16),
                 ),
                 onTap: () {
-                  controller.copyMessageToClipboard(context, message.content);
+                  Clipboard.setData(ClipboardData(text: message.content));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Message copied to clipboard',
+                        style: AppTheme.textStyles['bodyMedium']?.copyWith(
+                          color: AppTheme.colors['onSurfaceDark'],
+                        ),
+                      ),
+                      backgroundColor: AppTheme.colors['primaryAccent'],
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
                   Navigator.of(context).pop();
                 },
               ),
@@ -119,7 +132,7 @@ class MessageBubble extends ConsumerWidget {
                       TextStyle(color: AppTheme.colors['error']),
                 ),
                 onTap: () {
-                  controller.deleteMessages(context, message.id);
+                  controller.deleteMessages(message.id);
                   Navigator.of(context).pop();
                 },
               ),

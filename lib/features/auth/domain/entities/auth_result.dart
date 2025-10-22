@@ -1,9 +1,9 @@
 // Represents the result of an authentication operation.
 class AuthResult {
   final bool success;
-  final String? message; // User-friendly message (error or success)
-  final String? uid; // UID if successful
-  final bool? userExists; // Whether user profile exists (for post-auth checks)
+  final String? message;
+  final String? uid;
+  final bool? userExists;
 
   const AuthResult({
     required this.success,
@@ -12,7 +12,6 @@ class AuthResult {
     this.userExists,
   });
 
-  // Creates a successful result.
   factory AuthResult.success({
     String? uid,
     bool? userExists,
@@ -26,7 +25,6 @@ class AuthResult {
     );
   }
 
-  // Creates a failure result with a predefined error message.
   factory AuthResult.failure(String message) {
     return AuthResult(success: false, message: message);
   }

@@ -4,7 +4,9 @@ import '../../data/datasource/firestore_chat_service.dart';
 import '../../data/datasource/notification_service.dart';
 import '../../data/model/message_model.dart';
 import '../../data/repositories/chat_repository_impl.dart';
-import '../../domain/repositories/chat_repository.dart';
+import '../../domain/repositories/message_repository.dart';
+import '../../domain/repositories/typing_status_repository.dart';
+import '../../domain/repositories/user_profile_repository.dart';
 import '../../domain/use_cases/create_or_get_chat.dart';
 import '../../domain/use_cases/delete_chat.dart';
 import '../../domain/use_cases/delete_message.dart';
@@ -50,56 +52,66 @@ final chatControllerProvider =
 });
 
 final getChatMessagesProvider = Provider<GetChatMessages>((ref) {
-  final repository = ref.read(chatRepositoryProvider);
+  final repository = ref.read(messageRepositoryProvider);
   return GetChatMessages(repository);
 });
 
 final getMessageStatusProvider = Provider<GetMessageStatus>((ref) {
-  final repository = ref.read(chatRepositoryProvider);
+  final repository = ref.read(messageRepositoryProvider);
   return GetMessageStatus(repository);
 });
 
 final getUserProfileProvider = Provider<GetUserProfile>((ref) {
-  final repository = ref.read(chatRepositoryProvider);
+  final repository = ref.read(userProfileRepositoryProvider);
   return GetUserProfile(repository);
 });
 
 final sendMessageProvider = Provider<SendMessage>((ref) {
-  final repository = ref.read(chatRepositoryProvider);
+  final repository = ref.read(messageRepositoryProvider);
   return SendMessage(repository);
 });
 
 final createOrGetChatProvider = Provider<CreateOrGetChat>((ref) {
-  final repository = ref.read(chatRepositoryProvider);
+  final repository = ref.read(messageRepositoryProvider);
   return CreateOrGetChat(repository);
 });
 
 final updateTypingStatusProvider = Provider<UpdateTypingStatus>((ref) {
-  final repository = ref.read(chatRepositoryProvider);
+  final repository = ref.read(typingStatusRepositoryProvider);
   return UpdateTypingStatus(repository);
 });
 
 final getTypingStatusProvider = Provider<GetTypingStatus>((ref) {
-  final repository = ref.read(chatRepositoryProvider);
+  final repository = ref.read(typingStatusRepositoryProvider);
   return GetTypingStatus(repository);
 });
 
 final updateMessageStatusProvider = Provider<UpdateMessageStatus>((ref) {
-  final repository = ref.read(chatRepositoryProvider);
+  final repository = ref.read(messageRepositoryProvider);
   return UpdateMessageStatus(repository);
 });
 
 final deleteChatProvider = Provider<DeleteChat>((ref) {
-  final repository = ref.read(chatRepositoryProvider);
+  final repository = ref.read(messageRepositoryProvider);
   return DeleteChat(repository);
 });
 
 final deleteMessageProvider = Provider<DeleteMessage>((ref) {
-  final repository = ref.read(chatRepositoryProvider);
+  final repository = ref.read(messageRepositoryProvider);
   return DeleteMessage(repository);
 });
 
-final chatRepositoryProvider = Provider<ChatRepository>((ref) {
+final messageRepositoryProvider = Provider<MessageRepository>((ref) {
+  final service = ref.read(firestoreChatServiceProvider);
+  return ChatRepositoryImpl(service);
+});
+
+final typingStatusRepositoryProvider = Provider<TypingStatusRepository>((ref) {
+  final service = ref.read(firestoreChatServiceProvider);
+  return ChatRepositoryImpl(service);
+});
+
+final userProfileRepositoryProvider = Provider<UserProfileRepository>((ref) {
   final service = ref.read(firestoreChatServiceProvider);
   return ChatRepositoryImpl(service);
 });
@@ -112,7 +124,6 @@ final notificationServiceProvider = Provider<NotificationService>((ref) {
   return NotificationService();
 });
 
-// New providers for message list processing
 final chatItemsProvider = Provider.family<List<dynamic>, List<MessageModel>>((ref, messages) {
   if (messages.isEmpty) return [];
 

@@ -1,7 +1,7 @@
-import '../repositories/chat_repository.dart';
+import '../repositories/message_repository.dart';
 
 class CreateOrGetChat {
-  final ChatRepository repository;
+  final MessageRepository repository;
 
   CreateOrGetChat(this.repository);
 

@@ -63,7 +63,7 @@ class MessageInput extends StatelessWidget {
               color: AppTheme.colors['navBarActive'],
               size: 45.sp,
             ),
-            onPressed: () => controller.sendMessages(context),
+            onPressed: () => controller.sendMessages(),
           ),
         ],
       ),

@@ -2,17 +2,15 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:yeetfit/shared/widgets/shimmer_widget.dart';
-import '../../../../core/routes/auth_route_constants.dart';
-import '../../../../core/routes/shell_route_constants.dart';
-import '../../../../shared/widgets/custom_text_form_field.dart';
-import '../../domain/entities/auth_result.dart';
 import '../providers/auth_providers.dart';
 import '../validators/auth_validators.dart';
+import '../../utils/navigation_utils.dart';
+import '../../utils/auth_strings.dart';
+import '../../utils/widget_styles.dart';
+import '../../../../shared/widgets/custom_text_form_field.dart';
 import '../../../../shared/theme/theme.dart';
 
-// Form widget for email sign up.
 class SignUpForm extends ConsumerStatefulWidget {
   const SignUpForm({super.key});
 
@@ -26,40 +24,22 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
-  // Handles sign up submission.
   void _submit() async {
     if (_formKey.currentState!.validate()) {
       FocusScope.of(context).unfocus();
       final result = await ref
-          .read(emailAuthControllerProvider.notifier)
+          .read(signUpControllerProvider.notifier)
           .signUp(
             _emailController.text.trim(),
             _passwordController.text.trim(),
           );
-      _handleAuthResult(result);
-    }
-  }
-
-  // Handles post-auth result.
-  void _handleAuthResult(AuthResult result) {
-    if (!result.success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result.message ?? 'Signup failed')),
-      );
-      return;
-    }
-
-    final exists = result.userExists;
-    if (exists == true) {
-      context.go(ShellRouteConstants.dashboard);
-    } else {
-      context.go(AuthRouteConstants.userInfoStep.replaceAll(':step', '0'));
+      handleAuthResult(context, result, AuthStrings.signupFailed);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final isLoading = ref.watch(emailAuthControllerProvider);
+    final isLoading = ref.watch(signUpControllerProvider);
     final maxButtonWidth = kIsWeb ? 300.w : 250.w;
 
     return Form(
@@ -103,9 +83,9 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
             child: ElevatedButton(
               onPressed: isLoading ? null : _submit,
               style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 16.h),
+                padding: WidgetStyles.buttonPadding(kIsWeb),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.r),
+                  borderRadius: WidgetStyles.buttonBorderRadius(),
                 ),
                 elevation: 0,
                 shadowColor: AppTheme.colors['transparent'],
@@ -114,18 +94,11 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
                   ? ShimmerLoading.text(
                       key: UniqueKey(),
                       text: 'Sign Up',
-                      textStyle: AppTheme.textStyles['body']!.copyWith(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.colors['primaryText'],
-                      ),
+                      textStyle: WidgetStyles.buttonTextStyle(),
                     )
-                  : const Text(
+                  : Text(
                       "Sign Up",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: WidgetStyles.buttonTextStyle(),
                     ),
             ),
           ),

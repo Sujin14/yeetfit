@@ -1,12 +1,10 @@
 import '../../domain/entities/auth_result.dart';
-import '../datasources/email_auth_service.dart';
-import '../datasources/google_auth_service.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../datasources/auth_service.dart';
 
-// Implementation of [AuthRepository] using Firebase services.
 class AuthRepositoryImpl implements AuthRepository {
-  final EmailAuthService emailService;
-  final GoogleAuthService googleService;
+  final AuthService emailService;
+  final AuthService googleService;
 
   const AuthRepositoryImpl({
     required this.emailService,

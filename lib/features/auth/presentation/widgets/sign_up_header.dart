@@ -2,9 +2,9 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../utils/widget_styles.dart';
 import '../../../../shared/theme/theme.dart';
 
-// Header widget for sign up screen with animated text.
 class SignUpHeader extends StatefulWidget {
   const SignUpHeader({super.key});
 
@@ -18,7 +18,7 @@ class _SignUpHeaderState extends State<SignUpHeader> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: kIsWeb ? 40.w : 24.w, vertical: 24.h),
+      padding: WidgetStyles.formPadding(kIsWeb),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

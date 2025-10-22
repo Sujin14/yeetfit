@@ -1,13 +1,13 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../utils/widget_styles.dart';
 import 'login_form.dart';
 import 'login_header.dart';
 import 'login_options_divider.dart';
 import 'login_social_buttons.dart';
 import 'signup_redirect.dart';
 
-// Body widget for login screen.
 class LoginBody extends StatelessWidget {
   const LoginBody({super.key});
 
@@ -22,15 +22,9 @@ class LoginBody extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               color: Theme.of(context).scaffoldBackgroundColor,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(30.r),
-                topRight: Radius.circular(30.r),
-              ),
+              borderRadius: WidgetStyles.containerBorderRadius(),
             ),
-            padding: EdgeInsets.symmetric(
-              horizontal: kIsWeb ? 40.w : 24.w,
-              vertical: 24.h,
-            ),
+            padding: WidgetStyles.formPadding(kIsWeb),
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               child: Column(

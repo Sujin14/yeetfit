@@ -23,7 +23,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   void initState() {
     super.initState();
     Future.microtask(() {
-      ref.read(chatControllerProvider(widget.adminId).notifier).setupChat(context);
+      ref.read(chatControllerProvider(widget.adminId).notifier).setupChat();
     });
   }
 
@@ -31,6 +31,24 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Widget build(BuildContext context) {
     final chatState = ref.watch(chatControllerProvider(widget.adminId));
     final chatItems = ref.watch(chatItemsProvider(chatState.messages));
+
+    // Show snackbar for errors
+    if (chatState.error != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              chatState.error!,
+              style: AppTheme.textStyles['bodyMedium']?.copyWith(
+                color: AppTheme.colors['onSurfaceDark'],
+              ),
+            ),
+            backgroundColor: AppTheme.colors['error'],
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      });
+    }
 
     return Scaffold(
       backgroundColor: AppTheme.colors['lightBackground'],
@@ -101,4 +119,3 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 }
-

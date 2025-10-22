@@ -62,9 +62,24 @@ class ChatHeader extends ConsumerWidget {
                         ),
                         TextButton(
                           onPressed: () async {
-                            await controller.deleteChats(context);
+                            await controller.deleteChats();
                             Navigator.of(context).pop();
-                            context.go('/user-dashboard');
+                            if (ref.read(chatControllerProvider(controller.adminId)).error != null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    ref.read(chatControllerProvider(controller.adminId)).error!,
+                                    style: AppTheme.textStyles['bodyMedium']?.copyWith(
+                                      color: AppTheme.colors['onSurfaceDark'],
+                                    ),
+                                  ),
+                                  backgroundColor: AppTheme.colors['error'],
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            } else {
+                              context.go('/user-dashboard');
+                            }
                           },
                           child: Text(
                             'Delete',

@@ -4,9 +4,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../domain/entities/auth_result.dart';
 import '../providers/auth_providers.dart';
+import '../../utils/auth_strings.dart';
+import '../../utils/widget_styles.dart';
 import '../../../../shared/theme/theme.dart';
 
-// Button to trigger password reset dialog.
 class ForgotPasswordButton extends ConsumerWidget {
   const ForgotPasswordButton({super.key});
 
@@ -17,22 +18,18 @@ class ForgotPasswordButton extends ConsumerWidget {
         final email = await _askForEmailDialog(context);
         if (email != null && email.trim().isNotEmpty) {
           final result = await ref
-              .read(emailAuthControllerProvider.notifier)
+              .read(resetPasswordControllerProvider.notifier)
               .resetPassword(email.trim());
           _showSnackBar(context, result);
         }
       },
       child: Text(
         "Forgot Password?",
-        style: AppTheme.textStyles['body']!.copyWith(
-          fontSize: (kIsWeb ? 16.sp : 14.sp).clamp(12.0, 16.0),
-          color: AppTheme.colors['primaryAccent'],
-        ),
+        style: WidgetStyles.linkTextStyle(kIsWeb),
       ),
     );
   }
 
-  // Shows dialog to input email for reset.
   Future<String?> _askForEmailDialog(BuildContext context) async {
     String email = '';
     return showDialog<String>(
@@ -79,12 +76,11 @@ class ForgotPasswordButton extends ConsumerWidget {
     );
   }
 
-  // Shows success/error SnackBar based on result.
   void _showSnackBar(BuildContext context, AuthResult result) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(result.message ?? 'Unknown error'),
-        backgroundColor: result.success ? AppTheme.colors['success'] : AppTheme.colors['error'] ,
+        content: Text(result.message ?? AuthStrings.genericError),
+        backgroundColor: result.success ? AppTheme.colors['success'] : AppTheme.colors['error'],
       ),
     );
   }

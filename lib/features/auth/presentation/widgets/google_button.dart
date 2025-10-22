@@ -2,14 +2,12 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import '../../../../core/routes/auth_route_constants.dart';
-import '../../../../core/routes/shell_route_constants.dart';
-import '../../domain/entities/auth_result.dart';
 import '../providers/auth_providers.dart';
+import '../../utils/navigation_utils.dart';
+import '../../utils/auth_strings.dart';
+import '../../utils/widget_styles.dart';
 import '../../../../shared/theme/theme.dart';
 
-// Button for Google sign-in.
 class GoogleButton extends ConsumerWidget {
   const GoogleButton({super.key});
 
@@ -31,33 +29,17 @@ class GoogleButton extends ConsumerWidget {
                 final result = await ref
                     .read(googleAuthControllerProvider.notifier)
                     .login();
-                _handleAuthResult(context, result);
+                handleAuthResult(context, result, AuthStrings.googleSignInFailed);
               },
         style: OutlinedButton.styleFrom(
-          padding: EdgeInsets.symmetric(vertical: kIsWeb ? 16.h : 14.h),
+          padding: WidgetStyles.buttonPadding(kIsWeb),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.r),
+            borderRadius: WidgetStyles.buttonBorderRadius(),
           ),
-          side: BorderSide(color: AppTheme.colors['transparent']!),
+          side: WidgetStyles.transparentBorder(),
+          backgroundColor: AppTheme.colors['transparent'],
         ),
       ),
     );
-  }
-
-  // Handles post-auth navigation and feedback.
-  void _handleAuthResult(BuildContext context, AuthResult result) {
-    if (!result.success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result.message ?? 'Google Sign-In failed')),
-      );
-      return;
-    }
-
-    final exists = result.userExists;
-    if (exists == true) {
-      context.go(ShellRouteConstants.dashboard);
-    } else {
-      context.go(AuthRouteConstants.userInfoStep.replaceAll(':step', '0'));
-    }
   }
 }

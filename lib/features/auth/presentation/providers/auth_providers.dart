@@ -1,4 +1,5 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import '../../data/datasources/auth_service.dart';
 import '../../data/datasources/email_auth_service.dart';
 import '../../data/datasources/google_auth_service.dart';
 import '../../data/repositories/auth_repository_impl.dart';
@@ -10,38 +11,52 @@ import '../../domain/usecases/sign_up_with_email.dart';
 import '../../../user_info/data/datasources/firestore_user_service.dart';
 import '../../../user_info/data/repositories/user_repository_impl.dart';
 import '../../../user_info/domain/repositories/user_repository.dart';
-import 'email_auth_controller.dart';
-import 'google_auth_controller.dart';
+import 'login_controller.dart';
+import 'signup_controller.dart';
+import 'reset_password_controller.dart';
+import 'google_auth_controller.dart'; // New import
 
-// Provider for the auth repository.
+// Providers for data sources
+final emailAuthServiceProvider = Provider<AuthService>((ref) => EmailAuthService());
+final googleAuthServiceProvider = Provider<AuthService>((ref) => GoogleAuthService());
+
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepositoryImpl(
-    emailService: EmailAuthService(),
-    googleService: GoogleAuthService(),
+    emailService: ref.watch(emailAuthServiceProvider),
+    googleService: ref.watch(googleAuthServiceProvider),
   );
 });
 
-// Provider for the user repository (for post-auth checks).
 final userRepositoryProvider = Provider<UserRepository>((ref) {
   return UserRepositoryImpl(userService: FirestoreUserService());
 });
 
-// Provider for email auth controller state (loading).
-final emailAuthControllerProvider =
-    StateNotifierProvider<EmailAuthController, bool>((ref) {
+final loginControllerProvider = StateNotifierProvider<LoginController, bool>((ref) {
   final repo = ref.watch(authRepositoryProvider);
   final userRepo = ref.watch(userRepositoryProvider);
-  return EmailAuthController(
+  return LoginController(
     loginWithEmail: LoginWithEmail(repo),
-    resetPasswordUseCase: SendPasswordResetEmail(repo),
+    userRepository: userRepo,
+  );
+});
+
+final signUpControllerProvider = StateNotifierProvider<SignUpController, bool>((ref) {
+  final repo = ref.watch(authRepositoryProvider);
+  final userRepo = ref.watch(userRepositoryProvider);
+  return SignUpController(
     signUpWithEmail: SignUpWithEmail(repo),
     userRepository: userRepo,
   );
 });
 
-// Provider for Google auth controller state (loading).
-final googleAuthControllerProvider =
-    StateNotifierProvider<GoogleAuthController, bool>((ref) {
+final resetPasswordControllerProvider = StateNotifierProvider<ResetPasswordController, bool>((ref) {
+  final repo = ref.watch(authRepositoryProvider);
+  return ResetPasswordController(
+    resetPasswordUseCase: SendPasswordResetEmail(repo),
+  );
+});
+
+final googleAuthControllerProvider = StateNotifierProvider<GoogleAuthController, bool>((ref) {
   final repo = ref.watch(authRepositoryProvider);
   final userRepo = ref.watch(userRepositoryProvider);
   return GoogleAuthController(
