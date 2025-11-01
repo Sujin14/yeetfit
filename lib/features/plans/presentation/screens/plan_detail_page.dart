@@ -57,21 +57,23 @@ class PlanDetailPage extends ConsumerWidget {
                 : AppTheme.colors['secondaryText'],
             onFavorite: () async {
               try {
+                // Execute toggle favorite
                 await ref
-                    .read(favoritePlansProvider.notifier)
-                    .toggleFavorite(
+                    .read(toggleFavoriteUseCaseProvider)
+                    .execute(
                       updatedPlan.id!,
                       updatedPlan.type,
                       !updatedPlan.isFavorite,
                     );
+                await ref.read(favoritePlansProvider.notifier).refresh();
+                // Show success message
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
                       updatedPlan.isFavorite
                           ? 'Removed from favorites'
                           : 'Added to favorites',
-                      style:
-                          AppTheme.textStyles['body']?.copyWith(
+                      style: AppTheme.textStyles['body']?.copyWith(
                             color: AppTheme.colors['primaryText'],
                           ) ??
                           TextStyle(color: AppTheme.colors['black']),
@@ -79,18 +81,20 @@ class PlanDetailPage extends ConsumerWidget {
                     backgroundColor: AppTheme.colors['primaryAccent'],
                   ),
                 );
+
+                // Handle unfavorite navigation
                 if (!updatedPlan.isFavorite && onUnfavorite != null) {
                   onUnfavorite();
                 }
               } catch (e) {
+                // Show error message
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
                       e.toString().contains('PERMISSION_DENIED')
                           ? 'Permission denied: Only admins can update plans'
                           : 'Error: $e',
-                      style:
-                          AppTheme.textStyles['body']?.copyWith(
+                      style: AppTheme.textStyles['body']?.copyWith(
                             color: AppTheme.colors['primaryText'],
                           ) ??
                           TextStyle(color: AppTheme.colors['black']),

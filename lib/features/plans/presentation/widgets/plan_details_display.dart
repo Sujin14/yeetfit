@@ -26,7 +26,7 @@ class PlanDetailsDisplay extends StatelessWidget {
             'Description: ${plan.details['description']}',
             style:
                 AppTheme.textStyles['body']?.copyWith(
-                  color: AppTheme.colors['primaryText'] ?? Colors.black,
+                  color: AppTheme.colors['primaryText'],
                   fontSize: 16.sp,
                 ) ??
                 TextStyle(fontSize: 16.sp, color: Colors.black),

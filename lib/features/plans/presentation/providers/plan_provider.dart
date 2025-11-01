@@ -1,19 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../../explore/domain/use_cases/get_plans_use_case.dart';
-import '../../../plans/data/models/plan_model.dart';
-import '../../../plans/domain/repositories/plan_repository.dart';
-import '../../../plans/data/repositories/plan_repository_impl.dart';
-import '../../../plans/domain/use_cases/get_favorite_plans_use_case.dart';
-import '../../../plans/domain/use_cases/toggle_favorite_use_case.dart';
+import '../../data/models/plan_model.dart';
+import '../../data/repositories/plan_repository_impl.dart';
+import '../../domain/repositories/plan_repository.dart';
+import '../../domain/use_cases/get_all_plans_use_case.dart';
+import '../../domain/use_cases/get_favorite_plans_use_case.dart';
+import '../../domain/use_cases/toggle_favorite_use_case.dart';
 
 final planRepositoryProvider = Provider<PlanRepository>((ref) {
   return PlanRepositoryImpl();
 });
 
-final getPlanUseCaseProvider = Provider<GetPlansUseCase>((ref) {
-  return GetPlansUseCase(ref.read(planRepositoryProvider));
+final getAllPlansUseCaseProvider = Provider<GetAllPlansUseCase>((ref) {
+  return GetAllPlansUseCase(ref.read(planRepositoryProvider));
 });
 
 final getFavoritePlansUseCaseProvider = Provider<GetFavoritePlansUseCase>((ref) {
@@ -22,6 +22,40 @@ final getFavoritePlansUseCaseProvider = Provider<GetFavoritePlansUseCase>((ref) 
 
 final toggleFavoriteUseCaseProvider = Provider<ToggleFavoriteUseCase>((ref) {
   return ToggleFavoriteUseCase(ref.read(planRepositoryProvider));
+});
+
+final allDietPlansProvider = StreamProvider<List<PlanModel>>((ref) {
+  final userId = FirebaseAuth.instance.currentUser?.uid;
+  if (userId == null) {
+    return Stream.value([]);
+  }
+  return FirebaseFirestore.instance
+      .collection('users')
+      .doc(userId)
+      .collection('diets')
+      .where('type', isEqualTo: 'diet')
+      .orderBy('createdAt', descending: true)
+      .snapshots()
+      .map((snapshot) {
+    return snapshot.docs.map((doc) => PlanModel.fromFirestore(doc)).toList();
+  });
+});
+
+final allWorkoutPlansProvider = StreamProvider<List<PlanModel>>((ref) {
+  final userId = FirebaseAuth.instance.currentUser?.uid;
+  if (userId == null) {
+    return Stream.value([]);
+  }
+  return FirebaseFirestore.instance
+      .collection('users')
+      .doc(userId)
+      .collection('workouts')
+      .where('type', isEqualTo: 'workout')
+      .orderBy('createdAt', descending: true)
+      .snapshots()
+      .map((snapshot) {
+    return snapshot.docs.map((doc) => PlanModel.fromFirestore(doc)).toList();
+  });
 });
 
 final dietPlanProvider = StreamProvider<PlanModel?>((ref) {
@@ -105,7 +139,6 @@ class FavoritePlansNotifier extends StateNotifier<FavoritePlansState> {
 
   Future<void> toggleFavorite(String planId, String type, bool isFavorite) async {
     try {
-      // Optimistically update local state
       final updatedPlans = state.plans.map((plan) {
         if (plan.id == planId && plan.type == type) {
           return PlanModel(
@@ -132,16 +165,15 @@ class FavoritePlansNotifier extends StateNotifier<FavoritePlansState> {
 
       // Update Firestore
       await ref.read(toggleFavoriteUseCaseProvider).execute(planId, type, isFavorite);
-
-      // Invalidate providers to refresh streams
-      ref.invalidate(dietPlanProvider);
-      ref.invalidate(workoutPlanProvider);
-      ref.invalidate(favoritePlansProvider);
     } catch (e) {
       // Revert optimistic update on error
       await _loadFavoritePlans();
       rethrow;
     }
+  }
+
+  Future<void> refresh() async {
+    await _loadFavoritePlans();
   }
 }
 
@@ -163,7 +195,7 @@ final planDetailProvider = StreamProvider.family<PlanModel?, Map<String, dynamic
       .doc(plan.id)
       .snapshots()
       .map((snapshot) {
-    if (!snapshot.exists) return plan;
+    if (!snapshot.exists) return null;
     return PlanModel.fromFirestore(snapshot);
   });
 });

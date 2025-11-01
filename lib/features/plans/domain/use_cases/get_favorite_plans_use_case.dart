@@ -1,5 +1,5 @@
-import 'package:yeetfit/features/plans/domain/repositories/plan_repository.dart';
-import 'package:yeetfit/features/plans/data/models/plan_model.dart';
+import '../repositories/plan_repository.dart';
+import '../../data/models/plan_model.dart';
 
 class GetFavoritePlansUseCase {
   final PlanRepository repository;
@@ -7,6 +7,10 @@ class GetFavoritePlansUseCase {
   GetFavoritePlansUseCase(this.repository);
 
   Future<List<PlanModel>> execute() async {
-    return await repository.getFavoritePlans();
+    try {
+      return await repository.getFavoritePlans();
+    } catch (e) {
+      throw Exception('Failed to get favorite plans: $e');
+    }
   }
 }
