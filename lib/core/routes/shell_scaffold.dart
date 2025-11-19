@@ -19,6 +19,7 @@ class ShellScaffold extends StatefulWidget {
 
 class _ShellScaffoldState extends State<ShellScaffold> {
   late int _currentIndex;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
@@ -26,9 +27,7 @@ class _ShellScaffoldState extends State<ShellScaffold> {
     _currentIndex = _getIndexFromLocation(widget.navigationShell.currentIndex);
   }
 
-  /// Maps current location to navigation index.
   int _getIndexFromLocation(int branchIndex) {
-    // Adjust for skipped 'track' tab (index 2).
     return branchIndex > 1 ? branchIndex + 1 : branchIndex;
   }
 
@@ -36,8 +35,7 @@ class _ShellScaffoldState extends State<ShellScaffold> {
     setState(() {
       _currentIndex = index;
     });
-    if (index != 2) { // Skip 'track' (modals).
-      // Map to branch: 0->0, 1->1, 3->2, 4->3.
+    if (index != 2) {
       final branchIndex = index > 2 ? index - 1 : index;
       widget.navigationShell.goBranch(branchIndex);
     }
@@ -49,12 +47,13 @@ class _ShellScaffoldState extends State<ShellScaffold> {
     final showCalendar = currentTab == NavigationTab.dashboard;
 
     return Scaffold(
+      key: _scaffoldKey,
+      drawer: _buildAppDrawer(context),
       appBar: CustomAppBar(
         title: currentTab.title,
         showCalendar: showCalendar,
         onCalendar: _showCalendarDialog,
-        showSettings: true,
-        onSettings: () => context.push(SettingsRouteConstants.root),
+        scaffoldKey: _scaffoldKey, // 👈 added this line
       ),
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
@@ -68,7 +67,129 @@ class _ShellScaffoldState extends State<ShellScaffold> {
     );
   }
 
-  // Shows calendar dialog for authenticated users.
+  Widget _buildAppDrawer(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    final name = user?.displayName ?? "User";
+    final email = user?.email ?? "No email";
+    final photoUrl = user?.photoURL;
+
+    return Drawer(
+      backgroundColor: Colors.grey[50],
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topRight: Radius.circular(20),
+          bottomRight: Radius.circular(20),
+        ),
+      ),
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // --- Profile Section ---
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+              decoration: const BoxDecoration(
+                color: Colors.blueAccent,
+                borderRadius: BorderRadius.only(topRight: Radius.circular(20)),
+              ),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 32,
+                    backgroundColor: Colors.white,
+                    backgroundImage: photoUrl != null
+                        ? NetworkImage(photoUrl)
+                        : const AssetImage('assets/images/default_avatar.png')
+                              as ImageProvider,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          name,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          email,
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // --- Settings Items ---
+            ListTile(
+              leading: const Icon(Icons.settings, color: Colors.black87),
+              title: const Text('Settings'),
+              onTap: () {
+                Navigator.pop(context);
+                context.push(SettingsRouteConstants.root);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.person, color: Colors.black87),
+              title: const Text('Account'),
+              onTap: () {
+                Navigator.pop(context);
+                context.push('/account');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.help_outline, color: Colors.black87),
+              title: const Text('Help & Support'),
+              onTap: () {
+                Navigator.pop(context);
+                context.push('/help');
+              },
+            ),
+
+            const Spacer(),
+
+            // --- Logout Button ---
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  await FirebaseAuth.instance.signOut();
+                  if (context.mounted) context.go('/login');
+                },
+                icon: const Icon(Icons.logout, color: Colors.white),
+                label: const Text(
+                  'Logout',
+                  style: TextStyle(color: Colors.white),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent,
+                  minimumSize: const Size.fromHeight(48),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _showCalendarDialog() {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {

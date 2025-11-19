@@ -7,10 +7,10 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:workmanager/workmanager.dart';
 import 'core/routes/app_routes.dart';
+import 'core/theme/app_theme.dart';
 import 'features/steps_tracking/presentation/providers/steps_provider.dart';
 import 'features/chat/data/datasource/notification_service.dart';
 import 'firebase_options.dart';
-import 'shared/theme/theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -57,7 +57,9 @@ class YeetFitApp extends StatelessWidget {
       builder: (context, child) => MaterialApp.router(
         debugShowCheckedModeBanner: false,
         routerConfig: appRouter,
-        theme: AppTheme.getLightTheme(),
+        theme: AppTheme.light(),
+        darkTheme: AppTheme.dark(),
+        themeMode: ThemeMode.light,
       ),
     );
   }

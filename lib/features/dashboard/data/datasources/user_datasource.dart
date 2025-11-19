@@ -7,10 +7,7 @@ class UserDataSource {
   Future<Map<String, dynamic>?> getUserData(String userId) async {
     try {
       final doc = await _firestore.collection('users').doc(userId).get();
-      if (doc.exists) {
-        return doc.data();
-      }
-      return null;
+      return doc.exists ? doc.data() : null;
     } catch (e) {
       rethrow;
     }

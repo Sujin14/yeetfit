@@ -544,14 +544,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.3.2"
-  google_generative_ai:
-    dependency: "direct main"
-    description:
-      name: google_generative_ai
-      sha256: "71f613d0247968992ad87a0eb21650a566869757442ba55a31a81be6746e0d1f"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.4.7"
   google_identity_services_web:
     dependency: transitive
     description:
@@ -600,6 +592,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.12.4+4"
+  googleai_dart:
+    dependency: "direct main"
+    description:
+      name: googleai_dart
+      sha256: "42d4d258949737a84c51f1af28a798cca2953d871840b91d10c1918723726b3c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
   graphs:
     dependency: transitive
     description:

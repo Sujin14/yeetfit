@@ -1,6 +1,5 @@
-// lib/features/dashboard/presentation/providers/user_repository_impl.dart
+// lib/features/dashboard/data/repositories/user_repository_impl.dart
 import 'package:rxdart/rxdart.dart';
-
 import '../../domain/repositories/user_repository.dart';
 import '../datasources/progress_datasource.dart';
 import '../datasources/user_datasource.dart';
@@ -62,13 +61,7 @@ class UserRepositoryImpl implements UserRepository {
       progressDataSource.getProgressStream(userId, 'water', date),
       progressDataSource.getProgressStream(userId, 'sleep', date),
       progressDataSource.getProgressStream(userId, 'meal', date),
-      (
-        Map<String, dynamic>? userData,
-        Map<String, dynamic>? stepsData,
-        Map<String, dynamic>? waterData,
-        Map<String, dynamic>? sleepData,
-        Map<String, dynamic>? mealData,
-      ) {
+      (userData, stepsData, waterData, sleepData, mealData) {
         return weightDataSource.getWeightData(userId, date).then((weightData) {
           return {
             'steps': stepsData?['steps']?.toDouble() ?? 0.0,
@@ -93,23 +86,16 @@ class UserRepositoryImpl implements UserRepository {
           };
         });
       },
-    ).asyncExpand((futureMap) => Stream.fromFuture(futureMap)).handleError((e) {
-      throw e;
-    });
+    ).asyncExpand((futureMap) => Stream.fromFuture(futureMap)).handleError((e) => throw e);
   }
 
   @override
-Future<double> getBMI(String userId, String date) async {
-  final userData = await userDataSource.getUserData(userId);
-  final progress = await getDailyProgress(userId, date);
-
-  final height = (userData?['height'] as num?)?.toDouble() ?? 0.0;
-  final weight = progress['currentWeight']?.toDouble()
-      ?? (userData?['currentWeight'] as num?)?.toDouble()
-      ?? 0.0;
-
-  if (height <= 0 || weight <= 0) return 0.0;
-  return weight / ((height / 100) * (height / 100));
-}
-
+  Future<double> getBMI(String userId, String date) async {
+    final userData = await userDataSource.getUserData(userId);
+    final progress = await getDailyProgress(userId, date);
+    final height = (userData?['height'] as num?)?.toDouble() ?? 0.0;
+    final weight = progress['currentWeight']?.toDouble() ?? (userData?['currentWeight'] as num?)?.toDouble() ?? 0.0;
+    if (height <= 0 || weight <= 0) return 0.0;
+    return weight / ((height / 100) * (height / 100));
+  }
 }

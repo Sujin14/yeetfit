@@ -25,7 +25,7 @@ android {
         applicationId = "com.sujin.yeetfit"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = 23
+        minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -53,9 +53,6 @@ dependencies {
 
     // Only core-common (avoid duplicate with play-core)
     implementation("com.google.android.play:core-common:2.0.3")
-
-    // Razorpay annotations
-    implementation("com.guardsquare:proguard-annotations:7.4.0")
 
     // Kotlin stdlib
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.24")

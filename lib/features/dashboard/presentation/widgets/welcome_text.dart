@@ -1,21 +1,17 @@
-// lib/features/dashboard/presentation/widgets/welcome_text.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../shared/theme/theme.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class WelcomeText extends StatelessWidget {
   final String name;
-
   const WelcomeText({super.key, required this.name});
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
     return Text(
       'Welcome, $name!',
-      style: AppTheme.textStyles['heading']!.copyWith(
-        fontSize: 28.sp,
-        color: AppTheme.colors['primaryText']!.withOpacity(0.9),
-      ),
+      style: Theme.of(context).textTheme.headlineLarge!.copyWith(fontSize: 28.sp, color: colors.onBackground.withOpacity(0.9)),
     );
   }
 }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/custom_appbar.dart';
@@ -48,8 +47,6 @@ class PlanDetailPage extends ConsumerWidget {
         return Scaffold(
           appBar: CustomAppBar(
             title: updatedPlan.title,
-            showSettings: true,
-            onSettings: () => context.push('/settings'),
             showFavorite: true,
             isFavorite: updatedPlan.isFavorite,
             favoriteColor: updatedPlan.isFavorite

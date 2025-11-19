@@ -221,25 +221,29 @@ class WaterTrackingNavigationNotifier extends StateNotifier<bool> {
 
   void _listenToGlassesConsumed() {
     _ref.listen(glassesConsumedProvider(_userId), (previous, next) {
-      final glassesConsumed = next.value ?? 0;
-      final goalGlasses = _ref.read(waterGoalProvider(_userId)).value ?? 8;
+      final consumed = next.value ?? 0;
+      final goal = _ref.read(waterGoalProvider(_userId)).value ?? 8;
+
       final today = DateTime.now().toIso8601String().split('T')[0];
       final lastDate = _ref.read(glassesConsumedProvider(_userId).notifier).lastDate;
 
-      if (lastDate != null && lastDate != today) {
+      if (lastDate != today) {
         state = false;
         _lastNavigatedDate = null;
       }
 
-      if (glassesConsumed == goalGlasses && !state && _lastNavigatedDate != today) {
+      if (consumed == goal && !state && _lastNavigatedDate != today) {
         state = true;
         _lastNavigatedDate = today;
       }
     });
   }
 
-  bool get hasNavigatedToSuccess => state;
+  void reset() {
+    state = false;
+  }
 }
+
 
 // State provider for water goal dialog.
 final waterGoalDialogStateProvider = StateProvider.autoDispose.family<WaterGoalDialogState, String>(

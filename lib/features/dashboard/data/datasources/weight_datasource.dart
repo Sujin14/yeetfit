@@ -1,13 +1,11 @@
 // lib/features/dashboard/data/datasources/weight_datasource.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
-
-import '../model/weight_model.dart';
+import '../../domain/entities/weight_data.dart';
 
 class WeightDataSource {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<WeightData?> getWeightData(String userId, String date) async {
-    
     final docRef = _firestore
         .collection('users')
         .doc(userId)
@@ -17,19 +15,13 @@ class WeightDataSource {
         .doc(date);
     try {
       final doc = await docRef.get();
-      if (doc.exists) {
-        
-        return WeightData.fromMap(doc.data()!);
-      }
-      
-      return null;
+      return doc.exists ? WeightData.fromMap(doc.data()!) : null;
     } catch (e) {
       rethrow;
     }
   }
 
   Stream<WeightData?> getWeightStream(String userId, String date) {
-    
     return _firestore
         .collection('users')
         .doc(userId)
@@ -38,17 +30,7 @@ class WeightDataSource {
         .collection('weight')
         .doc(date)
         .snapshots()
-        .map((doc) {
-          if (doc.exists) {
-            
-            return WeightData.fromMap(doc.data()!);
-          }
-          
-          return null;
-        })
-        .handleError((e) {
-         
-          throw e;
-        });
+        .map((doc) => doc.exists ? WeightData.fromMap(doc.data()!) : null)
+        .handleError((e) => throw e);
   }
 }

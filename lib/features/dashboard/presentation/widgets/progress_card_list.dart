@@ -1,17 +1,15 @@
-// lib/features/dashboard/presentation/widgets/progress_card_list.dart
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-import '../../../../shared/theme/theme.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../providers/daily_progress_provider.dart';
 import 'progress_card.dart';
 
 class ProgressCardsList extends ConsumerStatefulWidget {
   final String userId;
-
   const ProgressCardsList({super.key, required this.userId});
 
   @override
@@ -27,9 +25,7 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
   void initState() {
     super.initState();
     if (kDebugMode)
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _startAutoSwipe();
-      });
+      WidgetsBinding.instance.addPostFrameCallback((_) => _startAutoSwipe());
   }
 
   void _startAutoSwipe() {
@@ -37,8 +33,7 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
     _autoSwipeTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
       if (!mounted || !_pageController.hasClients) return;
       setState(() {
-        _currentPage =
-            (_currentPage + 1) % 4; // 4 cards: steps, water, sleep, weight
+        _currentPage = (_currentPage + 1) % 4;
         _pageController.animateToPage(
           _currentPage,
           duration: const Duration(milliseconds: 300),
@@ -49,29 +44,24 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
   }
 
   void _onPageChanged(int index) {
-    setState(() {
-      _currentPage = index;
-    });
+    setState(() => _currentPage = index);
     _startAutoSwipe();
   }
 
   @override
   void dispose() {
-    if (kDebugMode) _autoSwipeTimer?.cancel();
+    _autoSwipeTimer?.cancel();
     _pageController.dispose();
     super.dispose();
   }
 
-  /// Helper to compute weight progress dynamically
   double _computeWeightPercent(double currentWeight, double goalWeight) {
     if (currentWeight == goalWeight) return 1.0;
-    // Weight loss goal
     if (goalWeight < currentWeight) {
-      final start = currentWeight; // starting weight
-      final end = goalWeight; // target weight
+      final start = currentWeight;
+      final end = goalWeight;
       return ((start - currentWeight) / (start - end)).clamp(0.0, 1.0);
     } else {
-      // Weight gain goal
       final start = currentWeight;
       final end = goalWeight;
       return ((currentWeight - start) / (end - start)).clamp(0.0, 1.0);
@@ -81,11 +71,10 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
   @override
   Widget build(BuildContext context) {
     final progressAsync = ref.watch(dailyProgressStreamProvider(widget.userId));
+    final colors = Theme.of(context).extension<AppColors>()!;
 
     return progressAsync.when(
       data: (progress) {
-        // Use progress['steps'] directly—it already incorporates live steps for today
-        // and historical Firestore data for past dates (or 0 if unavailable).
         final steps = progress['steps'] as double;
         final stepsGoal = progress['stepsGoal'] as double;
 
@@ -157,8 +146,8 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
               effect: ExpandingDotsEffect(
                 dotWidth: 8.w,
                 dotHeight: 8.h,
-                activeDotColor: AppTheme.colors['primaryAccent']!,
-                dotColor: AppTheme.colors['secondaryText']!.withOpacity(0.5),
+                activeDotColor: colors.primary,
+                dotColor: colors.onSurface.withOpacity(0.5),
                 spacing: 4.w,
               ),
             ),
@@ -175,8 +164,8 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
             effect: ExpandingDotsEffect(
               dotWidth: 8.w,
               dotHeight: 8.h,
-              activeDotColor: AppTheme.colors['primaryAccent']!,
-              dotColor: AppTheme.colors['secondaryText']!.withOpacity(0.5),
+              activeDotColor: colors.primary,
+              dotColor: colors.onSurface.withOpacity(0.5),
               spacing: 4.w,
             ),
           ),
