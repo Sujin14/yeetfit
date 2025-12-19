@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
 
+// Circular progress indicator for water intake.
 class WaterCircularIndicator extends StatelessWidget {
   final double progress;
 
@@ -20,9 +20,9 @@ class WaterCircularIndicator extends StatelessWidget {
               Container(
                 width: 160.w,
                 height: 160.h,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppTheme.colors['transparent'],
+                  color: Colors.transparent,
                 ),
               ),
               SizedBox(
@@ -32,12 +32,14 @@ class WaterCircularIndicator extends StatelessWidget {
                   value: progress,
                   strokeWidth: 20.w,
                   backgroundColor: AppTheme.colors['white']?.withOpacity(0.5),
-                  valueColor: AlwaysStoppedAnimation(AppTheme.colors['aquaBlue']),
+                  valueColor: AlwaysStoppedAnimation(
+                    AppTheme.colors['aquaBlue'],
+                  ),
                 ),
               ),
               GlassmorphicContainer(
                 color: AppTheme.colors['teal']!,
-                padding: EdgeInsets.all(0.w),
+                padding: EdgeInsets.zero,
                 borderRadius: 40.r,
                 child: Container(
                   width: 80.w,
@@ -55,7 +57,7 @@ class WaterCircularIndicator extends StatelessWidget {
           SizedBox(height: 20.h),
           Text(
             '1 Glass = 250 ml',
-            style: GoogleFonts.roboto(
+            style: TextStyle(
               color: AppTheme.colors['primaryText']?.withOpacity(0.7),
             ),
           ),

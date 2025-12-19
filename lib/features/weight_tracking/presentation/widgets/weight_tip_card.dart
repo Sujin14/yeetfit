@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
 
+/// Tip card for weight tracking advice.
 class WeightTipCard extends StatelessWidget {
   const WeightTipCard({super.key});
 

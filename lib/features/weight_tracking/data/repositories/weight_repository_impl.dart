@@ -1,13 +1,14 @@
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../datasources/weight_datasource.dart';
 import '../model/weight_model.dart';
 import '../../domain/repositories/weight_repository.dart';
 
+// Implementation of [WeightRepository] using Firestore data source.
 class WeightRepositoryImpl implements WeightRepository {
   final WeightDataSource _dataSource;
 
-  WeightRepositoryImpl(this._dataSource);
+  const WeightRepositoryImpl(this._dataSource);
 
+  @override
   Future<void> updateWeight(
     String userId,
     double currentWeight,
@@ -47,25 +48,14 @@ class WeightRepositoryImpl implements WeightRepository {
   }
 
   @override
-  Future<AsyncValue<List<WeightData>>> getWeeklyWeightData(String userId) async {
-    try {
-      final endDate = DateTime.now();
-      final startDate = endDate.subtract(const Duration(days: 6));
-      final data = await _dataSource.getWeeklyWeightData(userId, startDate, endDate);
-      return AsyncValue.data(data);
-    } catch (e, stackTrace) {
-      return AsyncValue.error(e, stackTrace);
-    }
+  Future<List<WeightData>> getWeeklyWeightData(String userId) async {
+    final endDate = DateTime.now();
+    final startDate = endDate.subtract(const Duration(days: 6));
+    return await _dataSource.getWeeklyWeightData(userId, startDate, endDate);
   }
 
   @override
   Future<void> updateCurrentWeight(String userId, double currentWeight) async {
-    await _dataSource.updateWeight(
-      userId,
-      currentWeight,
-      null, // keep existing goal
-      null, // keep existing initial
-      null, // keep existing target date
-    );
+    await updateWeight(userId, currentWeight, null, null, null);
   }
 }

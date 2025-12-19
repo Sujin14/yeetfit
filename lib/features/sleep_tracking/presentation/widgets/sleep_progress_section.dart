@@ -2,21 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import '../providers/sleep_provider.dart';
+import 'sleep_goal_dialog.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
-import '../providers/sleep_provider.dart';
-import '../widgets/sleep_goal_dialog.dart';
 
+// Section for sleep progress and goal editing.
 class SleepProgressSection extends ConsumerWidget {
   const SleepProgressSection({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userId = ref.watch(firebaseAuthProvider).currentUser?.uid;
+    if (userId == null) return const SizedBox.shrink();
+
     final today = DateTime.now().toIso8601String().split('T')[0];
-    final duration = ref.watch(sleepDurationProvider(userId!).select((value) => value.value ?? 0.0));
-    final goalHours = ref.watch(sleepGoalProvider(userId).select((value) => value.value ?? 8.0));
-    final progressColor = ref.watch(dailySleepProgressColorProvider('$userId|$today'));
+    final duration = ref.watch(
+      sleepDurationProvider(userId).select((value) => value.value ?? 0.0),
+    );
+    final goalHours = ref.watch(sleepGoalProvider(userId)).value ?? 8.0;
+    final progressColor = ref.watch(
+      dailySleepProgressColorProvider('$userId|$today'),
+    );
 
     return GlassmorphicContainer(
       color: AppTheme.colors['waterChartBackground']!,
@@ -36,15 +43,18 @@ class SleepProgressSection extends ConsumerWidget {
               IconButton(
                 icon: Icon(Icons.edit, color: AppTheme.colors['onSurface']),
                 onPressed: () => showDialog(
-                          context: context,
-                          builder: (context) => SleepGoalDialog(userId: userId),
-                        ),
+                  context: context,
+                  builder: (context) => SleepGoalDialog(userId: userId),
+                ),
                 tooltip: 'Set Sleep Goal',
               ),
             ],
           ),
           TweenAnimationBuilder(
-            tween: ColorTween(begin: AppTheme.colors['gray'], end: progressColor),
+            tween: ColorTween(
+              begin: AppTheme.colors['gray'],
+              end: progressColor,
+            ),
             duration: const Duration(milliseconds: 300),
             builder: (context, color, child) => LinearProgressIndicator(
               borderRadius: BorderRadius.circular(25.r),

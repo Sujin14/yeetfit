@@ -3,6 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../providers/steps_provider.dart';
 import 'steps_calories_card.dart';
 
+// Container for calories burned card.
 class StepsCaloriesCardContainer extends ConsumerWidget {
   final String userId;
 

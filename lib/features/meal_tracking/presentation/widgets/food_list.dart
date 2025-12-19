@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../../../core/routes/tracking_routes_constants.dart';
+import '../providers/food_provider.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../providers/food_provider.dart';
-import '../widgets/shimmer_card.dart';
+import 'shimmer_card.dart';
 
+/// List of food items for a meal.
 class FoodList extends ConsumerWidget {
   final String mealType;
 
@@ -16,9 +19,7 @@ class FoodList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
-    final foodItemsAsync = ref.watch(
-      dailyFoodItemsProvider('$userId|$mealType'),
-    );
+    final foodItemsAsync = ref.watch(dailyFoodItemsProvider('$userId|$mealType'));
 
     return Expanded(
       child: foodItemsAsync.when(
@@ -29,22 +30,14 @@ class FoodList extends ConsumerWidget {
               return GlassmorphicContainer(
                 color: AppTheme.colors['deepOrange']!,
                 padding: const EdgeInsets.all(12),
-                child: ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(
-                    'No $mealType entries',
+                child: GestureDetector(
+                  onTap: () => context.go(TrackingRouteConstants.foodSearch, extra: mealType),
+                  child: Text(
+                    'Add Your Food for $mealType to Track your Calorie intake🔥😋',
                     style: GoogleFonts.roboto(
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.colors['primaryText']!,
+                      color: AppTheme.colors['onSurface']!.withOpacity(0.7),
+                      fontSize: 14.sp,
                     ),
-                  ),
-                  trailing: IconButton(
-                    icon: Icon(
-                      Icons.add_circle,
-                      color: AppTheme.colors['indigo']!,
-                    ),
-                    onPressed: () =>
-                        context.push('/food-search', extra: mealType),
                   ),
                 ),
               );
@@ -59,19 +52,16 @@ class FoodList extends ConsumerWidget {
                   item.foodName,
                   style: GoogleFonts.roboto(
                     fontWeight: FontWeight.bold,
-                    color: AppTheme.colors['primaryText']!,
+                    color: AppTheme.colors['primaryText'],
                   ),
                 ),
                 subtitle: Text(
                   '${item.calories.toStringAsFixed(0)} kcal (${item.quantity.toStringAsFixed(0)}g)',
-                  style: GoogleFonts.roboto(
-                    color: AppTheme.colors['primaryText']!.withOpacity(0.7),
-                  ),
+                  style: GoogleFonts.roboto(color: AppTheme.colors['onSurface']!.withOpacity(0.7)),
                 ),
                 trailing: IconButton(
-                  icon: Icon(Icons.info, color: AppTheme.colors['indigo']!),
-                  onPressed: () =>
-                      context.push('/nutrition-details', extra: item),
+                  icon: Icon(Icons.info, color: AppTheme.colors['indigo']),
+                  onPressed: () => context.go(TrackingRouteConstants.nutritionDetails, extra: item),
                 ),
               ),
             );

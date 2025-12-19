@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+// Model for weight data entries and goals.
 class WeightData {
   final String date;
   final double currentWeight;
@@ -15,6 +16,7 @@ class WeightData {
     this.targetDate,
   });
 
+  // Creates from Firestore map.
   factory WeightData.fromMap(Map<String, dynamic> map) {
     return WeightData(
       date: map['date'] ?? DateTime.now().toIso8601String().split('T')[0],
@@ -25,6 +27,7 @@ class WeightData {
     );
   }
 
+  // Converts to Firestore map.
   Map<String, dynamic> toMap() {
     return {
       'date': date,

@@ -2,7 +2,10 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../providers/email_auth_controller.dart';
+import '../../domain/entities/auth_result.dart';
+import '../providers/auth_providers.dart';
+import '../../utils/auth_strings.dart';
+import '../../utils/widget_styles.dart';
 import '../../../../shared/theme/theme.dart';
 
 class ForgotPasswordButton extends ConsumerWidget {
@@ -14,17 +17,15 @@ class ForgotPasswordButton extends ConsumerWidget {
       onPressed: () async {
         final email = await _askForEmailDialog(context);
         if (email != null && email.trim().isNotEmpty) {
-          await ref
-              .read(emailAuthControllerProvider.notifier)
-              .resetPassword(email.trim(), context);
+          final result = await ref
+              .read(resetPasswordControllerProvider.notifier)
+              .resetPassword(email.trim());
+          _showSnackBar(context, result);
         }
       },
       child: Text(
         "Forgot Password?",
-        style: AppTheme.textStyles['body']!.copyWith(
-          fontSize: (kIsWeb ? 16.sp : 14.sp).clamp(12.0, 16.0),
-          color: AppTheme.colors['primaryAccent'],
-        ),
+        style: WidgetStyles.linkTextStyle(kIsWeb),
       ),
     );
   }
@@ -71,6 +72,15 @@ class ForgotPasswordButton extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showSnackBar(BuildContext context, AuthResult result) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(result.message ?? AuthStrings.genericError),
+        backgroundColor: result.success ? AppTheme.colors['success'] : AppTheme.colors['error'],
       ),
     );
   }

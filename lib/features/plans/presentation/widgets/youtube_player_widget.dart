@@ -28,7 +28,7 @@ class YoutubePlayerWidget extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           border: Border.all(
-            color: AppTheme.colors['primaryBorder']!,
+            color: AppTheme.colors['white']!,
             width: 5.w,
           ),
           borderRadius: BorderRadius.circular(8.r),

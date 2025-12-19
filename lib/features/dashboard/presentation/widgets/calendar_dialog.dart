@@ -3,93 +3,82 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:glassmorphism/glassmorphism.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:table_calendar/table_calendar.dart';
-import '../../../../shared/theme/theme.dart';
-import '../providers/dashboard_provider.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../providers/selected_date_provider.dart';
 
 class CalendarDialog extends ConsumerWidget {
   final String userId;
-
   const CalendarDialog({super.key, required this.userId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedDate = ref.watch(selectedDateProvider);
-    
+    final colors = Theme.of(context).extension<AppColors>()!;
 
     return Dialog(
-      backgroundColor: AppTheme.colors['white'],
+      backgroundColor: Colors.white,
       child: GlassmorphicContainer(
         width: 350.w,
-        height: 520.h,
+        height: 530.h,
         borderRadius: 16.r,
         blur: 10,
         alignment: Alignment.center,
         border: 2,
         linearGradient: LinearGradient(
           colors: [
-            AppTheme.colors['navigationAccent']!.withOpacity(0.1),
-            AppTheme.colors['navigationAccent']!.withOpacity(0.05),
+            colors.navAccent.withOpacity(0.1),
+            colors.navAccent.withOpacity(0.05),
           ],
         ),
         borderGradient: LinearGradient(
-          colors: [
-            AppTheme.colors['gradientTextStart']!,
-            AppTheme.colors['gradientTextEnd']!,
-          ],
+          colors: [colors.primary, colors.secondary],
         ),
         child: Column(
           children: [
             Padding(
-              padding: EdgeInsets.all(16.w),
+              padding: EdgeInsets.all(8.w),
               child: Text(
                 'Select Date',
-                style: AppTheme.textStyles['title']!.copyWith(
-                  fontSize: 20.sp,
-                  color: AppTheme.colors['primaryText'],
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge!.copyWith(fontSize: 20.sp),
               ),
             ),
             Flexible(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8.w),
-                child: TableCalendar(
-                  firstDay: DateTime.now().subtract(const Duration(days: 365)),
-                  lastDay: DateTime.now(),
-                  focusedDay: selectedDate,
-                  selectedDayPredicate: (day) => isSameDay(day, selectedDate),
-                  onDaySelected: (selectedDay, focusedDay) {
-                    ref.read(selectedDateProvider.notifier).state = selectedDay;
-                    Navigator.pop(context);
-                  },
-                  calendarStyle: CalendarStyle(
-                    defaultTextStyle: AppTheme.textStyles['body']!.copyWith(
-                      fontSize: 14.sp,
-                      color: AppTheme.colors['primaryText'],
-                    ),
-                    selectedDecoration: BoxDecoration(
-                      color: AppTheme.colors['primaryAccent'],
-                      shape: BoxShape.circle,
-                    ),
-                    todayDecoration: BoxDecoration(
-                      color: AppTheme.colors['secondaryText']!.withOpacity(0.5),
-                      shape: BoxShape.circle,
-                    ),
+              child: TableCalendar(
+                firstDay: DateTime.now().subtract(const Duration(days: 365)),
+                lastDay: DateTime.now(),
+                focusedDay: selectedDate,
+                selectedDayPredicate: (day) => isSameDay(day, selectedDate),
+                onDaySelected: (selectedDay, focusedDay) {
+                  ref.read(selectedDateProvider.notifier).state = selectedDay;
+                  Navigator.pop(context);
+                },
+                calendarStyle: CalendarStyle(
+                  defaultTextStyle: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium!.copyWith(fontSize: 14.sp),
+                  selectedDecoration: BoxDecoration(
+                    color: colors.primary,
+                    shape: BoxShape.circle,
                   ),
-                  headerStyle: HeaderStyle(
-                    formatButtonVisible: false,
-                    titleTextStyle: AppTheme.textStyles['subtitle']!.copyWith(
-                      color: AppTheme.colors['primaryText'],
-                    ),
-                    leftChevronIcon: Icon(
-                      Icons.chevron_left,
-                      color: AppTheme.colors['primaryText'],
-                      size: 24.sp,
-                    ),
-                    rightChevronIcon: Icon(
-                      Icons.chevron_right,
-                      color: AppTheme.colors['primaryText'],
-                      size: 24.sp,
-                    ),
+                  todayDecoration: BoxDecoration(
+                    color: colors.onSurface.withOpacity(0.5),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                headerStyle: HeaderStyle(
+                  formatButtonVisible: false,
+                  titleTextStyle: Theme.of(context).textTheme.titleMedium!,
+                  leftChevronIcon: Icon(
+                    Icons.chevron_left,
+                    color: colors.onSurface,
+                    size: 24.sp,
+                  ),
+                  rightChevronIcon: Icon(
+                    Icons.chevron_right,
+                    color: colors.onSurface,
+                    size: 24.sp,
                   ),
                 ),
               ),
@@ -100,10 +89,9 @@ class CalendarDialog extends ConsumerWidget {
                 onPressed: () => Navigator.pop(context),
                 child: Text(
                   'Cancel',
-                  style: AppTheme.textStyles['body']!.copyWith(
-                    fontSize: 16.sp,
-                    color: AppTheme.colors['primaryText'],
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium!.copyWith(fontSize: 16.sp),
                 ),
               ),
             ),

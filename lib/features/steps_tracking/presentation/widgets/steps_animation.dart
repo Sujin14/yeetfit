@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lottie/lottie.dart';
 
+// Animated steps icon for screen header.
 class StepsAnimation extends StatelessWidget {
   const StepsAnimation({super.key});
 

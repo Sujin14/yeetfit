@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/routes/shell_route_constants.dart';
 import '../../../../shared/theme/theme.dart';
 
+// Custom AppBar for water tracking.
 class WaterAppBar extends StatelessWidget implements PreferredSizeWidget {
   const WaterAppBar({super.key});
 
@@ -18,7 +20,7 @@ class WaterAppBar extends StatelessWidget implements PreferredSizeWidget {
       centerTitle: true,
       leading: IconButton(
         icon: Icon(Icons.arrow_back, color: AppTheme.colors['onSurface']),
-        onPressed: () => context.go('/user-dashboard'),
+        onPressed: () => context.go(ShellRouteConstants.dashboard),
       ),
       title: Text(
         'Water Tracker',

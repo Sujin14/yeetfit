@@ -1,7 +1,7 @@
-import '../repositories/chat_repository.dart';
+import '../repositories/message_repository.dart';
 
 class UpdateMessageStatus {
-  final ChatRepository repository;
+  final MessageRepository repository;
 
   UpdateMessageStatus(this.repository);
 

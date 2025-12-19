@@ -1,7 +1,7 @@
-import '../repositories/chat_repository.dart';
+import '../repositories/message_repository.dart';
 
 class DeleteMessage {
-  final ChatRepository repository;
+  final MessageRepository repository;
 
   DeleteMessage(this.repository);
 

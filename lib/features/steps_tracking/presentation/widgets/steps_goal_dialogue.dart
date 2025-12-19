@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../providers/steps_provider.dart';
 import '../../../../shared/theme/theme.dart';
 
+// Dialog for setting steps goal.
 class StepsGoalDialog extends ConsumerStatefulWidget {
   final String userId;
   final TextEditingController controller;
@@ -16,13 +18,13 @@ class StepsGoalDialog extends ConsumerStatefulWidget {
   });
 
   @override
-  _StepsGoalDialogState createState() => _StepsGoalDialogState();
+  ConsumerState<StepsGoalDialog> createState() => _StepsGoalDialogState();
 }
 
 class _StepsGoalDialogState extends ConsumerState<StepsGoalDialog> {
   @override
   void dispose() {
-    widget.controller.dispose(); // Dispose of the controller when the dialog is closed
+    widget.controller.dispose();
     super.dispose();
   }
 
@@ -64,7 +66,7 @@ class _StepsGoalDialogState extends ConsumerState<StepsGoalDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
           child: Text(
             'Cancel',
             style: GoogleFonts.roboto(
@@ -78,16 +80,14 @@ class _StepsGoalDialogState extends ConsumerState<StepsGoalDialog> {
             final newGoal = int.tryParse(widget.controller.text);
             if (newGoal != null && newGoal > 0) {
               ref.read(stepsGoalProvider(widget.userId).notifier).setGoal(newGoal);
-              Navigator.pop(context);
+              context.pop();
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Please enter a valid number')),
               );
             }
           },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppTheme.colors['teal']!.withOpacity(0.3),
-          ),
+          style: ElevatedButton.styleFrom(backgroundColor: AppTheme.colors['teal']!.withOpacity(0.3)),
           child: Text(
             'Save',
             style: GoogleFonts.roboto(

@@ -5,9 +5,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../providers/steps_provider.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
-import '../screens/step_counter_screen.dart';
 import 'steps_goal_dialogue.dart';
 
+// Card for steps progress and goal editing.
 class StepsProgressCard extends ConsumerWidget {
   final int steps;
   final int goalSteps;
@@ -42,20 +42,13 @@ class StepsProgressCard extends ConsumerWidget {
               ),
               IconButton(
                 icon: Icon(Icons.edit, size: 18.sp, color: AppTheme.colors['onSurface']),
-                onPressed: userId != null
-                    ? () {
-                        final controller = TextEditingController(
-                          text: ref.read(stepsGoalInitialValueProvider(userId)),
-                        );
-                        showDialog(
-                          context: context,
-                          builder: (context) => StepsGoalDialog(
-                            userId: userId,
-                            controller: controller,
-                          ),
-                        );
-                      }
-                    : null,
+                onPressed: userId != null ? () {
+                  final controller = TextEditingController(text: ref.read(stepsGoalInitialValueProvider(userId)));
+                  showDialog(
+                    context: context,
+                    builder: (context) => StepsGoalDialog(userId: userId, controller: controller),
+                  );
+                } : null,
                 tooltip: 'Set Steps Goal',
               ),
             ],

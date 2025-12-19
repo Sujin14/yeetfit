@@ -1,12 +1,12 @@
-import '../../data/repositories/auth_repository.dart';
+import '../entities/auth_result.dart';
+import '../repositories/auth_repository.dart';
 
 class LoginWithEmail {
   final AuthRepository repository;
 
-  LoginWithEmail(this.repository);
+  const LoginWithEmail(this.repository);
 
-  Future<bool> call(String email, String password) async {
-    final userCredential = await repository.signInWithEmail(email, password);
-    return userCredential != null;
+  Future<AuthResult> call(String email, String password) {
+    return repository.signInWithEmail(email, password);
   }
 }

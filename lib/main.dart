@@ -7,10 +7,10 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:workmanager/workmanager.dart';
 import 'core/routes/app_routes.dart';
+import 'core/theme/app_theme.dart';
 import 'features/steps_tracking/presentation/providers/steps_provider.dart';
 import 'features/chat/data/datasource/notification_service.dart';
 import 'firebase_options.dart';
-import 'shared/theme/theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,21 +22,23 @@ void main() async {
   if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
     await Workmanager().initialize(callbackDispatcher);
 
-    // Initialize step counter and Workmanager tasks
+    // Initialize step counter
     final stepsInitializer = container.read(stepsInitializerProvider);
     await stepsInitializer.initStepCounter();
 
+    // Schedule on auth change
     FirebaseAuth.instance.authStateChanges().listen((User? user) {
       if (user != null) {
         if (kDebugMode) print('User signed in: ${user.uid}');
         stepsInitializer.scheduleWorkmanagerTask(user.uid);
       } else {
-        if (kDebugMode) print('No user signed in');
+        if (kDebugMode) print('User signed out');
+        // Optional: Cancel tasks (Workmanager().cancelAll();)
       }
     });
   } else {
     if (kDebugMode) {
-      print("Workmanager is not supported on Web/Desktop");
+      print("Workmanager not supported on Web/Desktop");
     }
   }
 
@@ -55,7 +57,9 @@ class YeetFitApp extends StatelessWidget {
       builder: (context, child) => MaterialApp.router(
         debugShowCheckedModeBanner: false,
         routerConfig: appRouter,
-        theme: AppTheme.getLightTheme(),
+        theme: AppTheme.light(),
+        darkTheme: AppTheme.dark(),
+        themeMode: ThemeMode.light,
       ),
     );
   }

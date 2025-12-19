@@ -4,26 +4,24 @@ import '../theme/theme.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
-  final bool showSettings;
-  final VoidCallback? onSettings;
   final bool showFavorite;
   final bool isFavorite;
   final VoidCallback? onFavorite;
   final bool showCalendar;
   final VoidCallback? onCalendar;
   final Color? favoriteColor;
+  final GlobalKey<ScaffoldState>? scaffoldKey; // for opening drawer
 
   const CustomAppBar({
     super.key,
     required this.title,
-    this.showSettings = false,
-    this.onSettings,
     this.showFavorite = false,
     this.isFavorite = false,
     this.favoriteColor,
     this.onFavorite,
     this.showCalendar = false,
     this.onCalendar,
+    this.scaffoldKey,
   });
 
   @override
@@ -31,6 +29,11 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       backgroundColor: AppTheme.colors['navigationAccent'],
       elevation: 5,
+      centerTitle: true,
+      leading: IconButton(
+        icon: Icon(Icons.menu, color: AppTheme.colors['primaryText']),
+        onPressed: () => scaffoldKey?.currentState?.openDrawer(),
+      ),
       title: Text(
         title,
         style: AppTheme.textStyles['title']!.copyWith(
@@ -38,7 +41,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           color: AppTheme.colors['primaryText'],
         ),
       ),
-      centerTitle: true,
       iconTheme: IconThemeData(color: AppTheme.colors['primaryText']),
       actions: [
         if (showFavorite)
@@ -46,7 +48,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             icon: Icon(
               isFavorite ? Icons.favorite : Icons.favorite_border,
               color: isFavorite
-                  ? AppTheme.colors['error']
+                  ? (favoriteColor ?? AppTheme.colors['error'])
                   : AppTheme.colors['primaryText'],
             ),
             onPressed: onFavorite,
@@ -58,11 +60,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               color: AppTheme.colors['primaryText'],
             ),
             onPressed: onCalendar,
-          ),
-        if (showSettings)
-          IconButton(
-            icon: Icon(Icons.person, color: AppTheme.colors['primaryText']),
-            onPressed: onSettings,
           ),
       ],
     );

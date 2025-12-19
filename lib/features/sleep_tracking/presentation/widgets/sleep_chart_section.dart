@@ -3,12 +3,13 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../../../shared/theme/theme.dart';
 import '../../data/model/sleep_model.dart';
 import '../providers/sleep_provider.dart';
+import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
 import 'sleep_chart_shimmer.dart';
 
+// Section for weekly sleep trend chart.
 class SleepChartSection extends ConsumerWidget {
   final String userId;
 
@@ -17,6 +18,8 @@ class SleepChartSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final weeklyDataAsync = ref.watch(weeklySleepDataProvider(userId));
+    final now = DateTime.now();
+    final startOfWeek = now.subtract(Duration(days: now.weekday - 1)); // Monday
 
     return GlassmorphicContainer(
       color: AppTheme.colors['indigo']!,
@@ -36,12 +39,9 @@ class SleepChartSection extends ConsumerWidget {
           SizedBox(
             height: 220.h,
             child: weeklyDataAsync.when(
-              data: (weeklyData) => _buildBarChart(context, ref, weeklyData),
+              data: (weeklyData) => _buildBarChart(ref, weeklyData, startOfWeek, now),
               loading: () => const SleepChartShimmer(),
-              error: (error, _) => Text(
-                'Error: $error',
-                style: TextStyle(color: AppTheme.colors['white']),
-              ),
+              error: (error, _) => Text('Error: $error', style: TextStyle(color: AppTheme.colors['white'])),
             ),
           ),
         ],
@@ -50,55 +50,29 @@ class SleepChartSection extends ConsumerWidget {
   }
 
   Widget _buildBarChart(
-    BuildContext context,
     WidgetRef ref,
     List<SleepData> weeklyData,
+    DateTime startOfWeek,
+    DateTime now,
   ) {
-    final maxGoal = weeklyData
-        .map((d) => d.goalHours)
-        .fold<double>(0.0, (a, b) => a > b ? a : b);
+    // Determine max goal for chart scaling
+    final maxGoal = weeklyData.map((d) => d.goalHours).reduce((a, b) => a > b ? a : b);
     final interval = maxGoal <= 10 ? 2.0 : 4.0;
 
     return BarChart(
       BarChartData(
-        barTouchData: BarTouchData(
-          enabled: true,
-          touchTooltipData: BarTouchTooltipData(
-            tooltipPadding: EdgeInsets.zero,
-            tooltipMargin: 0,
-            fitInsideHorizontally: true,
-            getTooltipItem: (group, _, rod, __) {
-              final date = DateTime.now().subtract(Duration(days: 6 - group.x));
-              final dateString = date.toIso8601String().split('T')[0];
-              final data = weeklyData.firstWhere(
-                (entry) => entry.date == dateString,
-                orElse: () =>
-                    SleepData(date: dateString, duration: 0.0, goalHours: 8.0),
-              );
-              return BarTooltipItem(
-                '${data.duration.toStringAsFixed(1)} hrs',
-                GoogleFonts.roboto(
-                  color: AppTheme.colors['white'],
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.w500,
-                ),
-              );
-            },
-          ),
-        ),
         maxY: maxGoal < 10 ? 10 : (maxGoal + 2),
         minY: 0,
         barGroups: List.generate(7, (index) {
-          final date = DateTime.now().subtract(Duration(days: 6 - index));
+          final date = startOfWeek.add(Duration(days: index));
           final dateString = date.toIso8601String().split('T')[0];
+
           final data = weeklyData.firstWhere(
             (entry) => entry.date == dateString,
-            orElse: () =>
-                SleepData(date: dateString, duration: 0.0, goalHours: 8.0),
+            orElse: () => SleepData(date: dateString, duration: 0.0, goalHours: 8.0),
           );
-          final progressColor = ref.watch(
-            dailySleepProgressColorProvider('$userId|$dateString'),
-          );
+
+          final progressColor = ref.watch(dailySleepProgressColorProvider('$userId|$dateString'));
 
           return BarChartGroupData(
             x: index,
@@ -126,18 +100,16 @@ class SleepChartSection extends ConsumerWidget {
               showTitles: true,
               interval: interval,
               reservedSize: 30.w,
-              getTitlesWidget: (value, _) {
-                return Padding(
-                  padding: EdgeInsets.only(right: 4.w),
-                  child: Text(
-                    value.toInt().toString(),
-                    style: GoogleFonts.roboto(
-                      fontSize: 12.sp,
-                      color: AppTheme.colors['onSurface']!.withOpacity(0.8),
-                    ),
+              getTitlesWidget: (value, _) => Padding(
+                padding: EdgeInsets.only(right: 4.w),
+                child: Text(
+                  value.toInt().toString(),
+                  style: GoogleFonts.roboto(
+                    fontSize: 12.sp,
+                    color: AppTheme.colors['onSurface']!.withOpacity(0.8),
                   ),
-                );
-              },
+                ),
+              ),
             ),
           ),
           bottomTitles: AxisTitles(
@@ -145,27 +117,46 @@ class SleepChartSection extends ConsumerWidget {
               showTitles: true,
               reservedSize: 30.h,
               getTitlesWidget: (index, _) {
-                final weekdays = [
-                  'Sun',
-                  'Mon',
-                  'Tue',
-                  'Wed',
-                  'Thu',
-                  'Fri',
-                  'Sat',
-                ];
+                final date = startOfWeek.add(Duration(days: index.toInt()));
+                final isToday = date.year == now.year && date.month == now.month && date.day == now.day;
+
+                final weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                final dayName = weekdays[date.weekday - 1];
+
                 return Text(
-                  weekdays[index.toInt()],
+                  isToday ? 'Today' : dayName,
                   style: GoogleFonts.roboto(
                     fontSize: 14.sp,
-                    color: AppTheme.colors['onSurface']!.withOpacity(0.8),
+                    fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
+                    color: AppTheme.colors['onSurface']!.withOpacity(isToday ? 1.0 : 0.8),
                   ),
                 );
               },
             ),
           ),
-          topTitles: AxisTitles(),
-          rightTitles: AxisTitles(),
+          topTitles: const AxisTitles(),
+          rightTitles: const AxisTitles(),
+        ),
+        barTouchData: BarTouchData(
+          enabled: true,
+          touchTooltipData: BarTouchTooltipData(
+            getTooltipItem: (group, _, rod, __) {
+              final date = startOfWeek.add(Duration(days: group.x.toInt()));
+              final dateString = date.toIso8601String().split('T')[0];
+              final data = weeklyData.firstWhere(
+                (entry) => entry.date == dateString,
+                orElse: () => SleepData(date: dateString, duration: 0.0, goalHours: 8.0),
+              );
+              return BarTooltipItem(
+                '${data.duration.toStringAsFixed(1)} hrs',
+                GoogleFonts.roboto(
+                  color: AppTheme.colors['white'],
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w500,
+                ),
+              );
+            },
+          ),
         ),
       ),
     );

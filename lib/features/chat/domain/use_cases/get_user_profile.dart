@@ -1,8 +1,7 @@
-
-import '../repositories/chat_repository.dart';
+import '../repositories/user_profile_repository.dart';
 
 class GetUserProfile {
-  final ChatRepository repository;
+  final UserProfileRepository repository;
 
   GetUserProfile(this.repository);
 

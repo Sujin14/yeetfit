@@ -1,30 +1,48 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import '../../domain/entities/auth_result.dart';
+import '../../utils/auth_strings.dart';
+import 'auth_service.dart';
+import 'auth_utils.dart';
 
-class GoogleAuthService {
+class GoogleAuthService implements AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  Future<UserCredential?> signInWithGoogle() async {
+  @override
+  Future<AuthResult> signInWithGoogle() async {
     try {
-      final GoogleSignIn googleSignIn = GoogleSignIn();
+      final googleSignIn = GoogleSignIn();
       await googleSignIn.signOut();
-      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+      final googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
-        return null;
+        return AuthResult.failure(AuthStrings.googleSignInCancelled);
       }
+
       final googleAuth = await googleUser.authentication;
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
-      return await _auth.signInWithCredential(credential);
+
+      final userCredential = await _auth.signInWithCredential(credential);
+      return AuthResult.success(uid: userCredential.user?.uid);
     } catch (e) {
-      if (e.toString().contains('network-request-failed')) {
-        throw Exception(
-          'Network error: Please check your internet connection and try again.',
-        );
-      }
-      return null;
+      return handleFirebaseAuthError(e);
     }
+  }
+
+  @override
+  Future<AuthResult> signInWithEmail(String email, String password) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<AuthResult> signUpWithEmail(String email, String password) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<AuthResult> sendPasswordResetEmail(String email) async {
+    throw UnimplementedError();
   }
 }

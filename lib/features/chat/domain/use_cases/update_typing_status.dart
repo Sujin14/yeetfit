@@ -1,7 +1,7 @@
-import '../repositories/chat_repository.dart';
+import '../repositories/typing_status_repository.dart';
 
 class UpdateTypingStatus {
-  final ChatRepository repository;
+  final TypingStatusRepository repository;
 
   UpdateTypingStatus(this.repository);
 

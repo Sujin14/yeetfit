@@ -1,23 +1,31 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../data/datasource/sleep_data_source.dart';
 import '../../data/model/sleep_model.dart';
 import '../../data/repositories/sleep_repository_impl.dart';
+import '../../domain/repositories/sleep_repository.dart';
 import '../../domain/usecases/add_sleep_entry.dart';
-import '../../domain/usecases/set_sleep_goal.dart';
 import '../../domain/usecases/get_sleep_data.dart';
 import '../../domain/usecases/get_weekly_sleep_data.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../../domain/usecases/set_sleep_goal.dart';
 
-/// Firebase Auth Provider
+// Provider for Firebase Auth instance.
 final firebaseAuthProvider = Provider((ref) => FirebaseAuth.instance);
 
-/// Repository provider
-final sleepRepositoryProvider = Provider<SleepRepositoryImpl>(
+// Provider for current authenticated user ID.
+final authUserIdProvider = Provider<String?>((ref) {
+  final auth = ref.watch(firebaseAuthProvider);
+  return auth.currentUser?.uid;
+});
+
+// Provider for sleep repository.
+final sleepRepositoryProvider = Provider<SleepRepository>(
   (ref) => SleepRepositoryImpl(SleepDataSource()),
 );
 
-/// UseCase providers
+// Use case providers.
 final addSleepEntryProvider = Provider<AddSleepEntry>(
   (ref) => AddSleepEntry(ref.read(sleepRepositoryProvider)),
 );
@@ -34,7 +42,7 @@ final getWeeklySleepDataProvider = Provider<GetWeeklySleepData>(
   (ref) => GetWeeklySleepData(ref.read(sleepRepositoryProvider)),
 );
 
-/// Provider for sleep duration
+// Sleep duration notifier.
 final sleepDurationProvider = StateNotifierProvider.autoDispose
     .family<SleepDurationNotifier, AsyncValue<double>, String>(
   (ref, userId) => SleepDurationNotifier(
@@ -45,18 +53,28 @@ final sleepDurationProvider = StateNotifierProvider.autoDispose
   ),
 );
 
-/// Provider for sleep goal
-final sleepGoalProvider = StateNotifierProvider.autoDispose
-    .family<SleepGoalNotifier, AsyncValue<double>, String>(
-  (ref, userId) => SleepGoalNotifier(
-    ref,
-    ref.read(sleepRepositoryProvider),
-    ref.read(setSleepGoalProvider),
-    userId,
-  ),
-);
+// Stream provider for sleep goal (real-time sync).
+final sleepGoalProvider = StreamProvider.autoDispose.family<double, String>((ref, userId) {
+  final firestore = FirebaseFirestore.instance;
+  final today = DateTime.now().toIso8601String().split('T')[0];
 
-/// Provider for sleep times (bedtime and wake-up time)
+  final docRef = firestore
+      .collection('users')
+      .doc(userId)
+      .collection('progress')
+      .doc('sleep')
+      .collection('sleep')
+      .doc(today);
+
+  return docRef.snapshots().map((snapshot) {
+    if (snapshot.exists) {
+      return (snapshot.data()?['goalHours'] as num?)?.toDouble() ?? 8.0;
+    }
+    return 8.0; // Default goal
+  });
+});
+
+// Sleep times notifier.
 final sleepTimesProvider = StateNotifierProvider.autoDispose
     .family<SleepTimesNotifier, AsyncValue<Map<String, DateTime?>>, String>(
   (ref, userId) => SleepTimesNotifier(
@@ -67,49 +85,43 @@ final sleepTimesProvider = StateNotifierProvider.autoDispose
   ),
 );
 
-/// Provider for daily progress color
-final dailySleepProgressColorProvider = Provider.autoDispose.family<Color, String>(
-  (ref, userIdAndDate) {
-    final parts = userIdAndDate.split('|');
-    final userId = parts[0];
-    final date = parts[1];
-    final weeklyData = ref.watch(weeklySleepDataProvider(userId)).value ?? [];
-    final today = DateTime.now().toIso8601String().split('T')[0];
-    final duration = date == today
-        ? ref.watch(sleepDurationProvider(userId).select((value) => value.value ?? 0.0))
-        : (weeklyData.firstWhere(
-            (entry) => entry.date == date,
-            orElse: () => SleepData(date: date, duration: 0.0, goalHours: 8.0),
-          ).duration);
-    final goalHours = date == today
-        ? ref.watch(sleepGoalProvider(userId).select((value) => value.value ?? 8.0))
-        : (weeklyData.firstWhere(
-            (entry) => entry.date == date,
-            orElse: () => SleepData(date: date, duration: 0.0, goalHours: 8.0),
-          ).goalHours);
-    final progress = goalHours > 0 ? duration / goalHours : 0.0;
+// Daily sleep progress color.
+final dailySleepProgressColorProvider = Provider.autoDispose.family<Color, String>((ref, userIdAndDate) {
+  final parts = userIdAndDate.split('|');
+  final userId = parts[0];
+  final date = parts[1];
+  final weeklyData = ref.watch(weeklySleepDataProvider(userId)).value ?? [];
+  final today = DateTime.now().toIso8601String().split('T')[0];
+  final duration = date == today
+      ? ref.watch(sleepDurationProvider(userId).select((value) => value.value ?? 0.0))
+      : (weeklyData.firstWhere(
+          (entry) => entry.date == date,
+          orElse: () => SleepData(date: date, duration: 0.0, goalHours: 8.0),
+        ).duration);
+  final goalHours = date == today
+      ? ref.watch(sleepGoalProvider(userId)).value ?? 8.0
+      : (weeklyData.firstWhere(
+          (entry) => entry.date == date,
+          orElse: () => SleepData(date: date, duration: 0.0, goalHours: 8.0),
+        ).goalHours);
+  final progress = goalHours > 0 ? duration / goalHours : 0.0;
 
-    if (progress >= 1.0) return const Color(0xFF4CAF50); // Green for 100%
-    if (progress > 0.5) return const Color(0xFFFFEB3B); // Yellow for >50%
-    if (progress >= 0.25) return const Color(0xFFFF9800); // Orange for ~50%
-    return const Color(0xFFF44336); // Red for <25%
-  },
-);
+  if (progress >= 1.0) return const Color(0xFF4CAF50); // Green
+  if (progress > 0.5) return const Color(0xFFFFEB3B); // Yellow
+  if (progress >= 0.25) return const Color(0xFFFF9800); // Orange
+  return const Color(0xFFF44336); // Red
+});
 
-/// Weekly Sleep Data Provider
-final weeklySleepDataProvider = FutureProvider.family<List<SleepData>, String>(
+// Weekly sleep data, merged with today.
+final weeklySleepDataProvider = FutureProvider.autoDispose.family<List<SleepData>, String>(
   (ref, userId) async {
-    final asyncResult = await ref.read(getWeeklySleepDataProvider).call(userId);
-    final weeklyData = asyncResult.when(
-      data: (data) => data,
-      error: (e, _) => throw e,
-      loading: () => [],
-    );
+    final weeklyData = await ref.read(getWeeklySleepDataProvider).call(userId);
     final today = DateTime.now().toIso8601String().split('T')[0];
     final duration = ref.watch(sleepDurationProvider(userId).select((value) => value.value ?? 0.0));
-    final goalHours = ref.watch(sleepGoalProvider(userId).select((value) => value.value ?? 8.0));
+    final goalHours = ref.watch(sleepGoalProvider(userId)).value ?? 8.0;
     final bedtime = ref.watch(sleepTimesProvider(userId).select((value) => value.value?['bedtime']));
     final wakeUpTime = ref.watch(sleepTimesProvider(userId).select((value) => value.value?['wakeUpTime']));
+
     final updatedData = weeklyData.where((data) => data.date != today).toList()
       ..add(SleepData(
         date: today,
@@ -119,11 +131,21 @@ final weeklySleepDataProvider = FutureProvider.family<List<SleepData>, String>(
         goalHours: goalHours,
       ));
     updatedData.sort((a, b) => a.date.compareTo(b.date));
-    return updatedData.cast<SleepData>();
+    return updatedData;
   },
 );
 
-/// Notifier for sleep duration
+// State for sleep entry dialog.
+final sleepEntryDialogStateProvider = StateProvider.autoDispose.family<SleepEntryDialogState, String>(
+  (ref, userId) => SleepEntryDialogState(ref, userId),
+);
+
+// State for sleep goal dialog.
+final sleepGoalDialogStateProvider = StateProvider.autoDispose.family<SleepGoalDialogState, String>(
+  (ref, userId) => SleepGoalDialogState(ref, userId),
+);
+
+// Notifier for sleep duration.
 class SleepDurationNotifier extends StateNotifier<AsyncValue<double>> {
   final Ref _ref;
   final GetSleepData _getSleepData;
@@ -156,39 +178,7 @@ class SleepDurationNotifier extends StateNotifier<AsyncValue<double>> {
   }
 }
 
-/// Notifier for sleep goal
-class SleepGoalNotifier extends StateNotifier<AsyncValue<double>> {
-  final Ref _ref;
-  final SleepRepositoryImpl _repository;
-  final SetSleepGoal _setSleepGoal;
-  final String _userId;
-
-  SleepGoalNotifier(this._ref, this._repository, this._setSleepGoal, this._userId)
-      : super(const AsyncValue.loading()) {
-    _fetchGoal();
-  }
-
-  Future<void> _fetchGoal() async {
-    try {
-      state = const AsyncValue.loading();
-      final goal = await _repository.getSleepGoal(_userId);
-      state = AsyncValue.data(goal);
-    } catch (e, stackTrace) {
-      state = AsyncValue.error(e, stackTrace);
-    }
-  }
-
-  Future<void> setGoal(double newGoal) async {
-    try {
-      await _setSleepGoal.call(_userId, newGoal);
-      await _fetchGoal();
-    } catch (e, stackTrace) {
-      state = AsyncValue.error(e, stackTrace);
-    }
-  }
-}
-
-/// Notifier for sleep times
+// Notifier for sleep times.
 class SleepTimesNotifier extends StateNotifier<AsyncValue<Map<String, DateTime?>>> {
   final Ref _ref;
   final GetSleepData _getSleepData;
@@ -224,11 +214,7 @@ class SleepTimesNotifier extends StateNotifier<AsyncValue<Map<String, DateTime?>
   }
 }
 
-/// Logic for SleepEntryDialog
-final sleepEntryDialogStateProvider = StateProvider.family<SleepEntryDialogState, String>((ref, userId) {
-  return SleepEntryDialogState(ref, userId);
-});
-
+// State for sleep entry dialog.
 class SleepEntryDialogState {
   final Ref ref;
   final String userId;
@@ -293,25 +279,30 @@ class SleepEntryDialogState {
   }
 }
 
-/// Logic for SleepGoalDialog
-final sleepGoalDialogStateProvider = StateProvider.family<SleepGoalDialogState, String>((ref, userId) {
-  return SleepGoalDialogState(ref, userId);
-});
-
+// State for sleep goal dialog.
 class SleepGoalDialogState {
   final Ref ref;
   final String userId;
   final TextEditingController controller;
 
   SleepGoalDialogState(this.ref, this.userId)
-      : controller = TextEditingController(
-          text: ref.read(sleepGoalProvider(userId)).value?.toString() ?? '8.0',
-        );
+      : controller = TextEditingController(text: '8.0');
 
-  void submitGoal(BuildContext context) {
+  void submitGoal(BuildContext context) async {
     final newGoal = double.tryParse(controller.text);
     if (newGoal != null && newGoal > 0) {
-      ref.read(sleepGoalProvider(userId).notifier).setGoal(newGoal);
+      final firestore = FirebaseFirestore.instance;
+      final today = DateTime.now().toIso8601String().split('T')[0];
+
+      await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('progress')
+          .doc('sleep')
+          .collection('sleep')
+          .doc(today)
+          .set({'goalHours': newGoal}, SetOptions(merge: true));
+
       Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

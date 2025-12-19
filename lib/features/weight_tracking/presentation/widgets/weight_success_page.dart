@@ -3,9 +3,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
-
+import '../../../../core/routes/tracking_routes_constants.dart';
 import '../../../../shared/theme/theme.dart';
 
+/// Success page for weight goal achievement.
 class WeightSuccessPage extends StatelessWidget {
   final String goal;
 
@@ -14,7 +15,7 @@ class WeightSuccessPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.colors['background'],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -33,7 +34,7 @@ class WeightSuccessPage extends StatelessWidget {
               color: AppTheme.colors['teal'],
             ),
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10.h),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.w),
             child: Text(
@@ -45,15 +46,13 @@ class WeightSuccessPage extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
           ),
-          const SizedBox(height: 30),
+          SizedBox(height: 30.h),
           ElevatedButton(
-            onPressed: () => context.go('/modal/weight'),
+            onPressed: () => context.go(TrackingRouteConstants.weightTracking),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.colors['navBarActive'],
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             child: Text(
               'Done',

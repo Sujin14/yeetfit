@@ -77,7 +77,7 @@ class PaymentForm extends StatelessWidget {
           ElevatedButton(
             onPressed: isLoading ? null : onPayPressed,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.colors['primaryButton'] ?? Colors.blue,
+              backgroundColor: AppTheme.colors['primaryAccent'] ?? Colors.blue,
               padding: EdgeInsets.symmetric(horizontal: 32.w, vertical: 12.h),
             ),
             child: Text(

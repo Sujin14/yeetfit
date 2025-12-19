@@ -1,11 +1,15 @@
-import 'package:yeetfit/features/plans/domain/repositories/plan_repository.dart';
+import '../repositories/plan_repository.dart';
 
 class ToggleFavoriteUseCase {
   final PlanRepository repository;
 
   ToggleFavoriteUseCase(this.repository);
 
-  Future execute(String planId, String type, bool isFavorite) async {
-    await repository.toggleFavorite(planId, type, isFavorite);
+  Future<void> execute(String planId, String type, bool isFavorite) async {
+    try {
+      await repository.toggleFavorite(planId, type, isFavorite);
+    } catch (e) {
+      throw Exception('Failed to toggle favorite: $e');
+    }
   }
 }

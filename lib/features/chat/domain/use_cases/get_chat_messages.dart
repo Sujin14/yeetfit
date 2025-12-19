@@ -1,10 +1,8 @@
-
-
 import '../../data/model/message_model.dart';
-import '../repositories/chat_repository.dart';
+import '../repositories/message_repository.dart';
 
 class GetChatMessages {
-  final ChatRepository repository;
+  final MessageRepository repository;
 
   GetChatMessages(this.repository);
 

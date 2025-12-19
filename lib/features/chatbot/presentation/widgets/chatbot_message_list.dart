@@ -49,6 +49,36 @@ class _ChatbotMessageListState extends ConsumerState<ChatbotMessageList> {
       data: (messages) {
         WidgetsBinding.instance.addPostFrameCallback((_) => scrollToBottom());
 
+        if (messages.isEmpty) {
+          // Show introduction when there are no messages
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Container(
+                  margin: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
+                  padding: EdgeInsets.all(16.w),
+                  decoration: BoxDecoration(
+                    color: AppTheme.colors['navigationAccent']!.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(16.r),
+                  ),
+                  child: Text(
+                    "👋 Hi! I'm YeetFit Coach.\n"
+                    "I'm here to help you with fitness and health questions.\n"
+                    "Please note: I might occasionally make mistakes — "
+                    "always double-check important advice!",
+                    textAlign: TextAlign.left,
+                    style: AppTheme.textStyles['body']!.copyWith(
+                      color: AppTheme.colors['primaryText'],
+                      fontSize: 14.sp,
+                      height: 1.4,
+                    ),
+                  ),
+                
+              ),
+            ],
+          );
+        }
+
         final List<Widget> messageWidgets = [];
         String? lastDateLabel;
 

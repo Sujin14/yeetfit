@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/gradient_text.dart';
 
+// Individual page for onboarding content.
 class OnboardingPage extends StatelessWidget {
   final String imagePath, title, description;
 
@@ -15,6 +16,11 @@ class OnboardingPage extends StatelessWidget {
     required this.description,
   });
 
+  // Helper to get responsive values based on platform (web vs mobile).
+  double _responsiveValue(double webValue, double mobileValue) {
+    return kIsWeb ? webValue : mobileValue;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,14 +29,12 @@ class OnboardingPage extends StatelessWidget {
         child: LayoutBuilder(
           builder: (context, constraints) {
             final maxHeight = constraints.maxHeight;
-            final maxImageHeight = maxHeight * (kIsWeb ? 0.35 : 0.3);
-            final fontSize = (kIsWeb ? 80.sp : 70.sp).clamp(
-              30.0,
-              60.0,
-            );
+            final maxImageHeight = maxHeight * (_responsiveValue(0.35, 0.3));
+            final fontSize = _responsiveValue(80.sp, 70.sp).clamp(30.0, 60.0);
 
             return Column(
               children: [
+                // App name header.
                 Expanded(
                   flex: 2,
                   child: Center(
@@ -62,21 +66,23 @@ class OnboardingPage extends StatelessWidget {
                     ),
                   ),
                 ),
+                // Image.
                 Expanded(
                   flex: 3,
                   child: Image.asset(
                     imagePath,
                     fit: BoxFit.contain,
-                    height: maxImageHeight.clamp(150.h, kIsWeb ? 350.h : 300.h),
+                    height: maxImageHeight.clamp(150.h, _responsiveValue(350.h, 300.h)),
                     width: constraints.maxWidth,
                   ),
                 ),
+                // Title and description.
                 Expanded(
                   flex: 2,
                   child: Padding(
                     padding: EdgeInsets.symmetric(
-                      horizontal: kIsWeb ? 40.w : 32.w,
-                      vertical: kIsWeb ? 20.h : 16.h,
+                      horizontal: _responsiveValue(40.w, 32.w),
+                      vertical: _responsiveValue(20.h, 16.h),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,10 +92,7 @@ class OnboardingPage extends StatelessWidget {
                           text: title,
                           style: AppTheme.textStyles['heading']!.copyWith(
                             fontWeight: FontWeight.bold,
-                            fontSize: (kIsWeb ? 28.sp : 24.sp).clamp(
-                              20.0,
-                              28.0,
-                            ),
+                            fontSize: _responsiveValue(28.sp, 24.sp).clamp(20.0, 28.0),
                           ),
                           gradient: LinearGradient(
                             colors: [
@@ -101,14 +104,11 @@ class OnboardingPage extends StatelessWidget {
                             end: Alignment.bottomRight,
                           ),
                         ),
-                        SizedBox(height: kIsWeb ? 12.h : 8.h),
+                        SizedBox(height: _responsiveValue(12.h, 8.h)),
                         GradientText(
                           text: description,
                           style: AppTheme.textStyles['body']!.copyWith(
-                            fontSize: (kIsWeb ? 18.sp : 16.sp).clamp(
-                              14.0,
-                              18.0,
-                            ),
+                            fontSize: _responsiveValue(18.sp, 16.sp).clamp(14.0, 18.0),
                           ),
                           gradient: LinearGradient(
                             colors: [

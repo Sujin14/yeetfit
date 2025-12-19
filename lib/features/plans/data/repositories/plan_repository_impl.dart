@@ -1,6 +1,6 @@
-import '../../../plans/data/data_sources/firestore_data_source.dart';
-import '../../../plans/data/models/plan_model.dart';
 import '../../domain/repositories/plan_repository.dart';
+import '../data_sources/firestore_data_source.dart';
+import '../models/plan_model.dart';
 
 class PlanRepositoryImpl implements PlanRepository {
   final FirestoreDataSource dataSource;
@@ -8,9 +8,10 @@ class PlanRepositoryImpl implements PlanRepository {
   PlanRepositoryImpl({FirestoreDataSource? dataSource})
       : dataSource = dataSource ?? FirestoreDataSource();
 
+
   @override
-  Future<PlanModel?> getPlan(String type) async {
-    return await dataSource.getPlan(type);
+  Future<List<PlanModel>> getAllPlans(String type) async {
+    return await dataSource.getAllPlans(type);
   }
 
   @override

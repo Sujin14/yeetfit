@@ -1,8 +1,8 @@
 import '../../data/model/message_model.dart';
-import '../repositories/chat_repository.dart';
+import '../repositories/message_repository.dart';
 
 class SendMessage {
-  final ChatRepository repository;
+  final MessageRepository repository;
 
   SendMessage(this.repository);
 

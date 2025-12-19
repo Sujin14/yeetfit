@@ -8,7 +8,7 @@ import '../../domain/usecases/send_chatbot_messages.dart';
 
 final chatbotDataSourceProvider = Provider(
   (ref) => ChatbotDataSource(
-    apiKey: 'AIzaSyDMtQe2Q23Nx6lS7sPC3CZQ2BL6QBrHkvA',
+    apiKey: 'AIzaSyBjjOkDLAiU8ntHw-2c880Ua8IRtYTOfVA',
     firestore: FirebaseFirestore.instance,
   ),
 );

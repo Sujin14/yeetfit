@@ -1,12 +1,11 @@
-import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:rxdart/rxdart.dart';
-
+import 'database_service.dart';
 import '../model/message_model.dart';
 
-class FirestoreChatService {
+class FirestoreChatService implements DatabaseService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   FirestoreChatService() {
@@ -18,11 +17,14 @@ class FirestoreChatService {
 
   Future<List<MessageModel>> parseMessages(List<QueryDocumentSnapshot> docs) async {
     return await compute((List<QueryDocumentSnapshot> docs) {
-      return docs.map((doc) => MessageModel.fromMap(doc.data() as Map<String, dynamic>, doc.id)).toList();
+      return docs
+          .map((doc) => MessageModel.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+          .toList();
     }, docs);
   }
 
-  Stream<List<MessageModel>> getChatMessages(String chatId) {
+  @override
+  Stream<List<Map<String, dynamic>>> getChatMessages(String chatId) {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
       return Stream.error(Exception('User not authenticated'));
@@ -32,9 +34,9 @@ class FirestoreChatService {
         .doc(chatId)
         .snapshots()
         .debounce((_) => TimerStream(true, const Duration(milliseconds: 100)))
-        .asyncMap<List<MessageModel>>((chatDoc) async {
+        .asyncMap<List<Map<String, dynamic>>>((chatDoc) async {
           if (!chatDoc.exists) {
-            return <MessageModel>[];
+            return <Map<String, dynamic>>[];
           }
           final snapshot = await _firestore
               .collection('chats')
@@ -44,13 +46,13 @@ class FirestoreChatService {
               .orderBy('timestamp', descending: true)
               .limit(50)
               .get();
-          return await parseMessages(snapshot.docs);
-        }).handleError((e) {
-          return <MessageModel>[];
+          final messages = await parseMessages(snapshot.docs);
+          return messages.map((m) => m.toMap()).toList();
         });
   }
 
-  Stream<MessageModel> getMessageStatus(String chatId, String messageId) {
+  @override
+  Stream<Map<String, dynamic>> getMessageStatus(String chatId, String messageId) {
     return _firestore
         .collection('chats')
         .doc(chatId)
@@ -61,12 +63,11 @@ class FirestoreChatService {
           if (!doc.exists) {
             throw Exception('Message not found');
           }
-          return MessageModel.fromMap(doc.data()!, doc.id);
-        }).handleError((e) {
-          throw e;
+          return MessageModel.fromMap(doc.data()!, doc.id).toMap();
         });
   }
 
+  @override
   Stream<Map<String, dynamic>> getUserProfile(String userId) {
     return _firestore
         .collection('users')
@@ -77,44 +78,37 @@ class FirestoreChatService {
             return {'name': 'Admin', 'profileImage': ''};
           }
           return doc.data() ?? {'name': 'Admin', 'profileImage': ''};
-        }).handleError((e) {
-          throw e;
         });
   }
 
-  Future<void> sendMessage(String chatId, MessageModel message) async {
-    try {
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser == null) {
-        throw Exception('User not authenticated');
-      }
-      await _firestore
-          .collection('chats')
-          .doc(chatId)
-          .collection('messages')
-          .doc(message.id)
-          .set(message.toMap());
-      await _firestore.collection('chats').doc(chatId).update({
-        'lastMessage': message.content,
-        'lastMessageTime': Timestamp.fromDate(message.timestamp),
-        'participants': message.participants,
-        'participantName': message.participantName,
-      });
-    } catch (e) {
-      throw Exception('Failed to send message: $e');
+  @override
+  Future<void> sendMessage(String chatId, Map<String, dynamic> message) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) {
+      throw Exception('User not authenticated');
     }
+    await _firestore
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .doc(message['id'])
+        .set(message);
+    await _firestore.collection('chats').doc(chatId).update({
+      'lastMessage': message['content'],
+      'lastMessageTime': message['timestamp'],
+      'participants': message['participants'],
+      'participantName': message['participantName'],
+    });
   }
 
+  @override
   Future<void> updateTypingStatus(String chatId, String userId, bool isTyping) async {
-    try {
-      await _firestore.collection('chats').doc(chatId).update({
-        'typing_$userId': isTyping,
-      });
-    } catch (e) {
-      throw Exception('Failed to update typing status: $e');
-    }
+    await _firestore.collection('chats').doc(chatId).update({
+      'typing_$userId': isTyping,
+    });
   }
 
+  @override
   Stream<bool> getTypingStatus(String chatId, String userId) {
     return _firestore
         .collection('chats')
@@ -125,74 +119,64 @@ class FirestoreChatService {
             return false;
           }
           return (doc.data()?['typing_$userId'] as bool?) ?? false;
-        }).handleError((e) {
-          return false;
         });
   }
 
+  @override
   Future<void> updateMessageStatus(String chatId, String messageId, String status) async {
-    try {
-      await _firestore
-          .collection('chats')
-          .doc(chatId)
-          .collection('messages')
-          .doc(messageId)
-          .update({'status': status});
-    } catch (e) {
-      throw Exception('Failed to update message status: $e');
-    }
+    await _firestore
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .doc(messageId)
+        .update({'status': status});
   }
 
+  @override
   Future<void> deleteChat(String chatId) async {
-    try {
-      final chatDoc = await _firestore.collection('chats').doc(chatId).get();
-      if (!chatDoc.exists) {
-        throw Exception('Chat does not exist: $chatId');
-      }
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser == null) {
-        throw Exception('User not authenticated');
-      }
-      final userDoc = await _firestore.collection('users').doc(currentUser.uid).get();
-      final isAdmin = userDoc.exists && userDoc.data()?['role'] == 'admin';
-      final participants = List<String>.from(chatDoc.data()?['participants'] ?? []);
-      if (!isAdmin && !participants.contains(currentUser.uid)) {
-        throw Exception('User ${currentUser.uid} is not authorized to delete chat $chatId');
-      }
-      final messages = await _firestore.collection('chats').doc(chatId).collection('messages').get();
-      for (var doc in messages.docs) {
-        await doc.reference.delete();
-      }
-      await _firestore.collection('chats').doc(chatId).delete();
-    } catch (e) {
-      throw Exception('Failed to delete chat: $e');
+    final chatDoc = await _firestore.collection('chats').doc(chatId).get();
+    if (!chatDoc.exists) {
+      throw Exception('Chat does not exist: $chatId');
     }
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) {
+      throw Exception('User not authenticated');
+    }
+    final userDoc = await _firestore.collection('users').doc(currentUser.uid).get();
+    final isAdmin = userDoc.exists && userDoc.data()?['role'] == 'admin';
+    final participants = List<String>.from(chatDoc.data()?['participants'] ?? []);
+    if (!isAdmin && !participants.contains(currentUser.uid)) {
+      throw Exception('User ${currentUser.uid} is not authorized to delete chat $chatId');
+    }
+    final messages = await _firestore.collection('chats').doc(chatId).collection('messages').get();
+    for (var doc in messages.docs) {
+      await doc.reference.delete();
+    }
+    await _firestore.collection('chats').doc(chatId).delete();
   }
 
+  @override
   Future<void> deleteMessage(String chatId, String messageId) async {
-    try {
-      final chatDoc = await _firestore.collection('chats').doc(chatId).get();
-      if (!chatDoc.exists) {
-        throw Exception('Chat does not exist: $chatId');
-      }
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser == null) {
-        throw Exception('User not authenticated');
-      }
-      final userDoc = await _firestore.collection('users').doc(currentUser.uid).get();
-      final isAdmin = userDoc.exists && userDoc.data()?['role'] == 'admin';
-      final participants = List<String>.from(chatDoc.data()?['participants'] ?? []);
-      if (!isAdmin && !participants.contains(currentUser.uid)) {
-        throw Exception('User ${currentUser.uid} is not authorized to delete message $messageId');
-      }
-      await _firestore.collection('chats').doc(chatId).collection('messages').doc(messageId).delete();
-    } catch (e) {
-      throw Exception('Failed to delete message: $e');
+    final chatDoc = await _firestore.collection('chats').doc(chatId).get();
+    if (!chatDoc.exists) {
+      throw Exception('Chat does not exist: $chatId');
     }
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) {
+      throw Exception('User not authenticated');
+    }
+    final userDoc = await _firestore.collection('users').doc(currentUser.uid).get();
+    final isAdmin = userDoc.exists && userDoc.data()?['role'] == 'admin';
+    final participants = List<String>.from(chatDoc.data()?['participants'] ?? []);
+    if (!isAdmin && !participants.contains(currentUser.uid)) {
+      throw Exception('User ${currentUser.uid} is not authorized to delete message $messageId');
+    }
+    await _firestore.collection('chats').doc(chatId).collection('messages').doc(messageId).delete();
   }
 
-  Future<String> createOrGetChat(String adminId, String participantId, String participantName) async {
-  try {
+  @override
+  Future<String> createOrGetChat(
+      String adminId, String participantId, String participantName) async {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null || currentUser.uid != participantId) {
       throw Exception('User is not authenticated or participantId does not match current user');
@@ -214,10 +198,7 @@ class FirestoreChatService {
       }, SetOptions(merge: true));
     }
     return chatId;
-  } catch (e) {
-    rethrow;
   }
-}
 
   String _generateChatId(String adminId, String participantId) {
     final ids = [adminId, participantId]..sort();

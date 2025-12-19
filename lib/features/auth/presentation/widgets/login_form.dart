@@ -2,10 +2,13 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:yeetfit/shared/widgets/shimmer_widget.dart';
-import '../providers/email_auth_controller.dart';
-import '../../domain/validators/auth_validators.dart';
+import '../providers/auth_providers.dart';
+import '../validators/auth_validators.dart';
+import '../../utils/navigation_utils.dart';
+import '../../utils/auth_strings.dart';
+import '../../utils/widget_styles.dart';
+import '../../../../shared/widgets/custom_text_form_field.dart';
 import 'forgot_password_button.dart';
 import '../../../../shared/theme/theme.dart';
 
@@ -23,88 +26,82 @@ class _LoginFormState extends ConsumerState<LoginForm> {
 
   void _login() async {
     if (_formKey.currentState!.validate()) {
-      final controller = ref.read(emailAuthControllerProvider.notifier);
-      final success = await controller.login(
-        emailController.text.trim(),
-        passwordController.text.trim(),
-        context,
-      );
-
-      if (success) {
-        context.go('/user-dashboard');
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("User not found, please create an account"),
-          ),
-        );
-      }
+      FocusScope.of(context).unfocus();
+      final result = await ref.read(loginControllerProvider.notifier).login(
+            emailController.text.trim(),
+            passwordController.text.trim(),
+          );
+      handleAuthResult(context, result, AuthStrings.loginFailed);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final isLoading = ref.watch(emailAuthControllerProvider);
+    final isLoading = ref.watch(loginControllerProvider);
     final maxButtonWidth = kIsWeb ? 300.w : 250.w;
 
     return Form(
       key: _formKey,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          TextFormField(
+          CustomTextFormField(
             controller: emailController,
+            labelText: 'Email',
             keyboardType: TextInputType.emailAddress,
-            decoration: InputDecoration(
-              labelText: 'Email',
-              prefixIcon: Icon(
-                Icons.email_outlined,
-                color: AppTheme.colors['primaryAccent'],
-              ),
-              labelStyle: AppTheme.textStyles['body']!.copyWith(
-                color: AppTheme.colors['secondaryText'],
-              ),
-            ),
+            textInputAction: TextInputAction.next,
             validator: AuthValidators.validateEmail,
+            prefixIcon: Icons.email_outlined,
           ),
-          SizedBox(height: kIsWeb ? 20.h : 16.h),
-          TextFormField(
+          SizedBox(height: 16.h),
+          CustomTextFormField(
             controller: passwordController,
-            obscureText: true,
-            decoration: InputDecoration(
-              labelText: 'Password',
-              prefixIcon: Icon(
-                Icons.lock_outline,
-                color: AppTheme.colors['primaryAccent'],
-              ),
-              labelStyle: AppTheme.textStyles['body']!.copyWith(
-                color: AppTheme.colors['secondaryText'],
-              ),
-            ),
+            labelText: 'Password',
+            textInputAction: TextInputAction.done,
             validator: AuthValidators.validatePassword,
+            isPassword: true,
+            prefixIcon: Icons.lock_outline,
           ),
-          SizedBox(height: kIsWeb ? 12.h : 8.h),
-          Align(
+          SizedBox(height: 8.h),
+          const Align(
             alignment: Alignment.centerRight,
-            child: const ForgotPasswordButton(),
+            child: ForgotPasswordButton(),
           ),
-          SizedBox(height: kIsWeb ? 32.h : 24.h),
+          SizedBox(height: 24.h),
           ConstrainedBox(
             constraints: BoxConstraints(maxWidth: maxButtonWidth),
             child: ElevatedButton(
               onPressed: isLoading ? null : _login,
+              style: ElevatedButton.styleFrom(
+                padding: WidgetStyles.buttonPadding(kIsWeb),
+                shape: RoundedRectangleBorder(
+                  borderRadius: WidgetStyles.buttonBorderRadius(),
+                ),
+                elevation: 0,
+                shadowColor: AppTheme.colors['transparent'],
+              ),
               child: isLoading
-                  ? ShimmerLoading(width: 100.w, height: 20.h)
+                  ? ShimmerLoading.text(
+                      key: UniqueKey(),
+                      text: 'Login',
+                      textStyle: WidgetStyles.buttonTextStyle(),
+                    )
                   : Text(
                       'Login',
-                      style: AppTheme.textStyles['body']!.copyWith(
-                        fontSize: (kIsWeb ? 16.sp : 14.sp).clamp(12.0, 16.0),
-                        color: AppTheme.colors['primaryText'],
-                      ),
+                      style: WidgetStyles.buttonTextStyle(),
                     ),
             ),
           ),
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 }

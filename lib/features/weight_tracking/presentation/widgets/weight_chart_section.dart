@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -8,6 +7,7 @@ import '../providers/weight_provider.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
 
+/// Section for displaying weekly weight trend chart.
 class WeightChartSection extends ConsumerWidget {
   final String userId;
 
@@ -15,7 +15,6 @@ class WeightChartSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    print('WeightChartSection: Building for userId=$userId, authUid=${FirebaseAuth.instance.currentUser?.uid}');
     final weeklyDataAsync = ref.watch(weeklyWeightDataProvider(userId));
 
     return GlassmorphicContainer(
@@ -37,14 +36,19 @@ class WeightChartSection extends ConsumerWidget {
             height: 200.h,
             child: weeklyDataAsync.when(
               data: (weeklyData) {
-                print('WeightChartSection: weeklyData for userId=$userId, entries=${weeklyData.length}');
                 final minWeight = weeklyData.isNotEmpty
-                    ? weeklyData.map((e) => e.currentWeight).reduce((a, b) => a < b ? a : b) - 5
+                    ? weeklyData
+                              .map((e) => e.currentWeight)
+                              .reduce((a, b) => a < b ? a : b) -
+                          5
                     : 65.0;
                 final maxWeight = weeklyData.isNotEmpty
-                    ? weeklyData.map((e) => e.currentWeight).reduce((a, b) => a > b ? a : b) + 5
+                    ? weeklyData
+                              .map((e) => e.currentWeight)
+                              .reduce((a, b) => a > b ? a : b) +
+                          5
                     : 80.0;
-                print('WeightChartSection: minWeight=$minWeight, maxWeight=$maxWeight for userId=$userId');
+
                 return LineChart(
                   LineChartData(
                     gridData: FlGridData(
@@ -61,7 +65,9 @@ class WeightChartSection extends ConsumerWidget {
                           showTitles: true,
                           reservedSize: 30.h,
                           getTitlesWidget: (value, meta) {
-                            final date = DateTime.now().subtract(Duration(days: 6 - value.toInt()));
+                            final date = DateTime.now().subtract(
+                              Duration(days: 6 - value.toInt()),
+                            );
                             return Padding(
                               padding: EdgeInsets.only(top: 8.h),
                               child: Text(
@@ -91,20 +97,27 @@ class WeightChartSection extends ConsumerWidget {
                           interval: 5,
                         ),
                       ),
-                      topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                      rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      topTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                      rightTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
                     ),
                     borderData: FlBorderData(show: false),
                     lineBarsData: [
                       LineChartBarData(
-                        spots: List.generate(weeklyData.length, (index) {
-                          print('WeightChartSection: Plotting point $index: currentWeight=${weeklyData[index].currentWeight} for userId=$userId');
-                          return FlSpot(index.toDouble(), weeklyData[index].currentWeight);
-                        }),
+                        spots: List.generate(
+                          weeklyData.length,
+                          (index) => FlSpot(
+                            index.toDouble(),
+                            weeklyData[index].currentWeight,
+                          ),
+                        ),
                         isCurved: true,
                         color: AppTheme.colors['teal'],
                         barWidth: 4,
-                        dotData: FlDotData(show: true),
+                        dotData: const FlDotData(show: true),
                         belowBarData: BarAreaData(
                           show: true,
                           color: AppTheme.colors['teal']!.withOpacity(0.2),
@@ -116,14 +129,11 @@ class WeightChartSection extends ConsumerWidget {
                   ),
                 );
               },
-              loading: () {
-                print('WeightChartSection: Loading weekly data for userId=$userId');
-                return const Center(child: CircularProgressIndicator());
-              },
-              error: (error, _) {
-                print('WeightChartSection: Error loading weekly data for userId=$userId: $error');
-                return Text('Error: $error', style: TextStyle(color: AppTheme.colors['onSurface']));
-              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, _) => Text(
+                'Error: $error',
+                style: TextStyle(color: AppTheme.colors['onSurface']),
+              ),
             ),
           ),
         ],

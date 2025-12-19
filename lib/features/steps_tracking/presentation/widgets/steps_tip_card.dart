@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
 
+// Tip card for steps tracking.
 class StepsTipCard extends StatelessWidget {
   const StepsTipCard({super.key});
 

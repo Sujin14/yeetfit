@@ -4,14 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-import '../../../../shared/theme/theme.dart';
-import '../../../steps_tracking/presentation/providers/steps_provider.dart';
-import '../providers/dashboard_provider.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../providers/daily_progress_provider.dart';
 import 'progress_card.dart';
 
 class ProgressCardsList extends ConsumerStatefulWidget {
   final String userId;
-
   const ProgressCardsList({super.key, required this.userId});
 
   @override
@@ -27,9 +25,7 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
   void initState() {
     super.initState();
     if (kDebugMode)
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _startAutoSwipe();
-    });
+      WidgetsBinding.instance.addPostFrameCallback((_) => _startAutoSwipe());
   }
 
   void _startAutoSwipe() {
@@ -37,8 +33,7 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
     _autoSwipeTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
       if (!mounted || !_pageController.hasClients) return;
       setState(() {
-        _currentPage =
-            (_currentPage + 1) % 4; // 4 cards: steps, water, sleep, weight
+        _currentPage = (_currentPage + 1) % 4;
         _pageController.animateToPage(
           _currentPage,
           duration: const Duration(milliseconds: 300),
@@ -49,42 +44,44 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
   }
 
   void _onPageChanged(int index) {
-    setState(() {
-      _currentPage = index;
-    });
+    setState(() => _currentPage = index);
     _startAutoSwipe();
   }
 
   @override
   void dispose() {
-    if (kDebugMode)
     _autoSwipeTimer?.cancel();
     _pageController.dispose();
     super.dispose();
   }
 
+  double _computeWeightPercent(double currentWeight, double goalWeight) {
+    if (currentWeight == goalWeight) return 1.0;
+    if (goalWeight < currentWeight) {
+      final start = currentWeight;
+      final end = goalWeight;
+      return ((start - currentWeight) / (start - end)).clamp(0.0, 1.0);
+    } else {
+      final start = currentWeight;
+      final end = goalWeight;
+      return ((currentWeight - start) / (end - start)).clamp(0.0, 1.0);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final progressAsync = ref.watch(dailyProgressStreamProvider(widget.userId));
-    final stepsAsync = ref.watch(stepsCountProvider(widget.userId));
+    final colors = Theme.of(context).extension<AppColors>()!;
 
     return progressAsync.when(
       data: (progress) {
-        // Combine Firestore data with real-time step count
-        final steps = stepsAsync.when(
-          data: (steps) => steps.toDouble(),
-          loading: () => progress['steps'] as double,
-          error: (_, __) => progress['steps'] as double,
-        );
-
+        final steps = progress['steps'] as double;
         final stepsGoal = progress['stepsGoal'] as double;
-        final stepsPercent = stepsGoal > 0
-            ? (steps / stepsGoal).clamp(0.0, 1.0)
-            : 0.0;
+
         final cards = [
           ProgressCard(
             title: 'Steps',
-            percent: stepsPercent,
+            percent: stepsGoal > 0 ? (steps / stepsGoal).clamp(0.0, 1.0) : 0.0,
             value: '${steps.toInt()}/${stepsGoal.toInt()} steps',
             icon: Icons.directions_walk,
             description: progress['stepsDescription'],
@@ -119,9 +116,9 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
           ),
           ProgressCard(
             title: 'Weight',
-            percent: (progress['currentWeight'] / progress['weightGoal']).clamp(
-              0.0,
-              1.0,
+            percent: _computeWeightPercent(
+              progress['currentWeight'],
+              progress['weightGoal'],
             ),
             value:
                 '${progress['currentWeight'].toStringAsFixed(1)}/${progress['weightGoal'].toStringAsFixed(1)} kg',
@@ -149,8 +146,8 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
               effect: ExpandingDotsEffect(
                 dotWidth: 8.w,
                 dotHeight: 8.h,
-                activeDotColor: AppTheme.colors['gradientTextStart']!,
-                dotColor: AppTheme.colors['secondaryText']!.withOpacity(0.5),
+                activeDotColor: colors.primary,
+                dotColor: colors.onSurface.withOpacity(0.5),
                 spacing: 4.w,
               ),
             ),
@@ -167,8 +164,8 @@ class _ProgressCardsListState extends ConsumerState<ProgressCardsList> {
             effect: ExpandingDotsEffect(
               dotWidth: 8.w,
               dotHeight: 8.h,
-              activeDotColor: AppTheme.colors['gradientTextStart']!,
-              dotColor: AppTheme.colors['secondaryText']!.withOpacity(0.5),
+              activeDotColor: colors.primary,
+              dotColor: colors.onSurface.withOpacity(0.5),
               spacing: 4.w,
             ),
           ),

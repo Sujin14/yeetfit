@@ -3,37 +3,32 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
-import '../../../../shared/theme/theme.dart';
+import '../providers/water_provider.dart';
 import '../widgets/water_action_button.dart';
 import '../widgets/water_app_bar.dart';
 import '../widgets/water_chart_section.dart';
 import '../widgets/water_circular_indicator.dart';
 import '../widgets/water_progress_card.dart';
 import '../widgets/water_tip_card.dart';
-import '../providers/water_provider.dart';
+import '../../../../shared/theme/theme.dart';
 
+// Main screen for water tracking.
 class WaterTrackingScreen extends ConsumerWidget {
   const WaterTrackingScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userId = ref.watch(firebaseAuthProvider).currentUser?.uid;
+    final userId = ref.watch(authUserIdProvider);
     if (userId == null) {
       return const Scaffold(
         body: Center(child: Text('Please log in to track water intake')),
       );
     }
 
-    ref.listen(waterTrackingNavigationProvider(userId), (
-      previous,
-      hasNavigated,
-    ) {
+    ref.listen(waterTrackingNavigationProvider(userId), (previous, hasNavigated) {
       if (hasNavigated) {
         final goalGlasses = ref.read(waterGoalProvider(userId)).value ?? 8;
-        context.goNamed(
-          'water-success',
-          pathParameters: {'goal': goalGlasses.toString()},
-        );
+        context.goNamed('water-success', pathParameters: {'goal': goalGlasses.toString()});
       }
     });
 
@@ -57,14 +52,11 @@ class WaterTrackingScreen extends ConsumerWidget {
           SizedBox(height: 16.h),
           const WaterProgressCard(),
           SizedBox(height: 30.h),
-          WaterCircularIndicator(progress: progress), // ✅ fixed
+          WaterCircularIndicator(progress: progress),
           SizedBox(height: 15.h),
           WaterActionButtons(
-            onAdd: () =>
-                ref.read(glassesConsumedProvider(userId).notifier).addGlass(),
-            onRemove: () => ref
-                .read(glassesConsumedProvider(userId).notifier)
-                .removeGlass(),
+            onAdd: () => ref.read(glassesConsumedProvider(userId).notifier).addGlass(),
+            onRemove: () => ref.read(glassesConsumedProvider(userId).notifier).removeGlass(),
           ),
           SizedBox(height: 30.h),
           const WaterTipCard(),

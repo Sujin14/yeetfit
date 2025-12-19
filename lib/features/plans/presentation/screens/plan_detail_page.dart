@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/custom_appbar.dart';
@@ -48,8 +47,6 @@ class PlanDetailPage extends ConsumerWidget {
         return Scaffold(
           appBar: CustomAppBar(
             title: updatedPlan.title,
-            showSettings: true,
-            onSettings: () => context.push('/settings'),
             showFavorite: true,
             isFavorite: updatedPlan.isFavorite,
             favoriteColor: updatedPlan.isFavorite
@@ -57,11 +54,16 @@ class PlanDetailPage extends ConsumerWidget {
                 : AppTheme.colors['secondaryText'],
             onFavorite: () async {
               try {
-                await ref.read(favoritePlansProvider.notifier).toggleFavorite(
+                // Execute toggle favorite
+                await ref
+                    .read(toggleFavoriteUseCaseProvider)
+                    .execute(
                       updatedPlan.id!,
                       updatedPlan.type,
                       !updatedPlan.isFavorite,
                     );
+                await ref.read(favoritePlansProvider.notifier).refresh();
+                // Show success message
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
@@ -69,16 +71,20 @@ class PlanDetailPage extends ConsumerWidget {
                           ? 'Removed from favorites'
                           : 'Added to favorites',
                       style: AppTheme.textStyles['body']?.copyWith(
-                        color: AppTheme.colors['primaryText'],
-                      ) ?? TextStyle(color: AppTheme.colors['black']),
+                            color: AppTheme.colors['primaryText'],
+                          ) ??
+                          TextStyle(color: AppTheme.colors['black']),
                     ),
-                    backgroundColor: AppTheme.colors['primaryButton'],
+                    backgroundColor: AppTheme.colors['primaryAccent'],
                   ),
                 );
+
+                // Handle unfavorite navigation
                 if (!updatedPlan.isFavorite && onUnfavorite != null) {
                   onUnfavorite();
                 }
               } catch (e) {
+                // Show error message
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
@@ -86,8 +92,9 @@ class PlanDetailPage extends ConsumerWidget {
                           ? 'Permission denied: Only admins can update plans'
                           : 'Error: $e',
                       style: AppTheme.textStyles['body']?.copyWith(
-                        color: AppTheme.colors['primaryText'],
-                      ) ?? TextStyle(color: AppTheme.colors['black']),
+                            color: AppTheme.colors['primaryText'],
+                          ) ??
+                          TextStyle(color: AppTheme.colors['black']),
                     ),
                     backgroundColor: AppTheme.colors['error'],
                   ),

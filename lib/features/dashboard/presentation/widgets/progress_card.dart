@@ -5,8 +5,8 @@ import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
-import '../../../../shared/theme/theme.dart';
-import '../providers/dashboard_provider.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../providers/bmi_provider.dart';
 
 class ProgressCard extends ConsumerWidget {
   final String title;
@@ -25,7 +25,7 @@ class ProgressCard extends ConsumerWidget {
     required this.value,
     required this.icon,
     required this.description,
-    required this.route,
+    this.route,
     required this.userId,
     this.isLoading = false,
   });
@@ -43,28 +43,32 @@ class ProgressCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final progressColor = ref.watch(progressColorProvider(percent));
+    final colors = Theme.of(context).extension<AppColors>()!;
+
+    final progressKey = ref.watch(progressColorLogicProvider(percent));
+
+    final Color progressColor = switch (progressKey) {
+      'none' => colors.progressNone,
+      '25' => colors.progress25,
+      '50' => colors.progress50,
+      _ => colors.progressFull,
+    };
 
     return isLoading
         ? Shimmer.fromColors(
-            baseColor: AppTheme.colors['secondaryText']!.withOpacity(0.2),
-            highlightColor: AppTheme.colors['secondaryText']!.withOpacity(0.4),
-            child: _buildCard(
-              context,
-              progressColor: AppTheme.colors['secondaryText']!,
-            ),
+            baseColor: colors.onSurface.withOpacity(0.2),
+            highlightColor: colors.onSurface.withOpacity(0.4),
+            child: _buildCard(colors.onSurface, context),
           )
         : GestureDetector(
-            onTap: route != null
-                ? () {
-                    context.push(route!, extra: userId);
-                  }
-                : null,
-            child: _buildCard(context, progressColor: progressColor),
+            onTap: route != null ? () => context.push(route!, extra: userId) : null,
+            child: _buildCard(progressColor, context),
           );
   }
 
-  Widget _buildCard(BuildContext context, {required Color progressColor}) {
+  Widget _buildCard(Color progressColor, BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+
     return GlassmorphicContainer(
       width: 360.w,
       height: 200.h,
@@ -73,20 +77,13 @@ class ProgressCard extends ConsumerWidget {
       alignment: Alignment.center,
       border: 1.5,
       linearGradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
         colors: [
-          AppTheme.colors['navigationAccent']!.withOpacity(0.1),
-          AppTheme.colors['navigationAccent']!.withOpacity(0.05),
+          colors.navAccent.withOpacity(0.1),
+          colors.navAccent.withOpacity(0.05),
         ],
       ),
-      borderGradient: LinearGradient(
-        colors: [
-          AppTheme.colors['gradientTextStart']!,
-          AppTheme.colors['gradientTextEnd']!,
-        ],
-      ),
-       padding: EdgeInsets.symmetric(horizontal: 8.w), // Added horizontal padding
+      borderGradient: LinearGradient(colors: [colors.primary, colors.secondary]),
+      padding: EdgeInsets.symmetric(horizontal: 8.w),
       child: Row(
         children: [
           Expanded(
@@ -94,56 +91,61 @@ class ProgressCard extends ConsumerWidget {
             child: Padding(
               padding: EdgeInsets.all(8.w),
               child: isLoading
-                  ? _buildShimmerIndicator()
+                  ? Container(
+                      width: 100.w,
+                      height: 100.h,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                      ),
+                    )
                   : CircularPercentIndicator(
                       radius: 50.r,
                       lineWidth: 8.w,
                       percent: percent.clamp(0.0, 1.0),
-                      center: Icon(
-                        icon,
-                        size: 20.sp,
-                        color: AppTheme.colors['primaryText'],
-                      ),
+                      center: Icon(icon, size: 20.sp, color: colors.onSurface),
                       progressColor: progressColor,
-                      backgroundColor: AppTheme.colors['secondaryText']!
-                          .withOpacity(0.2),
+                      backgroundColor: colors.onSurface.withOpacity(0.2),
                       circularStrokeCap: CircularStrokeCap.round,
                     ),
             ),
           ),
+
           Expanded(
             flex: 2,
             child: Padding(
               padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 8.w),
               child: isLoading
-                  ? _buildShimmerContent()
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(width: 100.w, height: 14.h, color: Colors.white),
+                        SizedBox(height: 4.h),
+                        Container(width: 80.w, height: 12.h, color: Colors.white),
+                        SizedBox(height: 4.h),
+                        Container(width: 150.w, height: 20.h, color: Colors.white),
+                      ],
+                    )
                   : Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           title,
-                          style: AppTheme.textStyles['subtitle']!.copyWith(
-                            fontSize: 14.sp,
-                            color: AppTheme.colors['primaryText'],
-                          ),
+                          style: Theme.of(context).textTheme.titleMedium!.copyWith(fontSize: 14.sp),
                         ),
                         SizedBox(height: 4.h),
                         Text(
                           value,
-                          style: AppTheme.textStyles['body']!.copyWith(
-                            fontSize: 12.sp,
-                            color: AppTheme.colors['secondaryText'],
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall!.copyWith(fontSize: 12.sp),
                         ),
                         SizedBox(height: 4.h),
                         Text(
                           description,
-                          style: AppTheme.textStyles['body']!.copyWith(
-                            fontSize: 10.sp,
-                            color: AppTheme.colors['secondaryText']!
-                                .withOpacity(0.7),
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                                fontSize: 10.sp,
+                                color: colors.onSurface.withOpacity(0.7),
+                              ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -153,30 +155,6 @@ class ProgressCard extends ConsumerWidget {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildShimmerIndicator() {
-    return Container(
-      width: 100.w,
-      height: 100.h,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: AppTheme.colors['white'],
-      ),
-    );
-  }
-
-  Widget _buildShimmerContent() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(width: 100.w, height: 14.h, color: AppTheme.colors['white']),
-        SizedBox(height: 4.h),
-        Container(width: 80.w, height: 12.h, color: AppTheme.colors['white']),
-        SizedBox(height: 4.h),
-        Container(width: 150.w, height: 20.h, color: AppTheme.colors['white']),
-      ],
     );
   }
 }

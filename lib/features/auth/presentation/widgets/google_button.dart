@@ -2,7 +2,10 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../providers/google_auth_controller.dart';
+import '../providers/auth_providers.dart';
+import '../../utils/navigation_utils.dart';
+import '../../utils/auth_strings.dart';
+import '../../utils/widget_styles.dart';
 import '../../../../shared/theme/theme.dart';
 
 class GoogleButton extends ConsumerWidget {
@@ -22,15 +25,19 @@ class GoogleButton extends ConsumerWidget {
         ),
         onPressed: isLoading
             ? null
-            : () => ref
-                  .read(googleAuthControllerProvider.notifier)
-                  .login(context),
+            : () async {
+                final result = await ref
+                    .read(googleAuthControllerProvider.notifier)
+                    .login();
+                handleAuthResult(context, result, AuthStrings.googleSignInFailed);
+              },
         style: OutlinedButton.styleFrom(
-          padding: EdgeInsets.symmetric(vertical: kIsWeb ? 16.h : 14.h),
+          padding: WidgetStyles.buttonPadding(kIsWeb),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.r),
+            borderRadius: WidgetStyles.buttonBorderRadius(),
           ),
-          side: BorderSide(color: AppTheme.colors['transparent']!),
+          side: WidgetStyles.transparentBorder(),
+          backgroundColor: AppTheme.colors['transparent'],
         ),
       ),
     );

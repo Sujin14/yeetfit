@@ -3,10 +3,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lottie/lottie.dart';
 import '../providers/steps_provider.dart';
 import '../../../../shared/theme/theme.dart';
-import 'package:lottie/lottie.dart';
 
+// Success page for steps goal achievement.
 class StepsSuccessPage extends ConsumerWidget {
   final String goal;
 
@@ -35,7 +36,7 @@ class StepsSuccessPage extends ConsumerWidget {
               color: AppTheme.colors['teal'],
             ),
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10.h),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.w),
             child: Text(
@@ -47,22 +48,17 @@ class StepsSuccessPage extends ConsumerWidget {
               textAlign: TextAlign.center,
             ),
           ),
-          const SizedBox(height: 30),
+          SizedBox(height: 30.h),
           ElevatedButton(
             onPressed: () => context.pop(),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.colors['navBarActive'],
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             child: Text(
               'Done',
-              style: GoogleFonts.roboto(
-                fontSize: 16.sp,
-                color: AppTheme.colors['white'],
-              ),
+              style: GoogleFonts.roboto(fontSize: 16.sp, color: AppTheme.colors['white']),
             ),
           ),
         ],

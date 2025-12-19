@@ -23,4 +23,20 @@ class ShimmerLoading extends StatelessWidget {
       ),
     );
   }
+
+  static Widget text({
+    required String text,
+    required TextStyle textStyle,
+    Key? key,
+  }) {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: Text(
+        text,
+        key: key,
+        style: textStyle.copyWith(color: Colors.white),
+      ),
+    );
+  }
 }

@@ -52,10 +52,7 @@ class BasicInformationBody extends ConsumerWidget {
                 keyboardType: TextInputType.text,
               ),
               SizedBox(height: 16.h),
-              GenderDropdown(
-                value: gender,
-                onChanged: onGenderChanged,
-              ),
+              GenderDropdown(value: gender, onChanged: onGenderChanged),
               SizedBox(height: 16.h),
               InfoField(
                 controller: ageController,
@@ -92,7 +89,9 @@ class BasicInformationBody extends ConsumerWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.colors['error'],
                         minimumSize: Size(150.w, 48.h),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
                       ),
                       child: Text(
                         'Cancel',
@@ -108,20 +107,24 @@ class BasicInformationBody extends ConsumerWidget {
                     child: ElevatedButton(
                       onPressed: isSaving
                           ? null
-                          : () => ref.read(settingsControllerProvider.notifier).saveBasicInformation(
-                                context: context,
-                                name: nameController.text,
-                                gender: gender ?? '',
-                                age: ageController.text,
-                                height: heightController.text,
-                                currentWeight: currentWeightController.text,
-                                activityLevel: dailyActivity ?? '',
-                                formKey: formKey,
-                              ),
+                          : () => ref
+                                .read(settingsControllerProvider.notifier)
+                                .saveBasicInformation(
+                                  context: context,
+                                  name: nameController.text,
+                                  gender: gender ?? '',
+                                  age: ageController.text,
+                                  height: heightController.text,
+                                  currentWeight: currentWeightController.text,
+                                  activityLevel: dailyActivity ?? '',
+                                  formKey: formKey,
+                                ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.colors['primaryButton'],
+                        backgroundColor: AppTheme.colors['primaryAccent'],
                         minimumSize: Size(150.w, 48.h),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
                       ),
                       child: isSaving
                           ? SizedBox(

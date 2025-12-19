@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+// Model for food entries.
 class FoodItem {
   final String date;
   final String mealType;
@@ -25,6 +26,7 @@ class FoodItem {
     this.image,
   });
 
+  // Creates from Firestore map.
   factory FoodItem.fromMap(Map<String, dynamic> map) {
     return FoodItem(
       date: map['date'] ?? DateTime.now().toIso8601String().split('T')[0],
@@ -40,6 +42,7 @@ class FoodItem {
     );
   }
 
+  // Converts to Firestore map.
   Map<String, dynamic> toMap() {
     return {
       'date': date,
@@ -56,14 +59,12 @@ class FoodItem {
     };
   }
 
+  // Creates from Edamam JSON API.
   factory FoodItem.fromJson(Map<String, dynamic> json, {required double quantity}) {
     final nutrients = json['nutrients'] as Map<String, dynamic>? ?? {};
     final measures = json['measures'] as List<dynamic>? ?? [];
     final servingWeight = measures.isNotEmpty
-        ? (measures.firstWhere(
-            (m) => m['label'] == 'Serving',
-            orElse: () => {'weight': 100.0},
-          )['weight'] as num?)?.toDouble() ?? 100.0
+        ? (measures.firstWhere((m) => m['label'] == 'Serving', orElse: () => {'weight': 100.0})['weight'] as num?)?.toDouble() ?? 100.0
         : 100.0;
     final scale = quantity / servingWeight;
     return FoodItem(

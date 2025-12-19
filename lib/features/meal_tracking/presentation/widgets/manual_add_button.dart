@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yeetfit/shared/theme/theme.dart';
 import '../../../../shared/widgets/glassmorphic_container.dart';
@@ -17,8 +16,9 @@ class ManualAddButton extends ConsumerWidget {
 
     return GlassmorphicContainer(
       color: AppTheme.colors['indigo']!,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: FloatingActionButton.extended(
+      padding: const EdgeInsets.all(6),
+      borderRadius: 50,
+      child: FloatingActionButton.small(
         onPressed: () {
           showDialog(
             context: context,
@@ -29,15 +29,12 @@ class ManualAddButton extends ConsumerWidget {
         backgroundColor: AppTheme.colors['transparent'],
         foregroundColor: AppTheme.colors['onSurface'],
         elevation: 0,
-        icon: const Icon(Icons.add),
-        label: Text(
-          'Add Food',
-          style: GoogleFonts.roboto(fontWeight: FontWeight.bold),
-        ),
+        child: const Icon(Icons.add, size: 40),
       ),
     );
   }
 }
+
 
 class _ManualFoodEntryDialog extends ConsumerStatefulWidget {
   final String userId;

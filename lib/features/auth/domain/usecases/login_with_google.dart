@@ -1,12 +1,12 @@
-import '../../data/repositories/auth_repository.dart';
+import '../entities/auth_result.dart';
+import '../repositories/auth_repository.dart';
 
 class LoginWithGoogle {
   final AuthRepository repository;
 
-  LoginWithGoogle(this.repository);
+  const LoginWithGoogle(this.repository);
 
-  Future<bool> call() async {
-    final result = await repository.signInWithGoogle();
-    return result != null;
+  Future<AuthResult> call() {
+    return repository.signInWithGoogle();
   }
 }
