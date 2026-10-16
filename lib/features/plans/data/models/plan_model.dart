@@ -22,12 +22,18 @@ class PlanModel {
     required this.isFavorite,
     required this.createdAt,
     required this.totalCalories,
-    this.totalMacronutrients = const {'protein': 0.0, 'carbs': 0.0, 'fats': 0.0},
+    this.totalMacronutrients = const {
+      'protein': 0.0,
+      'carbs': 0.0,
+      'fats': 0.0,
+    },
   });
 
   factory PlanModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    final collectionType = doc.reference.parent.path.contains('diets') ? 'diet' : 'workouts';
+    final collectionType = doc.reference.parent.path.contains('diets')
+        ? 'diet'
+        : 'workouts';
     return PlanModel(
       id: doc.id,
       title: data['title'] ?? 'Unnamed Plan',
@@ -39,23 +45,9 @@ class PlanModel {
       createdAt: data['createdAt'] as Timestamp? ?? Timestamp.now(),
       totalCalories: data['totalCalories'] ?? 0,
       totalMacronutrients: Map<String, double>.from(
-        data['totalMacronutrients'] ?? {'protein': 0.0, 'carbs': 0.0, 'fats': 0.0},
+        data['totalMacronutrients'] ??
+            {'protein': 0.0, 'carbs': 0.0, 'fats': 0.0},
       ),
     );
-  }
-
-  Map<String, dynamic> toFirestore() {
-    return {
-      'id': id,
-      'title': title,
-      'type': type,
-      'userId': userId,
-      'assignedBy': assignedBy,
-      'details': details,
-      'isFavorite': isFavorite,
-      'createdAt': createdAt,
-      'totalCalories': totalCalories,
-      'totalMacronutrients': totalMacronutrients,
-    };
   }
 }

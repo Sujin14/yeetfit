@@ -8,16 +8,15 @@ plugins {
 
 android {
     namespace = "com.sujin.yeetfit"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = "27.0.12077973"
+    // permission_handler_android 14+ requires compileSdk 37.
+    compileSdk = maxOf(flutter.compileSdkVersion, 37)
+    ndkVersion = flutter.ndkVersion
 
     compileOptions {
+        // Required by flutter_local_notifications.
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = "17"
     }
 
     defaultConfig {
@@ -25,7 +24,8 @@ android {
         applicationId = "com.sujin.yeetfit"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        // The health plugin (Health Connect) requires API 26+.
+        minSdk = maxOf(flutter.minSdkVersion, 26)
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -54,8 +54,13 @@ dependencies {
     // Only core-common (avoid duplicate with play-core)
     implementation("com.google.android.play:core-common:2.0.3")
 
-    // Kotlin stdlib
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.24")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+    }
 }
 
 

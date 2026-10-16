@@ -2,5 +2,8 @@
 class AuthRouteConstants {
   static const String root = '/login';
   static const String signup = '/signup';
-  static const String userInfoStep = '/user-info-step/:step';
+  static const String userInfoStepPrefix = '/user-info-step/';
+  static const String userInfoStep = '$userInfoStepPrefix:step';
+
+  static String userInfoStepPath(int step) => '$userInfoStepPrefix$step';
 }

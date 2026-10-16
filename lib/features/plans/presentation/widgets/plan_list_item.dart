@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:glassmorphism/glassmorphism.dart';
-import '../../../../shared/theme/theme.dart';
 import '../../data/models/plan_model.dart';
+import 'package:yeetfit/core/theme/app_colors.dart';
+import 'package:yeetfit/shared/widgets/glass_card.dart';
+import 'package:yeetfit/core/theme/app_spacing.dart';
 
 class PlanListItem extends StatelessWidget {
   final PlanModel plan;
@@ -12,51 +12,46 @@ class PlanListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GlassmorphicContainer(
+    final colors = Theme.of(context).extension<AppColors>()!;
+    return SizedBox(
       width: double.infinity,
-      height: 100.h,
-      borderRadius: 20.r,
-      blur: 20,
-      alignment: Alignment.center,
-      border: 1.5,
-      linearGradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [
-          AppTheme.colors['navigationAccent']!,
-          AppTheme.colors['navigationAccent']!.withOpacity(0.8),
-        ],
-      ),
-      borderGradient: LinearGradient(
-        colors: [
-          AppTheme.colors['borderGradientStart']!,
-          AppTheme.colors['borderGradientEnd']!,
-        ],
-      ),
-      child: ListTile(
-        contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-        title: Text(
-          plan.title,
-          style: AppTheme.textStyles['title']!.copyWith(
-            color: AppTheme.colors['primaryText'],
-            fontSize: 18.sp,
+      height: 100,
+      child: GlassCard(
+        borderRadius: 20,
+        color: colors.navAccent,
+        opacity: 0.9,
+        padding: EdgeInsets.zero,
+        border: Border.all(color: colors.borderStart, width: 1.5),
+        child: Center(
+          child: ListTile(
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
+            title: Text(
+              plan.title,
+              style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                color: colors.onBackground,
+                fontSize: 18,
+              ),
+            ),
+            subtitle: Text(
+              plan.type == 'diet'
+                  ? '${plan.details['meals']?.length ?? 0} meals'
+                  : '${plan.details['exercises']?.length ?? 0} exercises',
+              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                color: colors.textSecondary,
+                fontSize: 14,
+              ),
+            ),
+            trailing: Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: colors.onBackground,
+            ),
+            onTap: onTap,
           ),
         ),
-        subtitle: Text(
-          plan.type == 'diet'
-              ? '${plan.details['meals']?.length ?? 0} meals'
-              : '${plan.details['exercises']?.length ?? 0} exercises',
-          style: AppTheme.textStyles['body']!.copyWith(
-            color: AppTheme.colors['secondaryText'],
-            fontSize: 14.sp,
-          ),
-        ),
-        trailing: Icon(
-          Icons.arrow_forward_ios,
-          size: 16.sp,
-          color: AppTheme.colors['primaryText'],
-        ),
-        onTap: onTap,
       ),
     );
   }

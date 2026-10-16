@@ -1,64 +1,25 @@
-import '../datasources/food_datasource.dart';
-import '../model/food_model.dart';
+import '../../domain/entities/food_item.dart';
 import '../../domain/repositories/food_repository.dart';
+import '../datasources/food_datasource.dart';
 
-// Implementation of [FoodRepository] using Firestore.
 class FoodRepositoryImpl implements FoodRepository {
   final FoodDataSource _dataSource;
 
   const FoodRepositoryImpl(this._dataSource);
 
   @override
-  Future<List<FoodItem>> getFoodData(String userId, String mealType) async {
-    final today = DateTime.now().toIso8601String().split('T')[0];
-    return await _dataSource.getFoodData(userId, today, mealType);
-  }
+  Stream<List<FoodItem>> watchTodayMeals(String userId, String date) =>
+      _dataSource.watchTodayMeals(userId, date);
 
   @override
-  Future<double> getCalorieGoal(String userId) async {
-    final today = DateTime.now().toIso8601String().split('T')[0];
-    return await _dataSource.getCalorieGoal(userId, today);
-  }
+  Future<void> addFoodEntry(String userId, FoodItem item) =>
+      _dataSource.addFoodEntry(userId, item);
 
   @override
-  Future<void> addFoodEntry(
-    String userId,
-    String mealType,
-    String foodName,
-    double calories,
-    double protein,
-    double fat,
-    double carbs,
-    double fiber,
-    double quantity,
-    String? image,
-  ) async {
-    final today = DateTime.now().toIso8601String().split('T')[0];
-    await _dataSource.addFoodEntry(
-      userId,
-      today,
-      mealType,
-      foodName,
-      calories,
-      protein,
-      fat,
-      carbs,
-      fiber,
-      quantity,
-      image,
-    );
-  }
+  Future<void> deleteFoodEntry(String userId, String entryId) =>
+      _dataSource.deleteFoodEntry(userId, entryId);
 
   @override
-  Future<void> setCalorieGoal(String userId, double newGoal) async {
-    final today = DateTime.now().toIso8601String().split('T')[0];
-    await _dataSource.setCalorieGoal(userId, today, newGoal);
-  }
-
-  @override
-  Future<List<FoodItem>> getWeeklyFoodData(String userId, String mealType) async {
-    final endDate = DateTime.now();
-    final startDate = endDate.subtract(const Duration(days: 6));
-    return await _dataSource.getWeeklyFoodData(userId, startDate, endDate, mealType);
-  }
+  Future<List<FoodItem>> getWeeklyFoodData(String userId) =>
+      _dataSource.getWeeklyFoodData(userId);
 }

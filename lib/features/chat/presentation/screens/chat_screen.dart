@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../../../shared/theme/theme.dart';
-import '../../data/model/message_model.dart';
-import '../widgets/chat_header.dart';
-import '../widgets/date_seperator.dart';
-import '../widgets/message_bubble.dart';
-import '../widgets/message_input.dart';
+import 'package:yeetfit/core/routes/call_route_constants.dart';
+import 'package:yeetfit/core/routes/session_route_constants.dart';
+import 'package:yeetfit/core/theme/app_colors.dart';
+import 'package:yeetfit/features/calls/domain/entities/call_participant.dart';
+import 'package:yeetfit/features/calls/domain/entities/call_type.dart';
+import 'package:yeetfit/features/calls/presentation/providers/call_launcher_provider.dart';
+import 'package:yeetfit/features/calls/presentation/utils/call_error_message.dart';
+import 'package:yeetfit/shared/providers/user_role_provider.dart';
+import 'package:yeetfit/shared/widgets/shell_gradient_background.dart';
 import '../providers/chat_provider.dart';
+import '../widgets/chat_body.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String adminId;
@@ -27,93 +31,65 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     });
   }
 
+  void _showError(String message) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: colors.error,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  Future<void> _startCall(CallType type) async {
+    final chatState = ref.read(chatControllerProvider(widget.adminId));
+    final call = await ref
+        .read(callLauncherProvider.notifier)
+        .start(
+          receiver: CallParticipant(
+            id: widget.adminId,
+            name: chatState.participantName,
+            photoUrl: chatState.participantImage,
+          ),
+          type: type,
+        );
+    if (call == null || !mounted) return;
+    context.push(CallRouteConstants.activeCallPath(call.id), extra: call);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final chatState = ref.watch(chatControllerProvider(widget.adminId));
-    final chatItems = ref.watch(chatItemsProvider(chatState.messages));
+    final chatProvider = chatControllerProvider(widget.adminId);
+    final chatState = ref.watch(chatProvider);
+    final controller = ref.read(chatProvider.notifier);
+    final isStartingCall = ref.watch(callLauncherProvider).isLoading;
+    final isAdmin = ref.watch(isAdminProvider).value ?? false;
 
-    // Show snackbar for errors
-    if (chatState.error != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              chatState.error!,
-              style: AppTheme.textStyles['bodyMedium']?.copyWith(
-                color: AppTheme.colors['onSurfaceDark'],
-              ),
-            ),
-            backgroundColor: AppTheme.colors['error'],
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      });
-    }
+    ref.listen(chatProvider.select((state) => state.error), (_, error) {
+      if (error != null) _showError(error);
+    });
+    ref.listen(callLauncherProvider, (_, next) {
+      final error = next.error;
+      if (error != null && !next.isLoading) _showError(callErrorMessage(error));
+    });
 
-    return Scaffold(
-      backgroundColor: AppTheme.colors['lightBackground'],
-      resizeToAvoidBottomInset: false,
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(60.h),
-        child: ChatHeader(
-          controller: ref.read(chatControllerProvider(widget.adminId).notifier),
-        ),
-      ),
-      body: SafeArea(
-        child: AnimatedPadding(
-          duration: const Duration(milliseconds: 150),
-          curve: Curves.easeOut,
-          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-          child: Column(
-            children: [
-              Expanded(
-                child: chatState.isLoadingMessages
-                    ? const Center(child: CircularProgressIndicator())
-                    : Column(
-                        children: [
-                          Expanded(
-                            child: ListView.builder(
-                              reverse: false,
-                              itemCount: chatItems.length,
-                              itemBuilder: (context, index) {
-                                final item = chatItems[index];
-                                if (item is String) {
-                                  return DateSeparator(dateText: item);
-                                } else if (item is MessageModel) {
-                                  return MessageBubble(
-                                    message: item,
-                                    controller: ref.read(
-                                      chatControllerProvider(widget.adminId).notifier,
-                                    ),
-                                  );
-                                }
-                                return const SizedBox.shrink();
-                              },
-                            ),
-                          ),
-                          if (chatState.participantTyping)
-                            Padding(
-                              padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 16.w),
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  'Typing...',
-                                  style: AppTheme.textStyles['bodySmall']?.copyWith(
-                                    color: AppTheme.colors['secondaryText'],
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-              ),
-              MessageInput(
-                controller: ref.read(
-                  chatControllerProvider(widget.adminId).notifier,
-                ),
-              ),
-            ],
-          ),
+    return ShellGradientBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        resizeToAvoidBottomInset: false,
+        body: ChatBody(
+          messages: chatState.messages,
+          isLoadingMessages: chatState.isLoadingMessages,
+          participantTyping: chatState.participantTyping,
+          isAccountDeleted: chatState.isAccountDeleted,
+          controller: controller,
+          isStartingCall: isStartingCall,
+          onAudioCall: () => _startCall(CallType.audio),
+          onVideoCall: () => _startCall(CallType.video),
+          onScheduleSession: isAdmin
+              ? () => context.push(SessionRouteConstants.create)
+              : null,
         ),
       ),
     );

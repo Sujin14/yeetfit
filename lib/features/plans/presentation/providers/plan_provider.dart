@@ -1,201 +1,84 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yeetfit/shared/providers/auth_providers.dart';
+import '../../data/data_sources/firestore_data_source.dart';
 import '../../data/models/plan_model.dart';
-import '../../data/repositories/plan_repository_impl.dart';
-import '../../domain/repositories/plan_repository.dart';
-import '../../domain/use_cases/get_all_plans_use_case.dart';
-import '../../domain/use_cases/get_favorite_plans_use_case.dart';
-import '../../domain/use_cases/toggle_favorite_use_case.dart';
 
-final planRepositoryProvider = Provider<PlanRepository>((ref) {
-  return PlanRepositoryImpl();
-});
-
-final getAllPlansUseCaseProvider = Provider<GetAllPlansUseCase>((ref) {
-  return GetAllPlansUseCase(ref.read(planRepositoryProvider));
-});
-
-final getFavoritePlansUseCaseProvider = Provider<GetFavoritePlansUseCase>((ref) {
-  return GetFavoritePlansUseCase(ref.read(planRepositoryProvider));
-});
-
-final toggleFavoriteUseCaseProvider = Provider<ToggleFavoriteUseCase>((ref) {
-  return ToggleFavoriteUseCase(ref.read(planRepositoryProvider));
-});
+final planDataSourceProvider = Provider<FirestoreDataSource>(
+  (ref) => FirestoreDataSource(),
+);
 
 final allDietPlansProvider = StreamProvider<List<PlanModel>>((ref) {
-  final userId = FirebaseAuth.instance.currentUser?.uid;
-  if (userId == null) {
-    return Stream.value([]);
-  }
-  return FirebaseFirestore.instance
-      .collection('users')
-      .doc(userId)
-      .collection('diets')
-      .where('type', isEqualTo: 'diet')
-      .orderBy('createdAt', descending: true)
-      .snapshots()
-      .map((snapshot) {
-    return snapshot.docs.map((doc) => PlanModel.fromFirestore(doc)).toList();
-  });
+  final userId = ref.watch(authUserIdProvider);
+  if (userId == null) return Stream.value(const []);
+  return ref
+      .read(planDataSourceProvider)
+      .watchPlans(userId, collection: 'diets', type: 'diet');
 });
 
 final allWorkoutPlansProvider = StreamProvider<List<PlanModel>>((ref) {
-  final userId = FirebaseAuth.instance.currentUser?.uid;
-  if (userId == null) {
-    return Stream.value([]);
-  }
-  return FirebaseFirestore.instance
-      .collection('users')
-      .doc(userId)
-      .collection('workouts')
-      .where('type', isEqualTo: 'workout')
-      .orderBy('createdAt', descending: true)
-      .snapshots()
-      .map((snapshot) {
-    return snapshot.docs.map((doc) => PlanModel.fromFirestore(doc)).toList();
-  });
+  final userId = ref.watch(authUserIdProvider);
+  if (userId == null) return Stream.value(const []);
+  return ref
+      .read(planDataSourceProvider)
+      .watchPlans(userId, collection: 'workouts', type: 'workout');
 });
 
-final dietPlanProvider = StreamProvider<PlanModel?>((ref) {
-  final userId = FirebaseAuth.instance.currentUser?.uid;
-  if (userId == null) {
-    return Stream.value(null);
-  }
-  return FirebaseFirestore.instance
-      .collection('users')
-      .doc(userId)
-      .collection('diets')
-      .where('type', isEqualTo: 'diet')
-      .orderBy('createdAt', descending: true)
-      .limit(1)
-      .snapshots()
-      .map((snapshot) {
-    if (snapshot.docs.isEmpty) return null;
-    return PlanModel.fromFirestore(snapshot.docs.first);
-  });
+final favoritePlansProvider = FutureProvider<List<PlanModel>>((ref) {
+  // Refetch when the signed-in account changes.
+  ref.watch(authUserIdProvider);
+  return ref.read(planDataSourceProvider).getFavoritePlans();
 });
 
-final workoutPlanProvider = StreamProvider<PlanModel?>((ref) {
-  final userId = FirebaseAuth.instance.currentUser?.uid;
-  if (userId == null) {
-    return Stream.value(null);
-  }
-  return FirebaseFirestore.instance
-      .collection('users')
-      .doc(userId)
-      .collection('workouts')
-      .where('type', isEqualTo: 'workout')
-      .orderBy('createdAt', descending: true)
-      .limit(1)
-      .snapshots()
-      .map((snapshot) {
-    if (snapshot.docs.isEmpty) return null;
-    return PlanModel.fromFirestore(snapshot.docs.first);
-  });
-});
-
-class FavoritePlansState {
-  final List<PlanModel> plans;
-  final bool isLoading;
-  final String? error;
-
-  FavoritePlansState({
-    this.plans = const [],
-    this.isLoading = false,
-    this.error,
-  });
-
-  FavoritePlansState copyWith({
-    List<PlanModel>? plans,
-    bool? isLoading,
-    String? error,
-  }) {
-    return FavoritePlansState(
-      plans: plans ?? this.plans,
-      isLoading: isLoading ?? this.isLoading,
-      error: error ?? this.error,
+/// Favourites filter for one plan list screen ([category] is `diet` or
+/// `workouts`); resets when the screen closes.
+final planListFavoritesOnlyProvider = NotifierProvider.autoDispose
+    .family<PlanListFavoritesOnlyNotifier, bool, String>(
+      PlanListFavoritesOnlyNotifier.new,
     );
-  }
+
+class PlanListFavoritesOnlyNotifier extends Notifier<bool> {
+  final String category;
+
+  PlanListFavoritesOnlyNotifier(this.category);
+
+  @override
+  bool build() => false;
+
+  void toggle() => state = !state;
 }
 
-class FavoritePlansNotifier extends StateNotifier<FavoritePlansState> {
-  final Ref ref;
-
-  FavoritePlansNotifier(this.ref) : super(FavoritePlansState()) {
-    _loadFavoritePlans();
-  }
-
-  Future<void> _loadFavoritePlans() async {
-    state = state.copyWith(isLoading: true, error: null);
-    try {
-      final plans = await ref.read(getFavoritePlansUseCaseProvider).execute();
-      state = state.copyWith(plans: plans, isLoading: false);
-    } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
-    }
-  }
-
-  Future<void> toggleFavorite(String planId, String type, bool isFavorite) async {
-    try {
-      final updatedPlans = state.plans.map((plan) {
-        if (plan.id == planId && plan.type == type) {
-          return PlanModel(
-            id: plan.id,
-            title: plan.title,
-            type: plan.type,
-            userId: plan.userId,
-            assignedBy: plan.assignedBy,
-            details: plan.details,
-            isFavorite: isFavorite,
-            createdAt: plan.createdAt,
-            totalCalories: plan.totalCalories,
-            totalMacronutrients: plan.totalMacronutrients,
-          );
-        }
-        return plan;
-      }).toList();
-
-      if (!isFavorite) {
-        updatedPlans.removeWhere((plan) => plan.id == planId && plan.type == type);
+/// Plans shown on a list screen: every plan of [category], or only its
+/// favourites while the filter is on.
+final planListPlansProvider = Provider.autoDispose
+    .family<AsyncValue<List<PlanModel>>, String>((ref, category) {
+      final isDiet = category == 'diet';
+      if (!ref.watch(planListFavoritesOnlyProvider(category))) {
+        return ref.watch(
+          isDiet ? allDietPlansProvider : allWorkoutPlansProvider,
+        );
       }
+      return ref
+          .watch(favoritePlansProvider)
+          .whenData(
+            (plans) =>
+                plans.where((plan) => (plan.type == 'diet') == isDiet).toList(),
+          );
+    });
 
-      state = state.copyWith(plans: updatedPlans);
+/// The route category picks the collection; plan IDs are only unique within
+/// one, so both are part of the key.
+typedef PlanDetailKey = ({String category, String planId});
 
-      // Update Firestore
-      await ref.read(toggleFavoriteUseCaseProvider).execute(planId, type, isFavorite);
-    } catch (e) {
-      // Revert optimistic update on error
-      await _loadFavoritePlans();
-      rethrow;
-    }
-  }
-
-  Future<void> refresh() async {
-    await _loadFavoritePlans();
-  }
-}
-
-final favoritePlansProvider = StateNotifierProvider<FavoritePlansNotifier, FavoritePlansState>((ref) {
-  return FavoritePlansNotifier(ref);
-});
-
-final planDetailProvider = StreamProvider.family<PlanModel?, Map<String, dynamic>>((ref, extra) {
-  final plan = extra['plan'] as PlanModel;
-  final category = extra['category'] as String?;
-  final userId = FirebaseAuth.instance.currentUser?.uid;
-  if (userId == null) {
-    return Stream.value(null);
-  }
-  return FirebaseFirestore.instance
-      .collection('users')
-      .doc(userId)
-      .collection(category == 'diet' ? 'diets' : 'workouts')
-      .doc(plan.id)
-      .snapshots()
-      .map((snapshot) {
-    if (!snapshot.exists) return null;
-    return PlanModel.fromFirestore(snapshot);
-  });
-});
+/// One plan, live. `null` once it's deleted or no longer visible.
+final planDetailProvider = StreamProvider.autoDispose
+    .family<PlanModel?, PlanDetailKey>((ref, key) {
+      final userId = ref.watch(authUserIdProvider);
+      if (userId == null) return Stream.value(null);
+      return ref
+          .read(planDataSourceProvider)
+          .watchPlan(
+            userId,
+            collection: key.category == 'diet' ? 'diets' : 'workouts',
+            planId: key.planId,
+          );
+    });

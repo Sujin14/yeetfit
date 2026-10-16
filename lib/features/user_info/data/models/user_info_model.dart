@@ -10,7 +10,6 @@ class UserInfoModel {
   final String activityLevel;
   final int? timeDurationWeeks;
   final String? profileImageUrl;
-  final bool hasPaid;
   final String? dietPreference;
   final Map<String, bool>? allergies;
   final String? otherAllergy;
@@ -32,7 +31,6 @@ class UserInfoModel {
     this.activityLevel = '',
     this.timeDurationWeeks,
     this.profileImageUrl,
-    this.hasPaid = false,
     this.dietPreference,
     this.allergies,
     this.otherAllergy,
@@ -56,7 +54,6 @@ class UserInfoModel {
       'activityLevel': activityLevel,
       'timeDurationWeeks': timeDurationWeeks,
       'profileImageUrl': profileImageUrl,
-      'hasPaid': hasPaid,
       'dietPreference': dietPreference,
       'allergies': allergies,
       'otherAllergy': otherAllergy,
@@ -68,9 +65,15 @@ class UserInfoModel {
     }..removeWhere((key, value) => value == null);
   }
 
-  factory UserInfoModel.fromMap(Map<String, dynamic> map) {
+  /// [documentId] is the `users/{uid}` doc ID. It takes precedence over the
+  /// stored `uid` field, which is missing on docs created by partial writes
+  /// (e.g. the FCM token save that runs right after sign-up).
+  factory UserInfoModel.fromMap(
+    Map<String, dynamic> map, {
+    String? documentId,
+  }) {
     return UserInfoModel(
-      uid: map['uid'] ?? '',
+      uid: documentId ?? map['uid'] as String? ?? '',
       name: map['name'] ?? '',
       gender: map['gender'] ?? '',
       age: map['age'] ?? 0,
@@ -81,11 +84,14 @@ class UserInfoModel {
       activityLevel: map['activityLevel'] ?? '',
       timeDurationWeeks: map['timeDurationWeeks'],
       profileImageUrl: map['profileImageUrl'],
-      hasPaid: map['hasPaid'] ?? false,
       dietPreference: map['dietPreference'],
-      allergies: map['allergies'] != null ? Map<String, bool>.from(map['allergies']) : null,
+      allergies: map['allergies'] != null
+          ? Map<String, bool>.from(map['allergies'])
+          : null,
       otherAllergy: map['otherAllergy'],
-      cuisines: map['cuisines'] != null ? Map<String, bool>.from(map['cuisines']) : null,
+      cuisines: map['cuisines'] != null
+          ? Map<String, bool>.from(map['cuisines'])
+          : null,
       waterGoal: (map['waterGoal'] as num?)?.toDouble(),
       stepsGoal: (map['stepsGoal'] as num?)?.toDouble(),
       sleepGoal: (map['sleepGoal'] as num?)?.toDouble(),
@@ -105,7 +111,6 @@ class UserInfoModel {
     String? activityLevel,
     int? timeDurationWeeks,
     String? profileImageUrl,
-    bool? hasPaid,
     String? dietPreference,
     Map<String, bool>? allergies,
     String? otherAllergy,
@@ -127,7 +132,6 @@ class UserInfoModel {
       activityLevel: activityLevel ?? this.activityLevel,
       timeDurationWeeks: timeDurationWeeks ?? this.timeDurationWeeks,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
-      hasPaid: hasPaid ?? this.hasPaid,
       dietPreference: dietPreference ?? this.dietPreference,
       allergies: allergies ?? this.allergies,
       otherAllergy: otherAllergy ?? this.otherAllergy,

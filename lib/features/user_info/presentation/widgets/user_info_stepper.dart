@@ -1,122 +1,128 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../../../shared/widgets/shimmer_widget.dart';
+import 'package:yeetfit/core/routes/auth_route_constants.dart';
+import 'package:yeetfit/core/routes/shell_route_constants.dart';
+import 'package:yeetfit/core/theme/app_colors.dart';
 import '../providers/user_info_provider.dart';
-import '../widgets/activity_level_input.dart';
-import '../widgets/age_input.dart';
-import '../widgets/goal_input.dart';
-import '../widgets/height_input.dart';
-import '../widgets/name_gender_input.dart';
-import '../widgets/time_duration_input.dart';
-import '../widgets/weight_input.dart';
+import 'activity_level_input.dart';
+import 'age_input.dart';
+import 'goal_input.dart';
+import 'height_input.dart';
+import 'name_gender_input.dart';
+import 'step_next_button.dart';
+import 'step_progress_header.dart';
+import 'time_duration_input.dart';
+import 'weight_input.dart';
+import 'package:yeetfit/core/theme/app_spacing.dart';
 
-class UserInfoStepper extends ConsumerWidget {
+class UserInfoStepper extends ConsumerStatefulWidget {
   final int step;
 
   const UserInfoStepper({super.key, required this.step});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final formKey = GlobalKey<FormState>();
-    final controller = ref.read(userInfoControllerProvider.notifier);
-    final isSaving = ref.watch(userInfoControllerProvider.notifier.select((state) => state.isSaving));
+  ConsumerState<UserInfoStepper> createState() => _UserInfoStepperState();
+}
 
-    Widget getStepWidget(int step) {
-      switch (step) {
-        case 0:
-          return NameGenderInput(
-            formKey: formKey,
-            onGenderChanged: controller.updateGender,
-            onImageSelected: (image) => controller.updateProfileImage(image, context),
-          );
-        case 1:
-          return AgeInput(
-            formKey: formKey,
-          );
-        case 2:
-          return GoalInput(
-            formKey: formKey,
-            onGoalChanged: controller.updateGoal,
-          );
-        case 3:
-          return WeightInput(
-            formKey: formKey,
-          );
-        case 4:
-          return HeightInput(
-            formKey: formKey,
-          );
-        case 5:
-          return ActivityLevelDropdown(
-            formKey: formKey,
-            onActivityLevelChanged: controller.updateActivityLevel,
-          );
-        case 6:
-          return TimeDurationInput(
-            formKey: formKey,
-          );
-        default:
-          return const SizedBox.shrink();
-      }
+class _UserInfoStepperState extends ConsumerState<UserInfoStepper> {
+  final _formKey = GlobalKey<FormState>();
+
+  static const int _lastStep = 6;
+
+  void _showError(String message) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: colors.error),
+    );
+  }
+
+  void _submitStep() {
+    final form = _formKey.currentState;
+    form?.save();
+    if (form == null || !form.validate()) {
+      _showError('Please fill in all required fields correctly');
+      return;
     }
+    final saveController = ref.read(userInfoSaveControllerProvider.notifier);
+    widget.step < _lastStep
+        ? saveController.saveStep(widget.step)
+        : saveController.submit();
+  }
+
+  void _goToPreviousStep(UserInfoController controller) {
+    final previous = controller.previousStep(widget.step);
+    if (previous != null) {
+      context.go(AuthRouteConstants.userInfoStepPath(previous));
+    }
+  }
+
+  Widget _stepContent(int step, UserInfoController controller) {
+    return switch (step) {
+      0 => NameGenderInput(
+        formKey: _formKey,
+        onGenderChanged: controller.updateGender,
+      ),
+      1 => AgeInput(formKey: _formKey),
+      2 => GoalInput(formKey: _formKey, onGoalChanged: controller.updateGoal),
+      3 => WeightInput(formKey: _formKey),
+      4 => HeightInput(formKey: _formKey),
+      5 => ActivityLevelInput(
+        formKey: _formKey,
+        onActivityLevelChanged: controller.updateActivityLevel,
+      ),
+      6 => TimeDurationInput(formKey: _formKey),
+      _ => const SizedBox.shrink(),
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ref.listen<AsyncValue<UserInfoSaveResult?>>(
+      userInfoSaveControllerProvider,
+      (_, next) {
+        final result = next.value;
+        if (next.hasError) {
+          ref.read(userInfoSaveControllerProvider.notifier).consume();
+          _showError(next.error.toString());
+        } else if (result != null) {
+          ref.read(userInfoSaveControllerProvider.notifier).consume();
+          switch (result) {
+            case UserInfoStepSaved(:final nextStep):
+              context.go(AuthRouteConstants.userInfoStepPath(nextStep));
+            case UserInfoSubmitted():
+              context.go(ShellRouteConstants.dashboard);
+          }
+        }
+      },
+    );
+
+    final step = widget.step;
+    final controller = ref.read(userInfoControllerProvider.notifier);
+    final isSaving = ref.watch(
+      userInfoSaveControllerProvider.select((state) => state.isLoading),
+    );
 
     return Column(
       children: [
-        Text(
-          'Step ${step + 1} of 7',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 18.sp),
+        StepProgressHeader(
+          step: step + 1,
+          totalSteps: _lastStep + 1,
+          onBack: step > 0 && !isSaving
+              ? () => _goToPreviousStep(controller)
+              : null,
         ),
-        SizedBox(height: 16.h),
-        Expanded(child: getStepWidget(step)),
-        SizedBox(height: 24.h),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            if (step > 0)
-              SizedBox(
-                width: 100.w,
-                height: 48.h,
-                child: isSaving
-                    ? ShimmerLoading(width: 100.w, height: 48.h)
-                    : TextButton(
-                        onPressed: () => controller.previousStep(context, step),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).primaryColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.r),
-                          ),
-                        ),
-                        child: Text(
-                          'Previous',
-                          style: TextStyle(fontSize: 16.sp, color: Colors.white),
-                        ),
-                      ),
-              )
-            else
-              const SizedBox.shrink(),
-            SizedBox(
-              width: 150.w,
-              height: 48.h,
-              child: isSaving
-                  ? ShimmerLoading(width: 100.w, height: 48.h)
-                  : ElevatedButton(
-                      onPressed: () => step < 6
-                          ? controller.saveStepData(context, formKey, step)
-                          : controller.submitUserData(context, formKey),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).primaryColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.r),
-                        ),
-                      ),
-                      child: Text(
-                        step < 6 ? 'Next' : 'Submit',
-                        style: TextStyle(fontSize: 16.sp, color: Colors.white),
-                      ),
-                    ),
-            ),
-          ],
+        Expanded(
+          child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: const EdgeInsets.only(bottom: AppSpacing.md),
+            child: _stepContent(step, controller),
+          ),
+        ),
+        StepNextButton(
+          label: step < _lastStep ? 'Next' : 'Get Started',
+          isLoading: isSaving,
+          onPressed: _submitStep,
         ),
       ],
     );

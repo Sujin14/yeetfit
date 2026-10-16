@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import '../../../../core/routes/tracking_routes_constants.dart';
-import '../../../../shared/theme/theme.dart';
+import 'package:yeetfit/core/theme/app_colors.dart';
+import 'package:yeetfit/core/theme/app_spacing.dart';
 
 // Success page for daily water goal.
 class WaterSuccessPage extends StatelessWidget {
@@ -14,49 +13,59 @@ class WaterSuccessPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
     return Scaffold(
-      backgroundColor: AppTheme.colors['background'],
+      backgroundColor: colors.background,
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Lottie.asset(
             'assets/animations/success.json',
-            width: 300.w,
-            height: 300.h,
+            width: 300,
+            height: 300,
             fit: BoxFit.contain,
             repeat: false,
           ),
           Text(
             'Congratulations! 🎉',
-            style: GoogleFonts.roboto(
-              fontSize: 28.sp,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.colors['teal'],
+            style: Theme.of(context).textTheme.displayMedium!.copyWith(
+              fontSize: 28,
+              color: colors.primary,
             ),
           ),
-          SizedBox(height: 10.h),
+          SizedBox(height: 10),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
             child: Text(
               'You crushed your goal of $goal glasses today — let’s keep the streak alive! 💧',
-              style: GoogleFonts.roboto(
-                fontSize: 18.sp,
-                color: AppTheme.colors['primaryText'],
+              style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                fontSize: 18,
+                color: colors.onBackground,
               ),
               textAlign: TextAlign.center,
             ),
           ),
-          SizedBox(height: 30.h),
+          SizedBox(height: 30),
           ElevatedButton(
-            onPressed: () => context.go(TrackingRouteConstants.waterTracking),
+            onPressed: () => context.canPop()
+                ? context.pop()
+                : context.go(TrackingRouteConstants.waterTracking),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.colors['navBarActive'],
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              backgroundColor: colors.primary,
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg,
+                vertical: AppSpacing.smd,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             child: Text(
               'Done',
-              style: GoogleFonts.roboto(fontSize: 16.sp, color: AppTheme.colors['white']),
+              style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                fontSize: 16,
+                color: Colors.white,
+              ),
             ),
           ),
         ],

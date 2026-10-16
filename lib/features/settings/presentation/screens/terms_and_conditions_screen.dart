@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import '../../../../shared/theme/theme.dart';
+import '../widgets/settings_page_layout.dart';
 import '../widgets/terms_and_conditions_body.dart';
 
 class TermsAndConditionsScreen extends StatelessWidget {
@@ -8,22 +7,9 @@ class TermsAndConditionsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Terms & Conditions',
-          style: AppTheme.textStyles['title']!.copyWith(
-            color: AppTheme.colors['primaryText'],
-          ),
-        ),
-        backgroundColor: AppTheme.colors['lightBackground'],
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppTheme.colors['primaryText']),
-          onPressed: () => context.pop(),
-        ),
-      ),
-      body: TermsAndConditionsBody(),
+    return const SettingsPageLayout(
+      title: 'Terms & Conditions',
+      child: TermsAndConditionsBody(),
     );
   }
 }

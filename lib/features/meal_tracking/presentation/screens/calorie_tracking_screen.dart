@@ -1,60 +1,117 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:yeetfit/shared/providers/auth_providers.dart';
+import 'package:yeetfit/shared/providers/user_document_provider.dart';
+import 'package:yeetfit/core/routes/tracking_routes_constants.dart';
+import 'package:yeetfit/shared/widgets/glass_sliver_app_bar.dart';
+import 'package:yeetfit/shared/widgets/shell_gradient_background.dart';
+import 'package:yeetfit/shared/widgets/sign_in_required_view.dart';
+import 'package:yeetfit/shared/widgets/yeet_error_state.dart';
 import '../providers/food_provider.dart';
-import '../widgets/calorie_appbar.dart';
-import '../widgets/calorie_summary.dart';
-import '../widgets/meal_section.dart';
-import '../widgets/shimmer_card.dart';
+import '../widgets/calorie_summary_card.dart';
+import '../widgets/macro_summary_row.dart';
+import '../widgets/meal_scan_banner.dart';
+import '../widgets/meal_scan_button.dart';
+import '../widgets/meal_section_list.dart';
+import '../widgets/meal_shimmer.dart';
+import '../widgets/weekly_chart_button.dart';
+import 'package:yeetfit/core/theme/app_spacing.dart';
 
-// Main screen for calorie tracking.
 class CalorieTrackingScreen extends ConsumerWidget {
   const CalorieTrackingScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
-    if (userId == null) {
-      return const Scaffold(body: Center(child: Text('Please log in to track calories')));
-    }
+    final userId = ref.watch(authUserIdProvider);
 
-    final today = DateTime.now().toIso8601String().split('T')[0];
-
-    return Scaffold(
-      appBar: const CalorieAppBar(),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 600),
-          child: ListView(
-            padding: EdgeInsets.all(16.w),
-            children: [
-              Consumer(
-                builder: (context, ref, _) {
-                  final totalCalories = ['Breakfast', 'Morning Snack', 'Lunch', 'Evening Snack', 'Dinner']
-                      .map((mealType) => ref.watch(dailyCaloriesProvider('$userId|$mealType')))
-                      .fold(0.0, (sum, calories) => sum + calories);
-                  final goalCaloriesAsync = ref.watch(calorieGoalProvider(userId));
-                  final progressColor = ref.watch(dailyCalorieProgressColorProvider('$userId|$today'));
-                  return goalCaloriesAsync.when(
-                    data: (goalCalories) => CalorieSummary(
-                      totalCalories: totalCalories,
-                      progressColor: progressColor,
-                    ),
-                    loading: () => ShimmerCard(isSummary: true),
-                    error: (error, _) => Text('Error: $error'),
-                  );
-                },
+    return ShellGradientBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: userId == null
+            ? const SignInRequiredView(
+                message: 'Please log in to track calories',
+              )
+            : CustomScrollView(
+                slivers: [
+                  GlassSliverAppBar(
+                    title: 'Nutrition',
+                    actions: [
+                      MealScanButton(
+                        onScanned: (meal) => context.push<bool>(
+                          TrackingRouteConstants.mealScanResult,
+                          extra: meal,
+                        ),
+                      ),
+                      WeeklyChartButton(
+                        onPressed: () => context.push(
+                          TrackingRouteConstants.weeklyCalorieChart,
+                        ),
+                      ),
+                    ],
+                  ),
+                  ...switch (ref.watch(nutritionTargetsProvider(userId))) {
+                    AsyncValue(hasValue: true) => [
+                      SliverToBoxAdapter(
+                        child: CalorieSummaryCard(userId: userId),
+                      ),
+                      const SliverToBoxAdapter(
+                        child: SizedBox(height: AppSpacing.smd),
+                      ),
+                      SliverToBoxAdapter(
+                        child: MacroSummaryRow(userId: userId),
+                      ),
+                      const SliverToBoxAdapter(
+                        child: SizedBox(height: AppSpacing.md),
+                      ),
+                      SliverToBoxAdapter(
+                        child: MealScanBanner(
+                          onScanned: (meal) => context.push<bool>(
+                            TrackingRouteConstants.mealScanResult,
+                            extra: meal,
+                          ),
+                        ),
+                      ),
+                      const SliverToBoxAdapter(
+                        child: SizedBox(height: AppSpacing.md),
+                      ),
+                      SliverToBoxAdapter(
+                        child: MealSectionList(
+                          userId: userId,
+                          onAddFood: (mealType) => context.push(
+                            TrackingRouteConstants.foodSearch,
+                            extra: mealType,
+                          ),
+                          onOpenEntry: (item) => context.push(
+                            TrackingRouteConstants.nutritionDetails,
+                            extra: item,
+                          ),
+                        ),
+                      ),
+                    ],
+                    AsyncError(:final error) => [
+                      SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: YeetErrorState(
+                          message:
+                              'Could not load your nutrition goals: $error',
+                          onRetry: () =>
+                              ref.invalidate(userDocumentProvider(userId)),
+                        ),
+                      ),
+                    ],
+                    _ => [
+                      const SliverToBoxAdapter(
+                        child: Padding(
+                          padding: EdgeInsets.only(top: AppSpacing.sm),
+                          child: MealShimmer(),
+                        ),
+                      ),
+                    ],
+                  },
+                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                ],
               ),
-              SizedBox(height: 24.h),
-              const MealSection(mealType: 'Breakfast'),
-              const MealSection(mealType: 'Morning Snack'),
-              const MealSection(mealType: 'Lunch'),
-              const MealSection(mealType: 'Evening Snack'),
-              const MealSection(mealType: 'Dinner'),
-            ],
-          ),
-        ),
       ),
     );
   }

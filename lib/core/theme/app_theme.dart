@@ -1,38 +1,59 @@
 // Main ThemeData with light/dark + extensions
+import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:yeetfit/core/navigation/app_page_transitions_builder.dart';
 import 'app_colors.dart';
-import 'app_text_styles.dart';
 
 class AppTheme {
-  static ThemeData light() {
+  static ThemeData light() => _buildTheme(AppColors.light, Brightness.light);
+
+  static ThemeData dark() => _buildTheme(AppColors.dark, Brightness.dark);
+
+  static ThemeData _buildTheme(AppColors colors, Brightness brightness) {
+    final baseTextTheme = ThemeData(brightness: brightness).textTheme;
+    final colorScheme =
+        ColorScheme.fromSeed(
+          seedColor: colors.primary,
+          brightness: brightness,
+        ).copyWith(
+          primary: colors.primary,
+          onPrimary: colors.onPrimary,
+          secondary: colors.secondary,
+          onSecondary: colors.onPrimary,
+          surface: colors.surface,
+          onSurface: colors.onSurface,
+          error: colors.error,
+          onError: colors.onPrimary,
+        );
+
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.light,
-      extensions: const [AppColors.light],
-      colorScheme: ColorScheme.light(
-        primary: AppColors.light.primary,
-        secondary: AppColors.light.secondary,
-        surface: AppColors.light.surface,
-        error: AppColors.light.error,
-        onPrimary: AppColors.light.onBackground,
-        onSecondary: AppColors.light.onBackground,
-        onSurface: AppColors.light.onSurface,
-        onError: Colors.white,
-      ),
-      scaffoldBackgroundColor: AppColors.light.background,
-      textTheme: GoogleFonts.robotoTextTheme().copyWith(
-        headlineLarge: AppTextStyles.heading.copyWith(color: AppColors.light.onBackground),
-        titleMedium: AppTextStyles.titleMedium.copyWith(color: AppColors.light.onBackground),
-        bodyMedium: AppTextStyles.bodyMedium.copyWith(color: AppColors.light.onBackground),
-        bodySmall: AppTextStyles.bodySmall.copyWith(color: AppColors.light.onBackground.withOpacity(0.6)),
-      ),
+      brightness: brightness,
+      extensions: [colors],
+      colorScheme: colorScheme,
+      scaffoldBackgroundColor: colors.background,
+      textTheme: GoogleFonts.interTextTheme(
+        baseTextTheme,
+      ).merge(_buildTextTheme(colors.onBackground, colors.textSecondary)),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.light.primary,
-          foregroundColor: AppColors.light.onBackground,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          backgroundColor: colors.primary,
+          foregroundColor: colors.onPrimary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
         ),
+      ),
+      // iOS keeps the native slide-from-right and its swipe-back gesture.
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: AppPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.windows: AppPageTransitionsBuilder(),
+          TargetPlatform.linux: AppPageTransitionsBuilder(),
+        },
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
@@ -42,51 +63,68 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: AppColors.light.borderStart),
+          side: BorderSide(color: colors.borderStart),
         ),
       ),
     );
   }
 
-  static ThemeData dark() {
-    return ThemeData(
-      useMaterial3: true,
-      brightness: Brightness.dark,
-      extensions: const [AppColors.dark],
-      colorScheme: ColorScheme.dark(
-        primary: AppColors.dark.primary,
-        secondary: AppColors.dark.secondary,
-        surface: AppColors.dark.surface,
-        error: AppColors.dark.error,
-        onPrimary: AppColors.dark.onSurface,
-        onSecondary: AppColors.dark.onSurface,
-        onSurface: AppColors.dark.onSurface,
-        onError: Colors.white,
+  /// Type scale. The core levels:
+  /// - displayLarge: headline metric numbers (steps, calories, BMI, …).
+  /// - titleMedium: card titles.
+  /// - bodyMedium: labels and secondary text.
+  /// - bodySmall: captions.
+  static TextTheme _buildTextTheme(Color primary, Color secondary) {
+    return TextTheme(
+      displayLarge: GoogleFonts.inter(
+        fontSize: 32,
+        fontWeight: FontWeight.w700,
+        color: primary,
       ),
-      scaffoldBackgroundColor: AppColors.dark.background,
-      textTheme: GoogleFonts.robotoTextTheme(ThemeData.dark().textTheme).copyWith(
-        headlineLarge: AppTextStyles.heading.copyWith(color: AppColors.dark.onSurface),
-        titleMedium: AppTextStyles.titleMedium.copyWith(color: AppColors.dark.onSurface),
-        bodyMedium: AppTextStyles.bodyMedium.copyWith(color: AppColors.dark.onSurface),
-        bodySmall: AppTextStyles.bodySmall.copyWith(color: Colors.white.withOpacity(0.6)),
+      displayMedium: GoogleFonts.inter(
+        fontSize: 28,
+        fontWeight: FontWeight.w700,
+        color: primary,
       ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.dark.primary,
-          foregroundColor: AppColors.dark.onSurface,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        ),
+      headlineLarge: GoogleFonts.inter(
+        fontSize: 24,
+        fontWeight: FontWeight.w600,
+        color: primary,
       ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+      headlineMedium: GoogleFonts.inter(
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+        color: primary,
       ),
-      cardTheme: CardThemeData(
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: AppColors.dark.borderStart),
-        ),
+      titleLarge: GoogleFonts.inter(
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+        color: primary,
+      ),
+      titleMedium: GoogleFonts.inter(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: primary,
+      ),
+      bodyLarge: GoogleFonts.inter(
+        fontSize: 16,
+        fontWeight: FontWeight.w400,
+        color: primary,
+      ),
+      bodyMedium: GoogleFonts.inter(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        color: secondary,
+      ),
+      bodySmall: GoogleFonts.inter(
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        color: secondary,
+      ),
+      labelLarge: GoogleFonts.inter(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: primary,
       ),
     );
   }

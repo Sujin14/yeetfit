@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../../../shared/theme/theme.dart';
+import 'package:yeetfit/shared/widgets/yeet_error_state.dart';
 import '../providers/plan_provider.dart';
-import '../widgets/plan_list_item.dart';
+import '../widgets/plan_favorites_toggle.dart';
+import '../widgets/plan_list_app_bar.dart';
+import '../widgets/plan_list_message.dart';
+import '../widgets/plan_list_shimmer.dart';
+import '../widgets/plan_list_view.dart';
+import 'package:yeetfit/core/theme/app_colors.dart';
+import 'package:yeetfit/core/routes/plans_route_constants.dart';
+import 'package:yeetfit/core/theme/app_spacing.dart';
 
 class PlanListScreen extends ConsumerWidget {
   final String category;
@@ -14,68 +19,52 @@ class PlanListScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final plansAsync = ref.watch(
-      category == 'diet' ? allDietPlansProvider : allWorkoutPlansProvider,
-    );
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final isDiet = category == 'diet';
+    final label = isDiet ? 'diet' : 'workout';
+    final favoritesOnly = ref.watch(planListFavoritesOnlyProvider(category));
+    final plansAsync = ref.watch(planListPlansProvider(category));
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: AppTheme.colors['transparent'],
-        elevation: 0,
-        centerTitle: true,
-        title: Text(
-          category == 'diet' ? 'Diet Plans' : 'Workout Plans',
-          style: GoogleFonts.roboto(
-            fontSize: 28.sp,
-            fontWeight: FontWeight.bold,
-            color: AppTheme.colors['primaryText'],
+      appBar: PlanListAppBar(
+        title: isDiet ? 'Diet Plans' : 'Workout Plans',
+        actions: [
+          PlanFavoritesToggle(
+            isActive: favoritesOnly,
+            onToggle: () => ref
+                .read(planListFavoritesOnlyProvider(category).notifier)
+                .toggle(),
           ),
-        ),
+          const SizedBox(width: AppSpacing.smd),
+        ],
       ),
       body: SafeArea(
         child: plansAsync.when(
-          data: (plans) {
-            if (plans.isEmpty) {
-              return Center(
-                child: Text(
-                  'No ${category == 'diet' ? 'diet' : 'workout'} plans have been assigned.',
-                  style: GoogleFonts.roboto(
-                    fontSize: 16.sp,
-                    color: AppTheme.colors['onSurface']!.withOpacity(0.8),
-                  ),
+          data: (plans) => plans.isEmpty
+              ? PlanListMessage(
+                  message: favoritesOnly
+                      ? 'No favourite $label plans yet.'
+                      : 'No $label plans have been assigned.',
+                  color: colors.onSurface.withValues(alpha: 0.8),
+                )
+              : PlanListView(
+                  plans: plans,
+                  onPlanTap: (plan) {
+                    final planId = plan.id;
+                    if (planId == null) return;
+                    context.push(
+                      PlansRouteConstants.detailPath(category, planId),
+                    );
+                  },
                 ),
-              );
-            }
-
-            return ListView.builder(
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
-              itemCount: plans.length,
-              itemBuilder: (context, index) {
-                final plan = plans[index];
-                return Padding(
-                  padding: EdgeInsets.only(bottom: 16.h),
-                  child: PlanListItem(
-                    plan: plan,
-                    onTap: () {
-                      context.push(
-                        '/plans/$category/${plan.id}',
-                        extra: {'plan': plan, 'category': category},
-                      );
-                    },
-                  ),
-                );
-              },
-            );
-          },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => Center(
-            child: Text(
-              'Error: $error',
-              style: GoogleFonts.roboto(
-                fontSize: 16.sp,
-                color: AppTheme.colors['error'],
-              ),
-            ),
+          loading: () => const PlanListShimmer(),
+          error: (error, _) => YeetErrorState(
+            message: 'Could not load plans: $error',
+            onRetry: () => ref
+              ..invalidate(
+                isDiet ? allDietPlansProvider : allWorkoutPlansProvider,
+              )
+              ..invalidate(favoritePlansProvider),
           ),
         ),
       ),

@@ -1,279 +1,152 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'dart:async';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../../../shared/theme/theme.dart';
 import '../../data/datasources/water_datasource.dart';
-import '../../data/model/water_model.dart';
+import '../../domain/entities/water_data.dart';
 import '../../data/repositories/water_repository_impl.dart';
 import '../../domain/repositories/water_repository.dart';
-import '../../domain/usecases/add_glass.dart';
-import '../../domain/usecases/get_water_data.dart';
-import '../../domain/usecases/get_weekly_water_data.dart';
-import '../../domain/usecases/remove_glass.dart';
-import '../../domain/usecases/set_water_goal.dart';
 
-// Provider for Firebase Auth instance.
-final firebaseAuthProvider = Provider((ref) => FirebaseAuth.instance);
+String _todayKey() => DateTime.now().toIso8601String().split('T')[0];
 
-// Provider for current authenticated user ID.
-final authUserIdProvider = Provider<String?>((ref) {
-  final auth = ref.watch(firebaseAuthProvider);
-  return auth.currentUser?.uid;
-});
-
-// Provider for water repository.
 final waterRepositoryProvider = Provider<WaterRepository>(
   (ref) => WaterRepositoryImpl(WaterDataSource()),
 );
 
-// Use case providers.
-final addGlassProvider = Provider<AddGlass>(
-  (ref) => AddGlass(ref.read(waterRepositoryProvider)),
-);
+/// Today's water document: glasses consumed and the daily goal.
+final todayWaterProvider = AsyncNotifierProvider.autoDispose
+    .family<TodayWaterNotifier, WaterData, String>(TodayWaterNotifier.new);
 
-final removeGlassProvider = Provider<RemoveGlass>(
-  (ref) => RemoveGlass(ref.read(waterRepositoryProvider)),
-);
+/// Last seven days of saved entries, fetched once per screen visit.
+final waterHistoryProvider = FutureProvider.autoDispose
+    .family<List<WaterData>, String>(
+      (ref, userId) =>
+          ref.read(waterRepositoryProvider).getWeeklyWaterData(userId),
+    );
 
-final setWaterGoalProvider = Provider<SetWaterGoal>(
-  (ref) => SetWaterGoal(ref.read(waterRepositoryProvider)),
-);
-
-final getWaterDataProvider = Provider<GetWaterData>(
-  (ref) => GetWaterData(ref.read(waterRepositoryProvider)),
-);
-
-final getWeeklyWaterDataProvider = Provider<GetWeeklyWaterData>(
-  (ref) => GetWeeklyWaterData(ref.read(waterRepositoryProvider)),
-);
-
-// Glasses consumed notifier.
-final glassesConsumedProvider = StateNotifierProvider.autoDispose
-    .family<GlassesConsumedNotifier, AsyncValue<int>, String>(
-  (ref, userId) => GlassesConsumedNotifier(
-    ref,
-    ref.read(getWaterDataProvider),
-    ref.read(addGlassProvider),
-    ref.read(removeGlassProvider),
-    userId,
-  ),
-);
-
-// Water goal notifier.
-final waterGoalProvider = StateNotifierProvider.autoDispose
-    .family<WaterGoalNotifier, AsyncValue<int>, String>(
-  (ref, userId) => WaterGoalNotifier(
-    ref,
-    ref.read(waterRepositoryProvider),
-    ref.read(setWaterGoalProvider),
-    userId,
-  ),
-);
-
-// Daily progress color for date.
-final dailyProgressColorProvider = Provider.autoDispose.family<Color, String>(
-  (ref, userIdAndDate) {
-    final parts = userIdAndDate.split('|');
-    final userId = parts[0];
-    final date = parts[1];
-    final weeklyData = ref.watch(weeklyWaterDataProvider(userId)).value ?? [];
-    final today = DateTime.now().toIso8601String().split('T')[0];
-    final glassesConsumed = date == today
-        ? ref.watch(glassesConsumedProvider(userId).select((value) => value.value ?? 0))
-        : (weeklyData.firstWhere(
-            (entry) => entry.date == date,
-            orElse: () => WaterData(date: date, glassesConsumed: 0, goalGlasses: 8),
-          ).glassesConsumed);
-    final goalGlasses = date == today
-        ? ref.watch(waterGoalProvider(userId).select((value) => value.value ?? 8))
-        : (weeklyData.firstWhere(
-            (entry) => entry.date == date,
-            orElse: () => WaterData(date: date, glassesConsumed: 0, goalGlasses: 8),
-          ).goalGlasses);
-    final progress = goalGlasses > 0 ? glassesConsumed / goalGlasses : 0.0;
-
-    return progress >= 1.0
-        ? AppTheme.colors['fullProgress']!
-        : progress >= 0.75
-            ? AppTheme.colors['threeQuarterProgress']!
-            : progress >= 0.5
-                ? AppTheme.colors['halfProgress']!
-                : progress >= 0.25
-                    ? AppTheme.colors['quarterProgress']!
-                    : AppTheme.colors['noProgress']!;
-  },
-);
-
-// Weekly water data, merged with today.
-final weeklyWaterDataProvider = FutureProvider.autoDispose.family<List<WaterData>, String>(
-  (ref, userId) async {
-    final weeklyData = await ref.read(getWeeklyWaterDataProvider).call(userId);
-    final today = DateTime.now().toIso8601String().split('T')[0];
-    final glassesConsumed = ref.watch(glassesConsumedProvider(userId).select((value) => value.value ?? 0));
-    final goalGlasses = ref.watch(waterGoalProvider(userId).select((value) => value.value ?? 8));
-
-    final updatedData = weeklyData.where((data) => data.date != today).toList()
-      ..add(WaterData(
-        date: today,
-        glassesConsumed: glassesConsumed,
-        goalGlasses: goalGlasses,
-      ));
-    updatedData.sort((a, b) => a.date.compareTo(b.date));
-    return updatedData;
-  },
-);
+/// [waterHistoryProvider] with today's live entry merged in, sorted by date.
+final weeklyWaterDataProvider = Provider.autoDispose
+    .family<AsyncValue<List<WaterData>>, String>((ref, userId) {
+      final today = ref.watch(todayWaterProvider(userId)).value;
+      return ref
+          .watch(waterHistoryProvider(userId))
+          .whenData(
+            (history) => [
+              for (final entry in history)
+                if (entry.date != today?.date) entry,
+              ?today,
+            ]..sort((a, b) => a.date.compareTo(b.date)),
+          );
+    });
 
 // Navigation notifier for success page.
-final waterTrackingNavigationProvider = StateNotifierProvider.autoDispose
+final waterTrackingNavigationProvider = NotifierProvider.autoDispose
     .family<WaterTrackingNavigationNotifier, bool, String>(
-  (ref, userId) => WaterTrackingNavigationNotifier(ref, userId),
-);
+      WaterTrackingNavigationNotifier.new,
+    );
 
-// Notifier for glasses consumed.
-class GlassesConsumedNotifier extends StateNotifier<AsyncValue<int>> {
-  final Ref _ref;
-  final GetWaterData _getWaterData;
-  final AddGlass _addGlass;
-  final RemoveGlass _removeGlass;
-  final String _userId;
-  String? _lastDate;
+class TodayWaterNotifier extends AsyncNotifier<WaterData> {
+  final String userId;
 
-  GlassesConsumedNotifier(this._ref, this._getWaterData, this._addGlass, this._removeGlass, this._userId)
-      : super(const AsyncValue.loading()) {
-    _fetchGlassesConsumed();
+  TodayWaterNotifier(this.userId);
+
+  WaterRepository get _repository => ref.read(waterRepositoryProvider);
+
+  @override
+  Future<WaterData> build() => _fetch();
+
+  Future<WaterData> _fetch() async {
+    final waterData = await _repository.getWaterData(userId);
+    return waterData ??
+        WaterData(date: _todayKey(), glassesConsumed: 0, goalGlasses: 8);
   }
 
-  Future<void> _fetchGlassesConsumed() async {
+  // No loading reset: the screen keeps showing the last count while a
+  // write's refresh is in flight instead of flashing its skeleton.
+  Future<void> refresh() async {
+    final result = await AsyncValue.guard(_fetch);
+    if (ref.mounted) state = result;
+  }
+
+  Future<void> addGlass() => _writeThenRefresh(_repository.addGlass);
+
+  Future<void> removeGlass() => _writeThenRefresh(_repository.removeGlass);
+
+  Future<void> _writeThenRefresh(Future<void> Function(String) write) async {
     try {
-      state = const AsyncValue.loading();
-      final waterData = await _getWaterData.call(_userId);
-      final newValue = waterData?.glassesConsumed ?? 0;
-      _lastDate = waterData?.date ?? DateTime.now().toIso8601String().split('T')[0];
-      state = AsyncValue.data(newValue);
+      await write(userId);
+      await refresh();
     } catch (e, stackTrace) {
-      state = AsyncValue.error(e, stackTrace);
-    }
-  }
-
-  Future<void> addGlass() async {
-    try {
-      await _addGlass.call(_userId);
-      await _fetchGlassesConsumed();
-    } catch (e, stackTrace) {
-      state = AsyncValue.error(e, stackTrace);
-    }
-  }
-
-  Future<void> removeGlass() async {
-    try {
-      await _removeGlass.call(_userId);
-      await _fetchGlassesConsumed();
-    } catch (e, stackTrace) {
-      state = AsyncValue.error(e, stackTrace);
-    }
-  }
-
-  String? get lastDate => _lastDate;
-}
-
-// Notifier for water goal.
-class WaterGoalNotifier extends StateNotifier<AsyncValue<int>> {
-  final Ref _ref;
-  final WaterRepository _repository;
-  final SetWaterGoal _setWaterGoal;
-  final String _userId;
-
-  WaterGoalNotifier(this._ref, this._repository, this._setWaterGoal, this._userId)
-      : super(const AsyncValue.loading()) {
-    _fetchGoal();
-  }
-
-  Future<void> _fetchGoal() async {
-    try {
-      state = const AsyncValue.loading();
-      final goal = await _repository.getWaterGoal(_userId);
-      state = AsyncValue.data(goal);
-    } catch (e, stackTrace) {
-      state = AsyncValue.error(e, stackTrace);
-    }
-  }
-
-  Future<void> setGoal(int newGoal) async {
-    try {
-      await _setWaterGoal.call(_userId, newGoal);
-      await _fetchGoal();
-    } catch (e, stackTrace) {
-      state = AsyncValue.error(e, stackTrace);
+      if (ref.mounted) state = AsyncError(e, stackTrace);
     }
   }
 }
 
-// Notifier for success navigation.
-class WaterTrackingNavigationNotifier extends StateNotifier<bool> {
-  final Ref _ref;
-  final String _userId;
+/// Flips to `true` when a glass added on this screen crosses the daily goal.
+///
+/// The provider is autoDispose and is recreated every time the screen opens,
+/// so it must not fire just because the reloaded count is already at the
+/// goal; only a live below → at-or-above transition counts.
+class WaterTrackingNavigationNotifier extends Notifier<bool> {
+  final String userId;
+  int? _lastConsumed;
   String? _lastNavigatedDate;
 
-  WaterTrackingNavigationNotifier(this._ref, this._userId) : super(false) {
-    _listenToGlassesConsumed();
-  }
+  WaterTrackingNavigationNotifier(this.userId);
 
-  void _listenToGlassesConsumed() {
-    _ref.listen(glassesConsumedProvider(_userId), (previous, next) {
-      final consumed = next.value ?? 0;
-      final goal = _ref.read(waterGoalProvider(_userId)).value ?? 8;
+  @override
+  bool build() {
+    ref.listen<AsyncValue<WaterData>>(todayWaterProvider(userId), (_, next) {
+      final water = next.value;
+      // Loading/error states carry no count; keep the last known one.
+      if (water == null) return;
+      final previousConsumed = _lastConsumed;
+      final consumed = water.glassesConsumed;
+      final goal = water.goalGlasses;
+      _lastConsumed = consumed;
+      if (previousConsumed == null || goal <= 0) return;
 
-      final today = DateTime.now().toIso8601String().split('T')[0];
-      final lastDate = _ref.read(glassesConsumedProvider(_userId).notifier).lastDate;
-
-      if (lastDate != today) {
-        state = false;
-        _lastNavigatedDate = null;
-      }
-
-      if (consumed == goal && !state && _lastNavigatedDate != today) {
-        state = true;
+      final today = _todayKey();
+      if (previousConsumed < goal &&
+          consumed >= goal &&
+          _lastNavigatedDate != today) {
         _lastNavigatedDate = today;
+        state = true;
       }
     });
+    return false;
   }
 
-  void reset() {
-    state = false;
-  }
+  void reset() => state = false;
 }
 
+// Saves the daily water goal. `data(true)` once saved; errors carry a
+// user-facing message.
+final waterGoalControllerProvider = AsyncNotifierProvider.autoDispose
+    .family<WaterGoalController, bool, String>(WaterGoalController.new);
 
-// State provider for water goal dialog.
-final waterGoalDialogStateProvider = StateProvider.autoDispose.family<WaterGoalDialogState, String>(
-  (ref, userId) => WaterGoalDialogState(ref, userId),
-);
-
-// State for water goal dialog.
-class WaterGoalDialogState {
-  final Ref ref;
+class WaterGoalController extends AsyncNotifier<bool> {
   final String userId;
-  final TextEditingController controller;
 
-  WaterGoalDialogState(this.ref, this.userId)
-      : controller = TextEditingController(
-          text: ref.read(waterGoalProvider(userId)).value?.toString() ?? '8',
-        );
+  WaterGoalController(this.userId);
 
-  void submitGoal(BuildContext context) {
-    final newGoal = int.tryParse(controller.text);
-    if (newGoal != null && newGoal > 0) {
-      ref.read(waterGoalProvider(userId).notifier).setGoal(newGoal);
-      if (context.mounted) context.pop();
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid number')),
-      );
+  @override
+  FutureOr<bool> build() => false;
+
+  Future<void> submit(String input) async {
+    if (state.isLoading) return;
+    final newGoal = int.tryParse(input.trim());
+    if (newGoal == null || newGoal <= 0) {
+      state = AsyncError('Please enter a valid number', StackTrace.current);
+      return;
     }
-  }
-
-  void dispose() {
-    controller.dispose();
+    state = const AsyncLoading();
+    try {
+      await ref.read(waterRepositoryProvider).setWaterGoal(userId, newGoal);
+      await ref.read(todayWaterProvider(userId).notifier).refresh();
+      if (ref.mounted) state = const AsyncData(true);
+    } catch (e, stackTrace) {
+      if (ref.mounted) {
+        state = AsyncError('Failed to save water goal: $e', stackTrace);
+      }
+    }
   }
 }

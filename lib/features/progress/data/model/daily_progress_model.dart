@@ -1,97 +1,71 @@
+import '../../domain/entities/progress_metric.dart';
 
+/// Raw per-metric documents for one day, keyed by [ProgressMetric].
 class DailyProgressModel {
   final String date; // yyyy-MM-dd
-  final Map<String, Map<String, dynamic>> metrics;
+  final Map<ProgressMetric, Map<String, dynamic>> metrics;
 
   DailyProgressModel({required this.date, required this.metrics});
 
-  factory DailyProgressModel.fromFirestore(
-    String date,
-    Map<String, Map<String, dynamic>> metricData,
+  static double _getNum(
+    Map<String, dynamic> map,
+    List<String> keys,
+    double fallback,
   ) {
-    return DailyProgressModel(date: date, metrics: metricData);
-  }
-
-  double _getNum(Map<String, dynamic>? map, List<String> keys, double fallback) {
-    if (map == null) return fallback;
-    for (final k in keys) {
-      final v = map[k];
-      if (v is num) return v.toDouble();
+    for (final key in keys) {
+      final value = map[key];
+      if (value is num) return value.toDouble();
     }
     return fallback;
   }
 
-  double getCompletionRate({String? metric}) {
-    if (metrics.isEmpty) {
-      return 0.0;
+  static double _ratio(double value, double goal) =>
+      goal > 0 ? (value / goal).clamp(0.0, 1.0) : 0.0;
+
+  /// 0–1 completion for [metric], or null when it wasn't logged that day.
+  /// Calories need the profile's [calorieGoal]; without one they're null.
+  ///
+  /// For [ProgressMetric.all] this is the mean over the fitness metrics, with
+  /// unlogged ones counted as 0, so one finished metric alone can't make the
+  /// day look complete. Calories are left out while there's no goal.
+  double? getCompletionRate(ProgressMetric metric, {int? calorieGoal}) {
+    if (metric == ProgressMetric.all) {
+      final hasCalorieGoal = (calorieGoal ?? 0) > 0;
+      final tracked = [
+        for (final m in ProgressMetric.fitness)
+          if (m != ProgressMetric.calories || hasCalorieGoal) m,
+      ];
+      final logged = tracked.where(metrics.containsKey);
+      if (logged.isEmpty) return null;
+      final total = logged.fold<double>(
+        0,
+        (sum, m) => sum + getCompletionRate(m, calorieGoal: calorieGoal)!,
+      );
+      return total / tracked.length;
     }
 
-    if (metric != null) {
-      final m = metric.toLowerCase();
-      final data = metrics[m];
-      if (data == null) {
-        return 0.0;
-      }
+    final data = metrics[metric];
+    if (data == null) return null;
 
-      double result = 0.0;
-      switch (m) {
-        case 'steps':
-          {
-            final steps = _getNum(data, ['steps', 'count'], 0.0);
-            final goalSteps = _getNum(data, ['goalSteps', 'target', 'value'], 10000.0);
-            result = goalSteps > 0 ? (steps / goalSteps).clamp(0.0, 1.0) : 0.0;
-            return result;
-          }
-        case 'water':
-          {
-            final drank = _getNum(data, ['glassesConsumed', 'glasses'], 0.0);
-            final goal = _getNum(data, ['goalGlasses', 'target', 'value'], 8.0);
-            result = goal > 0 ? (drank / goal).clamp(0.0, 1.0) : 0.0;
-            return result;
-          }
-        case 'sleep':
-          {
-            final hours = _getNum(data, ['duration', 'hours'], 0.0);
-            final goal = _getNum(data, ['goalHours', 'target', 'value'], 8.0);
-            result = goal > 0 ? (hours / goal).clamp(0.0, 1.0) : 0.0;
-            return result;
-          }
-        case 'weight':
-          {
-            final current = _getNum(data, ['currentWeight', 'weight'], 0.0);
-            final goal = _getNum(data, ['goalWeight', 'target', 'value'], 0.0);
-            final initial = _getNum(data, ['initialWeight', 'start'], current);
-
-            if (goal <= 0 || current <= 0 || initial <= 0) {
-              return 0.0;
-            }
-
-            final traveled = (initial - current).abs();
-            final total = (initial - goal).abs();
-            result = total > 0 ? (traveled / total).clamp(0.0, 1.0) : 0.0;
-            return result;
-          }
-        case 'food':
-          {
-            final kcal = _getNum(data, ['calories', 'kcal'], 0.0);
-            final kcalGoal = _getNum(data, ['caloriesGoal', 'goalCalories'], 1750.0);
-            result = kcalGoal > 0 ? (kcal / kcalGoal).clamp(0.0, 1.0) : 0.0;
-            return result;
-          }
-        default:
-          return 0.0;
-      }
-    }
-
-    // Average across available metrics
-    double total = 0.0;
-    int count = 0;
-    for (final key in metrics.keys) {
-      final rate = getCompletionRate(metric: key);
-      total += rate;
-      count++;
-    }
-    final average = count > 0 ? total / count : 0.0;
-    return average;
+    return switch (metric) {
+      ProgressMetric.steps => _ratio(
+        _getNum(data, ['steps', 'count'], 0.0),
+        _getNum(data, ['goalSteps', 'target', 'value'], 10000.0),
+      ),
+      ProgressMetric.water => _ratio(
+        _getNum(data, ['glassesConsumed', 'glasses'], 0.0),
+        _getNum(data, ['goalGlasses', 'target', 'value'], 8.0),
+      ),
+      ProgressMetric.sleep => _ratio(
+        _getNum(data, ['duration', 'hours'], 0.0),
+        _getNum(data, ['goalHours', 'target', 'value'], 8.0),
+      ),
+      ProgressMetric.calories =>
+        calorieGoal == null || calorieGoal <= 0
+            ? null
+            : _ratio(_getNum(data, ['calories'], 0.0), calorieGoal.toDouble()),
+      ProgressMetric.mood => _ratio(_getNum(data, ['score'], 0.0), 5.0),
+      ProgressMetric.all => null,
+    };
   }
 }

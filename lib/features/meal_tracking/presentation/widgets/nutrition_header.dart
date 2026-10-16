@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:yeetfit/shared/theme/theme.dart';
-import '../../data/model/food_model.dart';
+import 'package:yeetfit/core/theme/app_colors.dart';
+import '../../domain/entities/food_item.dart';
+import 'food_thumbnail.dart';
+import 'package:yeetfit/core/theme/app_spacing.dart';
 
 class NutritionHeader extends StatelessWidget {
   final FoodItem foodItem;
@@ -11,62 +11,33 @@ class NutritionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final isLargeScreen = size.width > 800;
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final textTheme = Theme.of(context).textTheme;
 
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppTheme.colors['teal']!.withOpacity(0.3),
-            AppTheme.colors['indigo']!.withOpacity(0.3),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      padding: EdgeInsets.symmetric(
-        vertical: 12.h,
-        horizontal: isLargeScreen ? 60.w : size.width * 0.05,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.screenEdge,
+        AppSpacing.sm,
+        AppSpacing.screenEdge,
+        AppSpacing.md,
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          SizedBox(
-            width: double.infinity,
-            height: 200.h,
-            child: foodItem.image != null
-                ? Image.network(
-                    foodItem.image!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      color: AppTheme.colors['transparent']!.withOpacity(0.3),
-                    ),
-                  )
-                : Container(
-                    color: AppTheme.colors['transparent']!.withOpacity(0.3),
-                  ),
-          ),
-          SizedBox(height: 16.h),
+          FoodThumbnail(imageUrl: foodItem.image, size: 112),
+          const SizedBox(height: AppSpacing.md),
           Text(
             foodItem.foodName,
-            style: GoogleFonts.righteous(
-              fontSize: isLargeScreen ? 32.sp : 24.sp,
-              color: AppTheme.colors['onSurface'],
-            ),
-            maxLines: 1,
+            textAlign: TextAlign.center,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 4.h),
-          Text(
-            'Nutritional Details (${foodItem.quantity.toStringAsFixed(0)}g)',
-            style: GoogleFonts.roboto(
-              fontSize: isLargeScreen ? 18.sp : 14.sp,
-              color: AppTheme.colors['onSurface']!.withOpacity(0.7),
+            style: textTheme.headlineMedium!.copyWith(
+              color: colors.onBackground,
             ),
-            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            '${foodItem.quantity.round()} g · ${foodItem.mealType}',
+            style: textTheme.bodyMedium!.copyWith(color: colors.textSecondary),
           ),
         ],
       ),

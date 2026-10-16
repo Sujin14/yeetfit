@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yeetfit/shared/providers/auth_providers.dart';
+import 'package:yeetfit/shared/widgets/shell_gradient_background.dart';
+import 'package:yeetfit/shared/widgets/sign_in_required_view.dart';
+import 'package:yeetfit/shared/widgets/tracking_shimmer.dart';
+import 'package:yeetfit/shared/widgets/tracking_status_view.dart';
+import 'package:yeetfit/shared/widgets/yeet_error_state.dart';
 import '../providers/sleep_provider.dart';
-import '../widgets/sleep_animation.dart';
-import '../widgets/sleep_app_bar.dart';
-import '../widgets/sleep_chart_section.dart';
-import '../widgets/sleep_entry_dialog.dart';
-import '../widgets/sleep_progress_section.dart';
-import '../widgets/sleep_time_card.dart';
-import '../widgets/sleep_tips_card.dart';
-import '../../../../shared/widgets/entry_dialog.dart';
-import '../../../../shared/theme/theme.dart';
+import '../widgets/sleep_entry_sheet.dart';
+import '../widgets/sleep_tracking_body.dart';
 
 // Main screen for sleep tracking.
 class SleepTrackingScreen extends ConsumerWidget {
@@ -20,43 +18,34 @@ class SleepTrackingScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userId = ref.watch(authUserIdProvider);
     if (userId == null) {
-      return const Scaffold(
-        body: Center(child: Text('Please log in to track sleep')),
+      return const ShellGradientBackground(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: SignInRequiredView(message: 'Please log in to track sleep'),
+        ),
       );
     }
 
-    return Scaffold(
-      appBar: const SleepAppBar(),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 600),
-          child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SleepAnimation(),
-                SizedBox(height: 25.h),
-                const SleepProgressSection(),
-                SizedBox(height: 30.h),
-                SleepTimeCards(userId: userId),
-                SizedBox(height: 20.h),
-                const SleepTipsCard(),
-                SizedBox(height: 20.h),
-                SleepChartSection(userId: userId),
-              ],
+    return ShellGradientBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: switch (ref.watch(todaySleepProvider(userId))) {
+          AsyncValue(hasValue: true) => SleepTrackingBody(
+            userId: userId,
+            onLogSleep: () => SleepEntrySheet.show(context, userId: userId),
+          ),
+          AsyncError(:final error) => TrackingStatusView(
+            title: 'Sleep',
+            child: YeetErrorState(
+              message: 'Could not load sleep data: $error',
+              onRetry: () => ref.invalidate(todaySleepProvider(userId)),
             ),
           ),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: AppTheme.colors['indigo']!.withOpacity(0.7),
-        onPressed: () => entryDialog(
-          context: context,
-          ref: ref,
-          dialog: SleepEntryDialog(userId: userId),
-        ),
-        child: Icon(Icons.bed_rounded, color: AppTheme.colors['white']),
+          _ => const TrackingStatusView(
+            title: 'Sleep',
+            child: TrackingShimmer(),
+          ),
+        },
       ),
     );
   }

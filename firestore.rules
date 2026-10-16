@@ -1,0 +1,431 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isFavoriteOnlyUpdate() {
+      return request.resource.data.diff(resource.data).changedKeys().hasOnly(['isFavorite']);
+    }
+
+    function isCreatingAsParticipant() {
+      return isSignedIn() &&
+        request.resource.data.participants is list &&
+        request.auth.uid in request.resource.data.participants;
+    }
+
+    function containsAdmin(participants) {
+      return participants.size() == 2 &&
+        (participants[0] == request.auth.uid || participants[1] == request.auth.uid) &&
+        (
+          (exists(/databases/$(database)/documents/users/$(participants[0])) &&
+           get(/databases/$(database)/documents/users/$(participants[0])).data.role == 'admin') ||
+          (exists(/databases/$(database)/documents/users/$(participants[1])) &&
+           get(/databases/$(database)/documents/users/$(participants[1])).data.role == 'admin')
+        );
+    }
+
+    // PENDING USERS
+    match /pending_users/{userId} {
+      allow read, write, delete: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    // USERS
+    match /users/{userId} {
+      // A missing doc is readable so chats can tell a deleted account apart
+      // from a permission problem.
+      allow read: if isSignedIn() && (
+        resource == null ||
+        request.auth.uid == userId ||
+        isAdmin() ||
+        resource.data.role == 'admin'
+      );
+
+      allow create: if isSignedIn() && request.auth.uid == userId &&
+        !('role' in request.resource.data);
+
+      allow update: if isSignedIn() && (request.auth.uid == userId || isAdmin()) &&
+        (isAdmin() || !request.resource.data.diff(resource.data)
+          .affectedKeys().hasAny(['role']));
+
+      allow delete: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+
+      // GOALS
+      match /goals/{goalType} {
+        allow read, write, list, get: if isSignedIn() &&
+          (request.auth.uid == userId || isAdmin());
+      }
+
+      // PROGRESS
+      match /progress/{progressId} {
+        allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+        allow write: if isSignedIn() && request.auth.uid == userId;
+
+        match /daily_goals/{dateDoc} {
+          allow read, write, list, get: if isSignedIn() &&
+            (request.auth.uid == userId || isAdmin());
+        }
+
+        match /sleep/{dateDoc} {
+          allow read, write, list, get: if isSignedIn() &&
+            (request.auth.uid == userId || isAdmin());
+        }
+
+        match /steps/{dateDoc} {
+          allow read, write, list, get: if isSignedIn() &&
+            (request.auth.uid == userId || isAdmin());
+        }
+
+        match /weight/{dateDoc} {
+          allow read, write, list, get: if isSignedIn() &&
+            (request.auth.uid == userId || isAdmin());
+        }
+
+        match /water/{dateDoc} {
+          allow read, write, list, get: if isSignedIn() &&
+            (request.auth.uid == userId || isAdmin());
+        }
+
+        // WORKOUT LOG — one document per day, written by the client only;
+        // coaches (admins) may read it.
+        match /workout/{dateDoc} {
+          allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+          allow delete: if isSignedIn() && request.auth.uid == userId;
+          allow create, update: if isSignedIn() &&
+            request.auth.uid == userId &&
+            request.resource.data.keys().hasOnly([
+              'type', 'durationMinutes', 'intensity', 'fromPlan', 'planId',
+              'loggedAt'
+            ]) &&
+            request.resource.data.type is string &&
+            request.resource.data.durationMinutes is int &&
+            request.resource.data.durationMinutes >= 10 &&
+            request.resource.data.durationMinutes <= 180 &&
+            request.resource.data.intensity in ['light', 'moderate', 'intense'] &&
+            request.resource.data.fromPlan is bool;
+        }
+
+        match /food/{mealType} {
+          allow read, write, list, get: if isSignedIn() &&
+            (request.auth.uid == userId || isAdmin());
+
+          match /{dateDoc} {
+            allow read, write, list, get: if isSignedIn() &&
+              (request.auth.uid == userId || isAdmin());
+          }
+        }
+
+        match /food/food/{dateDoc} {
+          allow read, write, list, get: if isSignedIn() &&
+            (request.auth.uid == userId || isAdmin());
+
+          match /meals/{mealDoc} {
+            allow read, write, list, get: if isSignedIn() &&
+              (request.auth.uid == userId || isAdmin());
+          }
+        }
+
+        match /food/{dateDoc} {
+          allow read, write, list, get: if isSignedIn() &&
+            (request.auth.uid == userId || isAdmin());
+        }
+
+        match /food/daily_goals/{dateDoc} {
+          allow read, write, list, get: if isSignedIn() &&
+            (request.auth.uid == userId || isAdmin());
+        }
+      }
+
+      // PLANS (user subcollection – legacy path kept for YeetFit compatibility)
+      match /plans/{planId} {
+        allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+        allow write: if isAdmin();
+      }
+
+      // CHATBOT HISTORY
+      match /chatbot/{chatbotId} {
+        allow read, write: if isSignedIn() &&
+          (request.auth.uid == userId || isAdmin());
+      }
+
+      // DIETS
+      match /diets/{dietId} {
+        allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+        allow write: if isAdmin();
+        allow update: if isSignedIn() && request.auth.uid == userId &&
+          isFavoriteOnlyUpdate();
+      }
+
+      // WORKOUTS
+      match /workouts/{workoutId} {
+        allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+        allow write: if isAdmin();
+        allow update: if isSignedIn() && request.auth.uid == userId &&
+          isFavoriteOnlyUpdate();
+      }
+
+      // RECOVERY SCORE — written by the client; coaches (admins) may read it.
+      match /recovery/{dateDoc} {
+        allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+        allow write: if isSignedIn() && request.auth.uid == userId;
+      }
+
+      // MOOD LOG
+      match /mood/{dateDoc} {
+        allow read, write: if isSignedIn() && request.auth.uid == userId;
+      }
+
+      // USER SETTINGS
+      match /settings/{settingDoc} {
+        allow read, write: if isSignedIn() && request.auth.uid == userId;
+      }
+    }
+
+    // COLLECTION GROUP QUERIES – favorites
+    match /{path=**}/diets/{document} {
+      allow read: if isSignedIn() &&
+        resource.data.userId == request.auth.uid &&
+        resource.data.isFavorite == true;
+    }
+
+    match /{path=**}/workouts/{document} {
+      allow read: if isSignedIn() &&
+        resource.data.userId == request.auth.uid &&
+        resource.data.isFavorite == true;
+    }
+
+    // ─── YEETCOACH COLLECTIONS ───────────────────────────────────────────────
+
+    // COACH PROFILES
+    // Cloud Functions write isVerified, averageRating, totalClients.
+    // The coach may update their own editable fields only.
+    match /coaches/{coachUid} {
+      // Any signed-in user can read coach profiles (needed for browse/search).
+      allow read: if isSignedIn();
+
+      // Only the coach who owns the document may write it,
+      // and they may not touch CF-managed fields.
+      allow create: if isSignedIn() &&
+        request.auth.uid == coachUid &&
+        request.resource.data.keys().hasOnly([
+          'uid', 'name', 'email', 'bio', 'profileImageUrl',
+          'specializations', 'certifications', 'isActive',
+          'createdAt', 'updatedAt'
+        ]) &&
+        !request.resource.data.keys().hasAny(
+          ['isVerified', 'averageRating', 'totalClients']
+        );
+
+      allow update: if isSignedIn() &&
+        request.auth.uid == coachUid &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(
+          ['isVerified', 'averageRating', 'totalClients']
+        );
+
+      // Deletion only via deleteAccount Cloud Function.
+      allow delete: if false;
+
+      // Private per-client notes, visible only to the coach.
+      match /client_notes/{clientUid} {
+        allow read, write: if isSignedIn() && request.auth.uid == coachUid;
+      }
+    }
+
+    // CLIENT PROFILES
+    // A client owns their document; their coach may read it and may update
+    // currentCoachId (via WriteBatch inside TrainingRepository).
+    match /clients/{clientUid} {
+      allow read: if isSignedIn() && (
+        request.auth.uid == clientUid ||
+        isAdmin()
+      );
+
+      // Client creates their own document.
+      allow create: if isSignedIn() && request.auth.uid == clientUid;
+
+      // Client updates their own doc (not currentCoachId);
+      // admins (coaches) may update currentCoachId only.
+      allow update: if isSignedIn() && (
+        // Client updates anything except currentCoachId.
+        (request.auth.uid == clientUid &&
+         !request.resource.data.diff(resource.data).affectedKeys()
+           .hasAny(['currentCoachId'])) ||
+        // Coach (admin) updates only currentCoachId.
+        (isAdmin() &&
+         request.resource.data.diff(resource.data).affectedKeys()
+           .hasOnly(['currentCoachId', 'updatedAt']))
+      );
+
+      allow delete: if isSignedIn() && request.auth.uid == clientUid;
+    }
+
+    // TRAINING RELATIONSHIPS
+    // Clients create requests; coaches accept them. Both parties can read;
+    // both can update status. No direct deletion — ended via status update.
+    match /training_relationships/{relId} {
+      function isRelationshipParty() {
+        return isSignedIn() && (
+          resource.data.coachId == request.auth.uid ||
+          resource.data.clientUid == request.auth.uid
+        );
+      }
+
+      allow read: if isSignedIn() && (isAdmin() || isRelationshipParty());
+
+      // Only the client may create a (pending) request.
+      allow create: if isSignedIn() &&
+        relId == request.auth.uid + '_' + request.resource.data.coachId &&
+        request.resource.data.clientUid == request.auth.uid &&
+        request.resource.data.status == 'pending' &&
+        request.resource.data.coachId is string &&
+        request.resource.data.coachId != request.auth.uid &&
+        request.resource.data.keys().hasOnly([
+          'coachId', 'clientUid', 'status', 'requestedAt', 'updatedAt'
+        ]);
+
+      // Either party may update the status and related timestamps.
+      allow update: if isSignedIn() && isRelationshipParty() &&
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['status', 'updatedAt', 'endedAt', 'endedBy']);
+
+      allow delete: if false;
+    }
+
+    // TOP-LEVEL PLANS (YeetCoach plan feature)
+    // plans/{planId}: trainerId is the coach, clientUid is the client.
+    match /plans/{planId} {
+      // Coach who owns the plan or the assigned client may read.
+      allow read: if isSignedIn() && (
+        isAdmin() ||
+        resource.data.trainerId == request.auth.uid ||
+        resource.data.clientUid == request.auth.uid
+      );
+
+      // Only the coach (admin) may create or fully overwrite a plan.
+      allow create: if isAdmin() &&
+        request.resource.data.trainerId == request.auth.uid;
+
+      allow update: if isAdmin() &&
+        resource.data.trainerId == request.auth.uid;
+
+      allow delete: if isAdmin() &&
+        resource.data.trainerId == request.auth.uid;
+    }
+
+    // ─── EXISTING SHARED COLLECTIONS ────────────────────────────────────────
+
+    // COACH CHAT
+    match /chats/{chatId} {
+      function isChatParticipant() {
+        return isSignedIn() &&
+          (resource == null || resource.data.participants.hasAny([request.auth.uid]));
+      }
+
+      allow read, update, delete: if isSignedIn() &&
+        (isAdmin() || isChatParticipant());
+      allow create: if isSignedIn() &&
+        isCreatingAsParticipant() &&
+        containsAdmin(request.resource.data.participants);
+
+      match /messages/{messageId} {
+        allow read, create, update, delete: if isSignedIn() && (
+          isAdmin() ||
+          get(/databases/$(database)/documents/chats/$(chatId))
+            .data.participants.hasAny([request.auth.uid])
+        );
+      }
+    }
+
+        // COACHING CHALLENGES
+    match /challenges/{challengeId} {
+      function isOwnerCoach() {
+        return isSignedIn() && resource.data.get('coachId', '') == request.auth.uid;
+      }
+      function changedOnly(keys) {
+        return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
+      }
+      allow read: if isSignedIn();
+      allow create: if isAdmin() &&
+        request.resource.data.coachId == request.auth.uid &&
+        request.resource.data.status == 'active' &&
+        request.resource.data.participantCount == 0 &&
+        request.resource.data.assignedTo is list &&
+        request.resource.data.endDate > request.resource.data.startDate;
+      allow update: if
+        (isOwnerCoach() &&
+          changedOnly(['status', 'assignedTo', 'updatedAt', 'endDate']) &&
+          request.resource.data.status in ['active', 'ended'] &&
+          request.resource.data.endDate <= resource.data.endDate) ||
+        (isSignedIn() &&
+          changedOnly(['participantCount']) &&
+          (request.resource.data.participantCount == resource.data.participantCount + 1 ||
+           request.resource.data.participantCount == resource.data.participantCount - 1));
+      allow delete: if isOwnerCoach();
+      match /participants/{uid} {
+        allow read: if isSignedIn();
+        allow create, delete: if isSignedIn() && request.auth.uid == uid;
+        allow update: if isSignedIn() && request.auth.uid == uid &&
+          request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['currentProgress', 'completed']);
+      }
+    }
+
+    // 1-TO-1 COACH CALLS
+    match /calls/{callId} {
+      function isCallParty(data) {
+        return data.callerId == request.auth.uid ||
+          data.receiverId == request.auth.uid;
+      }
+
+      function isCoach(uid) {
+        return exists(/databases/$(database)/documents/users/$(uid)) &&
+          get(/databases/$(database)/documents/users/$(uid)).data.role == 'admin';
+      }
+
+      allow read: if isSignedIn() && isCallParty(resource.data);
+
+      allow create: if isSignedIn() &&
+        request.resource.data.callerId == request.auth.uid &&
+        request.resource.data.receiverId is string &&
+        request.resource.data.receiverId != request.auth.uid &&
+        request.resource.data.status == 'ringing' &&
+        request.resource.data.type in ['audio', 'video'] &&
+        (isAdmin() || isCoach(request.resource.data.receiverId));
+
+      allow update: if isSignedIn() && isCallParty(resource.data) &&
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['status', 'startedAt', 'endedAt']) &&
+        request.resource.data.status in
+          ['ringing', 'active', 'ended', 'missed', 'declined'];
+
+      allow delete: if false;
+    }
+
+    // GROUP TRAINING SESSIONS
+    match /sessions/{sessionId} {
+      allow read: if isSignedIn();
+      allow create: if isAdmin() &&
+        request.resource.data.trainerId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    // APP CONFIG
+    match /config/{doc} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    // DENY EVERYTHING ELSE
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

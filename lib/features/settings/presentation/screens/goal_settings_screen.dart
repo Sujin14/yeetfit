@@ -1,28 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import '../../../../shared/theme/theme.dart';
-import '../widgets/goal_settings_body.dart';
+import '../widgets/goal_settings_form.dart';
+import '../widgets/settings_feedback_listener.dart';
+import '../widgets/settings_page_layout.dart';
+import '../widgets/settings_profile_body.dart';
 
-class GoalSettingsScreen extends ConsumerWidget {
+class GoalSettingsScreen extends StatelessWidget {
   const GoalSettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Goal Settings',
-          style: AppTheme.textStyles['title']!.copyWith(color: AppTheme.colors['primaryText']),
-        ),
-        backgroundColor: AppTheme.colors['lightBackground'],
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppTheme.colors['primaryText']),
-          onPressed: () => context.pop(),
+  Widget build(BuildContext context) {
+    return SettingsFeedbackListener(
+      child: SettingsPageLayout(
+        title: 'Goal Settings',
+        child: SettingsProfileBody(
+          builder: (userInfo) => GoalSettingsForm(userInfo: userInfo),
         ),
       ),
-      body: GoalSettingsBody(),
     );
   }
 }

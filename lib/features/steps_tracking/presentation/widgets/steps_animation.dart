@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lottie/lottie.dart';
 
 // Animated steps icon for screen header.
@@ -9,7 +8,7 @@ class StepsAnimation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 200.h,
+      height: 140,
       child: Lottie.asset(
         'assets/animations/running.json',
         fit: BoxFit.contain,

@@ -1,0 +1,98 @@
+{
+    "indexes": [
+        {
+            "collectionGroup": "diets",
+            "queryScope": "COLLECTION",
+            "fields": [
+              { "fieldPath": "isFavorite", "order": "ASCENDING" },
+              { "fieldPath": "createdAt", "order": "DESCENDING" }
+            ]
+          },
+          {
+            "collectionGroup": "workouts",
+            "queryScope": "COLLECTION",
+            "fields": [
+              { "fieldPath": "isFavorite", "order": "ASCENDING" },
+              { "fieldPath": "createdAt", "order": "DESCENDING" }
+            ]
+          },
+      {
+        "collectionGroup": "training_relationships",
+        "queryScope": "COLLECTION",
+        "fields": [
+          { "fieldPath": "coachId", "order": "ASCENDING" },
+          { "fieldPath": "status", "order": "ASCENDING" },
+          { "fieldPath": "requestedAt", "order": "DESCENDING" }
+        ]
+      },
+      {
+        "collectionGroup": "training_relationships",
+        "queryScope": "COLLECTION",
+        "fields": [
+          { "fieldPath": "clientUid", "order": "ASCENDING" },
+          { "fieldPath": "coachId", "order": "ASCENDING" },
+          { "fieldPath": "status", "order": "ASCENDING" }
+        ]
+      },
+      {
+        "collectionGroup": "plans",
+        "queryScope": "COLLECTION",
+        "fields": [
+          { "fieldPath": "clientUid", "order": "ASCENDING" },
+          { "fieldPath": "trainerId", "order": "ASCENDING" },
+          { "fieldPath": "type", "order": "ASCENDING" },
+          { "fieldPath": "updatedAt", "order": "DESCENDING" }
+        ]
+      },
+      {
+        "collectionGroup": "messages",
+        "queryScope": "COLLECTION",
+        "fields": [
+          { "fieldPath": "participants", "arrayConfig": "CONTAINS" },
+          { "fieldPath": "timestamp", "order": "ASCENDING" }
+        ]
+      },
+      {
+        "collectionGroup": "messages",
+        "queryScope": "COLLECTION",
+        "fields": [
+          { "fieldPath": "participants", "arrayConfig": "CONTAINS" },
+          { "fieldPath": "status", "order": "ASCENDING" },
+          { "fieldPath": "senderId", "order": "ASCENDING" }
+        ]
+      },
+      {
+        "collectionGroup": "messages",
+        "queryScope": "COLLECTION",
+        "fields": [
+          { "fieldPath": "participants", "arrayConfig": "CONTAINS" },
+          { "fieldPath": "timestamp", "order": "DESCENDING" }
+        ]
+      },
+      {
+        "collectionGroup": "diets",
+        "queryScope": "COLLECTION",
+        "fields": [
+          { "fieldPath": "type", "order": "ASCENDING" },
+          { "fieldPath": "createdAt", "order": "DESCENDING" }
+        ]
+      },
+      {
+        "collectionGroup": "workouts",
+        "queryScope": "COLLECTION",
+        "fields": [
+          { "fieldPath": "type", "order": "ASCENDING" },
+          { "fieldPath": "createdAt", "order": "DESCENDING" }
+        ]
+      },
+      {
+        "collectionGroup": "challenges",
+        "queryScope": "COLLECTION",
+        "fields": [
+          { "fieldPath": "coachId", "order": "ASCENDING" },
+          { "fieldPath": "createdAt", "order": "DESCENDING" }
+        ]
+      }
+    ],
+    "fieldOverrides": []
+  }

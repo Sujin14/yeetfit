@@ -1,13 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../domain/entities/auth_result.dart';
 import '../../utils/auth_strings.dart';
-import 'auth_service.dart';
 import 'auth_utils.dart';
 
-class EmailAuthService implements AuthService {
+class EmailAuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  @override
   Future<AuthResult> signInWithEmail(String email, String password) async {
     try {
       final credential = await _auth.signInWithEmailAndPassword(
@@ -20,7 +18,6 @@ class EmailAuthService implements AuthService {
     }
   }
 
-  @override
   Future<AuthResult> signUpWithEmail(String email, String password) async {
     try {
       final credential = await _auth.createUserWithEmailAndPassword(
@@ -33,7 +30,6 @@ class EmailAuthService implements AuthService {
     }
   }
 
-  @override
   Future<AuthResult> sendPasswordResetEmail(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
@@ -41,10 +37,5 @@ class EmailAuthService implements AuthService {
     } catch (e) {
       return handleFirebaseAuthError(e);
     }
-  }
-
-  @override
-  Future<AuthResult> signInWithGoogle() async {
-    throw UnimplementedError();
   }
 }

@@ -7,19 +7,19 @@ import 'auth_route_constants.dart';
 
 // Routes for authentication and user setup features.
 List<GoRoute> get authRoutes => [
-      GoRoute(
-        path: AuthRouteConstants.root,
-        builder: (context, state) => const LoginScreen(),
-      ),
-      GoRoute(
-        path: AuthRouteConstants.signup,
-        builder: (context, state) => const SignUpScreen(),
-      ),
-      GoRoute(
-        path: AuthRouteConstants.userInfoStep,
-        builder: (context, state) {
-          final step = int.tryParse(state.pathParameters['step'] ?? '0') ?? 0;
-          return UserInfoStepPage(step: step);
-        },
-      ),
-    ];
+  GoRoute(
+    path: AuthRouteConstants.root,
+    builder: (context, state) => const LoginScreen(),
+  ),
+  GoRoute(
+    path: AuthRouteConstants.signup,
+    builder: (context, state) => const SignUpScreen(),
+  ),
+  GoRoute(
+    path: AuthRouteConstants.userInfoStep,
+    builder: (context, state) {
+      final step = int.tryParse(state.pathParameters['step'] ?? '0') ?? 0;
+      return UserInfoStepPage(step: step);
+    },
+  ),
+];

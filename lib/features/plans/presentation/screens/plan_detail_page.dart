@@ -1,144 +1,93 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../../../shared/theme/theme.dart';
-import '../../../../shared/widgets/custom_appbar.dart';
-import '../../data/models/plan_model.dart';
+import 'package:yeetfit/shared/widgets/shell_gradient_background.dart';
+import 'package:yeetfit/shared/widgets/yeet_error_state.dart';
+import '../providers/plan_detail_controller.dart';
 import '../providers/plan_provider.dart';
-import '../widgets/plan_details_display.dart';
+import '../widgets/plan_detail_shimmer.dart';
+import '../widgets/plan_detail_status_view.dart';
+import '../widgets/plan_detail_view.dart';
+import 'package:yeetfit/core/theme/app_colors.dart';
 
 class PlanDetailPage extends ConsumerWidget {
-  final Map<String, dynamic> extra;
+  final String category;
+  final String planId;
 
-  const PlanDetailPage({super.key, required this.extra});
+  const PlanDetailPage({
+    super.key,
+    required this.category,
+    required this.planId,
+  });
+
+  void _showSnackBar(BuildContext context, String message, Color background) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium!.copyWith(color: colors.onBackground),
+        ),
+        backgroundColor: background,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final plan = extra['plan'] as PlanModel;
-    final category = extra['category'] as String?;
-    final onUnfavorite = extra['onUnfavorite'] as VoidCallback?;
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final detailKey = (category: category, planId: planId);
 
-    final planAsync = ref.watch(planDetailProvider(extra));
-
-    return planAsync.when(
-      data: (updatedPlan) {
-        if (updatedPlan == null) {
-          return Scaffold(
-            appBar: AppBar(
-              title: Text(
-                'Error',
-                style: AppTheme.textStyles['body']?.copyWith(
-                  color: AppTheme.colors['primaryText'],
-                ),
-              ),
-            ),
-            body: Center(
-              child: Text(
-                'Plan not found',
-                style: AppTheme.textStyles['body']?.copyWith(
-                  color: AppTheme.colors['error'],
-                  fontSize: 16.sp,
-                ),
-              ),
-            ),
+    ref.listen(planDetailControllerProvider, (_, event) {
+      switch (event) {
+        case PlanFavoriteToggled(:final isFavorite):
+          _showSnackBar(
+            context,
+            isFavorite ? 'Added to favorites' : 'Removed from favorites',
+            colors.primary,
           );
-        }
+        case PlanFavoriteToggleFailed(:final message):
+          _showSnackBar(context, message, colors.error);
+        case null:
+          return;
+      }
+      ref.read(planDetailControllerProvider.notifier).consume();
+    });
 
-        return Scaffold(
-          appBar: CustomAppBar(
-            title: updatedPlan.title,
-            showFavorite: true,
-            isFavorite: updatedPlan.isFavorite,
-            favoriteColor: updatedPlan.isFavorite
-                ? AppTheme.colors['favorite']
-                : AppTheme.colors['secondaryText'],
-            onFavorite: () async {
-              try {
-                // Execute toggle favorite
-                await ref
-                    .read(toggleFavoriteUseCaseProvider)
-                    .execute(
-                      updatedPlan.id!,
-                      updatedPlan.type,
-                      !updatedPlan.isFavorite,
-                    );
-                await ref.read(favoritePlansProvider.notifier).refresh();
-                // Show success message
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      updatedPlan.isFavorite
-                          ? 'Removed from favorites'
-                          : 'Added to favorites',
-                      style: AppTheme.textStyles['body']?.copyWith(
-                            color: AppTheme.colors['primaryText'],
-                          ) ??
-                          TextStyle(color: AppTheme.colors['black']),
-                    ),
-                    backgroundColor: AppTheme.colors['primaryAccent'],
-                  ),
-                );
+    final planAsync = ref.watch(planDetailProvider(detailKey));
 
-                // Handle unfavorite navigation
-                if (!updatedPlan.isFavorite && onUnfavorite != null) {
-                  onUnfavorite();
-                }
-              } catch (e) {
-                // Show error message
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      e.toString().contains('PERMISSION_DENIED')
-                          ? 'Permission denied: Only admins can update plans'
-                          : 'Error: $e',
-                      style: AppTheme.textStyles['body']?.copyWith(
-                            color: AppTheme.colors['primaryText'],
-                          ) ??
-                          TextStyle(color: AppTheme.colors['black']),
-                    ),
-                    backgroundColor: AppTheme.colors['error'],
+    return ShellGradientBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: planAsync.when(
+          data: (updatedPlan) => updatedPlan == null
+              ? const PlanDetailStatusView(
+                  title: 'Plan',
+                  child: YeetErrorState(
+                    message: 'This plan is no longer available.',
                   ),
-                );
-              }
-            },
-          ),
-          body: SafeArea(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: PlanDetailsDisplay(
-                      plan: updatedPlan,
-                      category: category,
-                    ),
+                )
+              : PlanDetailView(
+                  plan: updatedPlan,
+                  onToggleFavorite: () => ref
+                      .read(planDetailControllerProvider.notifier)
+                      .toggleFavorite(updatedPlan),
+                  onStartPlan: () => _showSnackBar(
+                    context,
+                    'Workout tracking for plans is coming soon',
+                    colors.surface,
                   ),
-                ],
-              ),
-            ),
+                ),
+          loading: () => const PlanDetailStatusView(
+            title: 'Plan',
+            child: PlanDetailShimmer(),
           ),
-        );
-      },
-      loading: () => Scaffold(
-        appBar: CustomAppBar(title: plan.title),
-        body: const Center(child: CircularProgressIndicator()),
-      ),
-      error: (error, _) => Scaffold(
-        appBar: AppBar(
-          title: Text(
-            'Error',
-            style: AppTheme.textStyles['body']?.copyWith(
-              color: AppTheme.colors['primaryText'],
-            ),
-          ),
-        ),
-        body: Center(
-          child: Text(
-            'Error: $error',
-            style: AppTheme.textStyles['body']?.copyWith(
-              color: AppTheme.colors['error'],
-              fontSize: 16.sp,
+          error: (error, _) => PlanDetailStatusView(
+            title: 'Plan',
+            child: YeetErrorState(
+              message: 'Could not load this plan: $error',
+              onRetry: () => ref.invalidate(planDetailProvider(detailKey)),
             ),
           ),
         ),

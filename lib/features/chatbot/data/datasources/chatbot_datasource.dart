@@ -1,31 +1,34 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:googleai_dart/googleai_dart.dart';
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:flutter/foundation.dart';
 import '../model/chatbot_message_model.dart';
 
 class ChatbotDataSource {
-  final GoogleAIClient _client;
+  static const _geminiFunction = 'callGemini';
+  static const _fallbackReply = "Sorry, I couldn't process that.";
+
+  /// Tells `callGemini` to answer as Yana; the persona lives server-side.
+  static const _coachMode = 'coach';
+
   final FirebaseFirestore _firestore;
+  final FirebaseFunctions _functions;
 
   ChatbotDataSource({
-    required String apiKey,
     required FirebaseFirestore firestore,
-  }) : _client = GoogleAIClient(
-          config: GoogleAIConfig.googleAI(
-            authProvider: ApiKeyProvider(apiKey),
-          ),
-        ),
-        _firestore = firestore;
+    required FirebaseFunctions functions,
+  }) : _firestore = firestore,
+       _functions = functions;
 
-  // Extract bot response text
-  String _extractText(GenerateContentResponse res) {
+  Future<String> _generateReply(String message) async {
     try {
-      final candidate = res.candidates?.first;
-      final parts = candidate?.content?.parts;
-      if (parts == null) return "Sorry, I couldn't process that.";
-      final text = parts.whereType<TextPart>().map((e) => e.text).join(" ");
-      return text.isNotEmpty ? text : "Sorry, I couldn't process that.";
-    } catch (_) {
-      return "Sorry, I couldn't process that.";
+      final result = await _functions
+          .httpsCallable(_geminiFunction)
+          .call<Map<String, dynamic>>({'prompt': message, 'mode': _coachMode});
+      final text = (result.data['text'] as String?)?.trim();
+      return (text == null || text.isEmpty) ? _fallbackReply : text;
+    } on FirebaseFunctionsException catch (e) {
+      debugPrint('Functions error: ${e.code} — ${e.message} — ${e.details}');
+      throw Exception('Failed to send message: ${e.message}');
     }
   }
 
@@ -49,29 +52,7 @@ class ChatbotDataSource {
 
       final startedAt = DateTime.now();
 
-      // SYSTEM PROMPT (inside user message - required for v1beta)
-      final systemPrompt =
-          "You are a health & fitness expert named YeetFit Coach. "
-          "You ONLY answer questions strictly related to fitness, workouts, exercises, diet, nutrition, "
-          "fat loss, muscle building, supplements, and recovery. "
-          "If a user asks about anything not related to fitness, politely decline and redirect them back "
-          "to fitness topics.\n\n"
-          "User Message: $message";
-
-      // Send Gemini Request (NO system role - fully compatible)
-      final response = await _client.models.generateContent(
-        model: 'gemini-2.0-flash',
-        request: GenerateContentRequest(
-          contents: [
-            Content(
-              role: 'user',
-              parts: [TextPart(systemPrompt)],
-            ),
-          ],
-        ),
-      );
-
-      final botText = _extractText(response);
+      final botText = await _generateReply(message);
 
       // 2-second minimum delay to support UI typing animation
       final elapsed = DateTime.now().difference(startedAt);
@@ -90,10 +71,11 @@ class ChatbotDataSource {
       await col.add(botMsg.toJson());
 
       return botMsg;
-    } catch (e, stack) {
-      print("ChatbotDataSource error: $e");
-      print(stack);
-      throw Exception("Failed to send message");
+    } on FirebaseException catch (e, stack) {
+      debugPrint(
+        'ChatbotDataSource Firestore error: ${e.code} — ${e.message}\n$stack',
+      );
+      throw Exception('Failed to send message: ${e.message}');
     }
   }
 

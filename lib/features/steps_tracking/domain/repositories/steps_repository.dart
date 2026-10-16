@@ -1,25 +1,28 @@
-import '../../data/model/steps_model.dart';
+import '../entities/steps_data.dart';
 
 // Abstract repository for steps tracking operations.
 abstract class StepsRepository {
-  // Fetches steps data for a date.
-  Future<StepsData?> getStepsData(String userId, String date);
-
   // Fetches steps goal for a date.
   Future<int> getStepsGoal(String userId, String date);
-
-  // Adds steps entry for today.
-  Future<void> addStepsEntry(String userId, int steps);
 
   // Sets steps goal for today.
   Future<void> setStepsGoal(String userId, int newGoal);
 
-  // Fetches weekly steps data.
+  // Fetches the last seven days of saved steps.
   Future<List<StepsData>> getWeeklyStepsData(String userId);
 
-  // Syncs local data to Firestore.
+  // Syncs entries saved offline to Firestore.
   Future<void> syncLocalData(String userId);
 
-  // Updates steps for a specific date.
+  // Saves the step count for a specific date.
   Future<void> updateDailySteps(String userId, String date, int steps);
+
+  // Asks for health-store access, automatically only once per install.
+  Future<void> requestHealthAccessOnce();
+
+  // Asks for health-store access (user action).
+  Future<void> requestHealthAccess();
+
+  // Steps from the device health store, or null without access.
+  Future<int?> getHealthSteps(DateTime start, DateTime end);
 }

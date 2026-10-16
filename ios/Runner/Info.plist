@@ -13,7 +13,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>yeetfit</string>
+	<string>Yeetfit</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -24,6 +24,20 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Yeetfit uses the camera for video calls with your coach, to scan your meals, and to update your profile photo.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Yeetfit uses the microphone for audio and video calls with your coach.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Yeetfit needs photo library access to update your profile photo, and to scan a meal photo.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Yeetfit reads your step count from Apple Health to track your daily steps.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Yeetfit does not write to Apple Health.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

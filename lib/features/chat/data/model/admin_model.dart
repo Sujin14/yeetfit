@@ -12,8 +12,4 @@ class AdminModel {
       profileImage: map['profilePicture'] ?? '',
     );
   }
-
-  Map<String, dynamic> toMap() {
-    return {'id': id, 'name': name, 'profilePicture': profileImage};
-  }
 }

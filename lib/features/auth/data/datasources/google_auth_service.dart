@@ -2,47 +2,34 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../domain/entities/auth_result.dart';
 import '../../utils/auth_strings.dart';
-import 'auth_service.dart';
 import 'auth_utils.dart';
 
-class GoogleAuthService implements AuthService {
+class GoogleAuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
 
-  @override
+  // GoogleSignIn.initialize must be called exactly once per app lifetime.
+  static Future<void>? _initialization;
+
   Future<AuthResult> signInWithGoogle() async {
     try {
-      final googleSignIn = GoogleSignIn();
-      await googleSignIn.signOut();
-      final googleUser = await googleSignIn.signIn();
-      if (googleUser == null) {
-        return AuthResult.failure(AuthStrings.googleSignInCancelled);
-      }
+      await (_initialization ??= _googleSignIn.initialize());
+      await _googleSignIn.signOut();
 
-      final googleAuth = await googleUser.authentication;
+      final googleUser = await _googleSignIn.authenticate();
       final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
+        idToken: googleUser.authentication.idToken,
       );
 
       final userCredential = await _auth.signInWithCredential(credential);
       return AuthResult.success(uid: userCredential.user?.uid);
+    } on GoogleSignInException catch (e) {
+      if (e.code == GoogleSignInExceptionCode.canceled) {
+        return AuthResult.failure(AuthStrings.googleSignInCancelled);
+      }
+      return handleFirebaseAuthError(e);
     } catch (e) {
       return handleFirebaseAuthError(e);
     }
-  }
-
-  @override
-  Future<AuthResult> signInWithEmail(String email, String password) async {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<AuthResult> signUpWithEmail(String email, String password) async {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<AuthResult> sendPasswordResetEmail(String email) async {
-    throw UnimplementedError();
   }
 }

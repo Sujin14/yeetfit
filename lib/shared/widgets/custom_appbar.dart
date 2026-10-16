@@ -1,70 +1,85 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../theme/theme.dart';
+import 'package:yeetfit/core/theme/app_colors.dart';
+import 'package:yeetfit/shared/widgets/glass_icon_button.dart';
+import 'package:yeetfit/core/theme/app_spacing.dart';
 
+/// Transparent Liquid Glass app bar.
+///
+/// Shows a drawer menu button when [scaffoldKey] is provided; otherwise falls
+/// back to the default back button for pushed routes.
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
-  final bool showFavorite;
-  final bool isFavorite;
-  final VoidCallback? onFavorite;
   final bool showCalendar;
   final VoidCallback? onCalendar;
-  final Color? favoriteColor;
-  final GlobalKey<ScaffoldState>? scaffoldKey; // for opening drawer
+  final bool showCoachChat;
+  final VoidCallback? onCoachChat;
+
+  /// Wraps the coach chat button, e.g. to spotlight it in a tour.
+  final Widget Function(Widget button)? coachChatWrapper;
+  final GlobalKey<ScaffoldState>? scaffoldKey;
 
   const CustomAppBar({
     super.key,
     required this.title,
-    this.showFavorite = false,
-    this.isFavorite = false,
-    this.favoriteColor,
-    this.onFavorite,
     this.showCalendar = false,
     this.onCalendar,
+    this.showCoachChat = false,
+    this.onCoachChat,
+    this.coachChatWrapper,
     this.scaffoldKey,
   });
 
+  static const double _height = 56;
+
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final coachChatButton = GlassIconButton(
+      icon: Icons.forum_outlined,
+      color: colors.onBackground,
+      tooltip: 'Coach chat',
+      onPressed: onCoachChat,
+    );
     return AppBar(
-      backgroundColor: AppTheme.colors['navigationAccent'],
-      elevation: 5,
+      backgroundColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+      shadowColor: Colors.transparent,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      toolbarHeight: _height,
       centerTitle: true,
-      leading: IconButton(
-        icon: Icon(Icons.menu, color: AppTheme.colors['primaryText']),
-        onPressed: () => scaffoldKey?.currentState?.openDrawer(),
-      ),
+      foregroundColor: colors.onBackground,
+      leading: scaffoldKey == null
+          ? null
+          : Center(
+              child: GlassIconButton(
+                icon: Icons.menu,
+                color: colors.onBackground,
+                tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
+                onPressed: () => scaffoldKey!.currentState?.openDrawer(),
+              ),
+            ),
       title: Text(
         title,
-        style: AppTheme.textStyles['title']!.copyWith(
-          fontSize: 20.sp,
-          color: AppTheme.colors['primaryText'],
-        ),
+        style: Theme.of(
+          context,
+        ).textTheme.titleLarge!.copyWith(color: colors.onBackground),
       ),
-      iconTheme: IconThemeData(color: AppTheme.colors['primaryText']),
       actions: [
-        if (showFavorite)
-          IconButton(
-            icon: Icon(
-              isFavorite ? Icons.favorite : Icons.favorite_border,
-              color: isFavorite
-                  ? (favoriteColor ?? AppTheme.colors['error'])
-                  : AppTheme.colors['primaryText'],
-            ),
-            onPressed: onFavorite,
-          ),
+        if (showCoachChat)
+          coachChatWrapper?.call(coachChatButton) ?? coachChatButton,
+        if (showCoachChat && showCalendar) const SizedBox(width: AppSpacing.sm),
         if (showCalendar)
-          IconButton(
-            icon: Icon(
-              Icons.calendar_month_rounded,
-              color: AppTheme.colors['primaryText'],
-            ),
+          GlassIconButton(
+            icon: Icons.calendar_month_rounded,
+            color: colors.onBackground,
             onPressed: onCalendar,
           ),
+        const SizedBox(width: AppSpacing.smd),
       ],
     );
   }
 
   @override
-  Size get preferredSize => Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(_height);
 }

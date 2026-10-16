@@ -1,0 +1,835 @@
+# Yeetfit — Complete Restructure Brief
+
+You are restructuring **Yeetfit**, an existing Flutter fitness tracker app. This document is your complete
+reference. Read it fully before writing a single line of code. Every decision — architecture, naming,
+design, feature scope — is defined here.
+
+---
+
+## 1. Project Overview
+
+**App name:** Yeetfit  
+**Package:** `com.yeetfit.app` (rename from `com.finsl.finsl` is not required, keep existing)  
+**Platform:** Android + iOS  
+**Backend:** Firebase only (Auth, Firestore, Storage, Cloud Messaging, Cloud Functions)  
+**State management:** Riverpod (hooks_riverpod)  
+**Navigation:** GoRouter  
+**AI:** Google Generative AI (`google_generative_ai` package — replace current `googleai_dart`)  
+
+The app is a comprehensive fitness tracker with: workout plans, meal/calorie tracking, water intake,
+sleep tracking, step counting, weight tracking, BMI monitoring, an AI fitness coach chatbot, and a
+community challenges system.
+
+---
+
+## 2. What Exists — Do Not Delete Logic, Only Restructure
+
+The app already has working Firebase logic for all features. **You are restructuring and redesigning,
+not rewriting business logic from scratch.** Preserve all existing Firestore queries, data models,
+and use cases. What changes:
+
+- UI layer: completely new Liquid Glass design
+- Architecture: enforce strict clean architecture rules (described below)
+- Widget rule: every widget in its own file
+- Theme: single unified system
+- Notifications: add FCM
+- New features: add to existing features
+
+---
+
+## 3. Bugs to Fix — Fix These First
+
+### Critical
+
+**Bug 1 — Dual theme system (144 files affected)**  
+There are two competing theme systems:
+- OLD (wrong): `AppTheme.colors['primaryText']` — a static `Map<String, Color>` in `lib/shared/theme/theme.dart`
+- NEW (correct): `Theme.of(context).extension<AppColors>()!` — a `ThemeExtension` in `lib/core/theme/app_colors.dart`
+
+**Fix:** Delete `lib/shared/theme/theme.dart` completely. Migrate every file that uses `AppTheme.colors[...]`
+or `AppTheme.textStyles[...]` to use `AppColors` via the theme extension. The `AppColors` class already
+exists and is already registered in `AppTheme.light()` and `AppTheme.dark()`.
+
+**Bug 2 — No push notifications**  
+`firebase_messaging` is not in `pubspec.yaml`. The current `NotificationService` class only updates
+Firestore message delivery status — it is not a notification system.
+
+**Fix:** Add `firebase_messaging` to pubspec. Create a proper `NotificationService` in
+`lib/core/services/notification_service.dart` that handles FCM token registration, foreground/background
+message handling, and local notification display using `flutter_local_notifications`.
+
+**Bug 3 — Broken route in chatbot**  
+`lib/features/chatbot/presentation/screens/chatbot_screen.dart` calls:
+```dart
+context.pushReplacement('/user-dashboard');
+```
+The route `/user-dashboard` does not exist in `app_routes.dart`. This crashes navigation on back press.
+
+**Fix:** Replace with `context.go(ShellRouteConstants.dashboard)`.
+
+**Bug 4 — ProviderContainer anti-pattern in main.dart**  
+In `main.dart`, a bare `ProviderContainer()` is created before `ProviderScope` wraps the app:
+```dart
+final container = ProviderContainer();
+await container.read(notificationServiceProvider).init();
+```
+This creates an orphaned provider tree separate from the app's `ProviderScope`.
+
+**Fix:** Move notification initialisation inside a `ProviderScope`-aware callback. Use
+`ProviderScope` with `overrides` or an `AppStartup` widget that reads providers from the
+correct scope after `ProviderScope` is in place.
+
+### Warnings
+
+**Bug 5 — Deprecated `.withOpacity()` in 72 files**  
+Flutter 3.27+ deprecates `Color.withOpacity()`.
+
+**Fix:** Replace all instances with `.withValues(alpha: value)`. Example:
+```dart
+// Before
+Colors.white.withOpacity(0.12)
+// After
+Colors.white.withValues(alpha: 0.12)
+```
+
+**Bug 6 — `googleai_dart` is an outdated community package**  
+Replace `googleai_dart: ^1.1.0` with the official `google_generative_ai` package from Google.
+Update `ChatbotDataSource` to use the official SDK's `GenerativeModel` and `ChatSession`.
+
+**Bug 7 — Widget definitions inside screen files**  
+Many screens define anonymous or named widgets inside the screen file. Every widget must live
+in its own file under the feature's `presentation/widgets/` folder.
+
+---
+
+## 4. Architecture Rules — Non-Negotiable
+
+### Clean Architecture — Layer Boundaries
+
+```
+lib/
+├── core/
+│   ├── constants/          # AppStrings, AppSizes, AppAssets
+│   ├── errors/             # Failure sealed class, AppException
+│   ├── extensions/         # BuildContextX, StringX
+│   ├── routes/             # GoRouter config, all route constants
+│   ├── services/           # NotificationService, AnalyticsService
+│   ├── theme/              # AppColors, AppTheme, AppTextStyles
+│   └── usecases/           # abstract class UseCase<T, P>
+├── shared/
+│   ├── providers/          # authStateProvider, currentUserProvider
+│   └── widgets/            # GlassCard, YeetButton, YeetTextField, LoadingWidget
+└── features/
+    └── {feature_name}/
+        ├── data/
+        │   ├── datasources/    # Firebase calls only
+        │   ├── models/         # DTOs: fromJson/toJson, copyWith
+        │   └── repositories/   # implements domain repo interface
+        ├── domain/
+        │   ├── entities/       # pure Dart, zero imports from Flutter/Firebase
+        │   ├── repositories/   # abstract interface
+        │   └── usecases/       # one file per use case, uses abstract repo
+        └── presentation/
+            ├── screens/        # ONLY imports and calls widgets — nothing else
+            ├── widgets/        # ONE widget per file, named after the class
+            └── providers/      # Riverpod providers for this feature only
+```
+
+### Strict Rules
+
+1. **Domain layer is pure Dart.** No `import 'package:flutter/...'` or `import 'package:firebase_*'`
+   anywhere in `domain/`. Domain entities and repositories know nothing about Flutter or Firebase.
+
+2. **Screens contain zero UI code.** A screen's `build` method only:
+   - Reads providers
+   - Calls widget constructors
+   - Handles navigation callbacks
+   
+   Example of what a screen should look like:
+   ```dart
+   class DashboardScreen extends ConsumerWidget {
+     const DashboardScreen({super.key});
+
+     @override
+     Widget build(BuildContext context, WidgetRef ref) {
+       final userAsync = ref.watch(currentUserProvider);
+       return Scaffold(
+         backgroundColor: Colors.transparent,
+         body: userAsync.when(
+           data: (user) => DashboardBody(user: user),
+           loading: () => const DashboardLoadingState(),
+           error: (e, _) => DashboardErrorState(message: e.toString()),
+         ),
+       );
+     }
+   }
+   ```
+   If you find yourself writing `Column`, `Container`, `Padding`, `Text`, `SizedBox` inside a
+   screen's build method — stop. Extract it to a widget.
+
+3. **One widget per file.** File name = widget class name in snake_case.
+   `DashboardHeader` lives in `dashboard_header.dart`. No exceptions.
+
+4. **No hardcoded route strings.** All route paths come from constants:
+   ```dart
+   // Good
+   context.go(ShellRouteConstants.dashboard)
+   context.push(TrackingRouteConstants.waterTracking)
+   
+   // Bad
+   context.go('/dashboard')
+   context.push('/modal/water')
+   ```
+
+5. **No hardcoded colors.** All colors come from `AppColors`:
+   ```dart
+   final colors = Theme.of(context).extension<AppColors>()!;
+   // use colors.primary, colors.surface, etc.
+   ```
+
+6. **Providers are feature-scoped.** Do not create global providers for feature-specific state.
+   Exception: `authStateProvider` and `currentUserProvider` in `shared/providers/`.
+
+7. **Use cases follow the interface:**
+   ```dart
+   abstract class UseCase<Type, Params> {
+     Future<Either<Failure, Type>> call(Params params);
+   }
+   class NoParams extends Equatable { ... }
+   ```
+
+---
+
+## 5. Design System — Liquid Glass
+
+### What Liquid Glass Means in Flutter
+
+Liquid Glass is Apple's design language (iOS 26): translucent, frosted surfaces with depth through
+layering, vivid gradient backgrounds that show through, and fluid organic shapes. In Flutter this is
+achieved with `BackdropFilter` + `ImageFilter.blur`.
+
+**Every card, bottom sheet, dialog, and nav element uses this pattern.**
+
+### Core Glass Widget
+
+Create `lib/shared/widgets/glass_card.dart`:
+
+```dart
+import 'dart:ui';
+import 'package:flutter/material.dart';
+
+class GlassCard extends StatelessWidget {
+  final Widget child;
+  final double borderRadius;
+  final double blurStrength;
+  final double opacity;
+  final EdgeInsets? padding;
+  final Border? border;
+
+  const GlassCard({
+    super.key,
+    required this.child,
+    this.borderRadius = 24,
+    this.blurStrength = 20,
+    this.opacity = 0.12,
+    this.padding,
+    this.border,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(borderRadius),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: blurStrength, sigmaY: blurStrength),
+        child: Container(
+          padding: padding ?? const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: opacity),
+            borderRadius: BorderRadius.circular(borderRadius),
+            border: border ?? Border.all(
+              color: Colors.white.withValues(alpha: 0.2),
+              width: 1,
+            ),
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+```
+
+### Color Palette — Dark Mode First
+
+Update `lib/core/theme/app_colors.dart` with this complete palette:
+
+```dart
+// Dark theme (primary — Yeetfit is dark-first)
+static const dark = AppColors(
+  // Backgrounds — deep navy-to-purple gradient base
+  background: Color(0xFF0A0A1A),       // near-black with blue tint
+  surface: Color(0xFF12122A),          // elevated surface
+  surfaceGlass: Color(0x1AFFFFFF),     // 10% white — glass card fill
+  
+  // Brand
+  primary: Color(0xFF6C63FF),          // electric violet
+  primaryVariant: Color(0xFF8B83FF),   // lighter violet for gradients
+  secondary: Color(0xFF00D4FF),        // cyan accent
+  secondaryVariant: Color(0xFF00A8CC), // deeper cyan
+  
+  // Gradient stops (use in LinearGradient)
+  gradientStart: Color(0xFF1A1A3E),    // deep navy
+  gradientMid: Color(0xFF16213E),      // dark blue
+  gradientEnd: Color(0xFF0F3460),      // rich dark blue
+  
+  // Text
+  onBackground: Color(0xFFF0F0FF),     // off-white with blue tint
+  onSurface: Color(0xFFE0E0F5),        // slightly muted white
+  onPrimary: Color(0xFFFFFFFF),
+  textSecondary: Color(0xFFAAABC8),    // muted purple-grey
+  textMuted: Color(0xFF6B6C8A),        // very muted
+  
+  // Status
+  error: Color(0xFFFF5C7A),
+  success: Color(0xFF4DFFA0),
+  warning: Color(0xFFFFD166),
+  info: Color(0xFF00D4FF),
+  
+  // Progress levels (kept from existing)
+  progressFull: Color(0xFF4DFFA0),
+  progress75: Color(0xFF7BF1A8),
+  progress50: Color(0xFFFFD166),
+  progress25: Color(0xFFFF9F43),
+  progressNone: Color(0xFFFF5C7A),
+  
+  // Macro nutrients (kept from existing)
+  calories: Color(0xFF00D4FF),
+  protein: Color(0xFF4DFFA0),
+  carbs: Color(0xFFFFD166),
+  fat: Color(0xFFFF9F43),
+  
+  // BMI bands
+  bmiUnderweight: Color(0xFF00D4FF),
+  bmiNormal: Color(0xFF4DFFA0),
+  bmiOverweight: Color(0xFFFFD166),
+  bmiObese: Color(0xFFFF5C7A),
+  
+  // Navigation
+  navAccent: Color(0xFF6C63FF),
+  borderStart: Color(0x336C63FF),
+  borderEnd: Color(0x3300D4FF),
+);
+
+// Light theme
+static const light = AppColors(
+  background: Color(0xFFF5F5FF),
+  surface: Color(0xFFFFFFFF),
+  surfaceGlass: Color(0x1A000040),     // 10% dark blue for glass on light
+  
+  primary: Color(0xFF5B52F0),
+  primaryVariant: Color(0xFF7B73FF),
+  secondary: Color(0xFF0099CC),
+  secondaryVariant: Color(0xFF007AA8),
+  
+  gradientStart: Color(0xFFE8E8FF),
+  gradientMid: Color(0xFFD4D4F5),
+  gradientEnd: Color(0xFFC5D5F0),
+  
+  onBackground: Color(0xFF0D0D2B),
+  onSurface: Color(0xFF1A1A3E),
+  onPrimary: Color(0xFFFFFFFF),
+  textSecondary: Color(0xFF555577),
+  textMuted: Color(0xFF8888AA),
+  
+  error: Color(0xFFD63060),
+  success: Color(0xFF00A86B),
+  warning: Color(0xFFE6A817),
+  info: Color(0xFF0099CC),
+  
+  // ... (mirror the progress/macro/BMI colors)
+);
+```
+
+Add `surfaceGlass`, `gradientStart`, `gradientMid`, `gradientEnd`, `textSecondary`, `textMuted`,
+`onPrimary`, `info` to the `AppColors` class definition, `copyWith`, and `lerp`.
+
+### Typography
+
+Inter for all text
+
+```dart
+// In pubspec.yaml, add:
+// google_fonts: ^6.2.1 (already present)
+
+// In AppTheme:
+import 'package:google_fonts/google_fonts.dart';
+
+static TextTheme _buildTextTheme(Color primary, Color secondary) {
+  return TextTheme(
+    displayLarge: GoogleFonts.inter(fontSize: 32, fontWeight: FontWeight.w700, color: primary),
+    displayMedium: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.w700, color: primary),
+    headlineLarge: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.w600, color: primary),
+    headlineMedium: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w600, color: primary),
+    titleLarge: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w600, color: primary),
+    titleMedium: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: primary),
+    bodyLarge: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w400, color: primary),
+    bodyMedium: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w400, color: secondary),
+    bodySmall: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w400, color: secondary),
+    labelLarge: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: primary),
+  );
+}
+```
+
+### App Background
+
+Every screen uses a gradient background, not a flat color:
+
+```dart
+// In AppTheme scaffold or a base widget:
+Container(
+  decoration: BoxDecoration(
+    gradient: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [colors.gradientStart, colors.gradientMid, colors.gradientEnd],
+    ),
+  ),
+)
+```
+
+Wrap the `MaterialApp` in a root gradient, or apply it at `ShellScaffold` level so all shell screens
+inherit it.
+
+### Glass Bottom Navigation Bar
+
+Replace the current `BottomNavBar` with a floating glass bar:
+
+```dart
+// Floating, not pinned to screen bottom
+// Horizontal pill shape with glass effect
+// 5 items: Home, Explore, + (center FAB), Progress, Profile
+// The center + button opens the TrackOptionsModal (keep existing behaviour)
+// Glass background: BackdropFilter blur 20, white 12% fill, 1px white 20% border
+// Nav items: icon + label, active item uses primary color, inactive uses textMuted
+// Add margin: EdgeInsets.only(bottom: 24, left: 16, right: 16)
+// border radius: 32
+```
+
+---
+
+## 6. Screens — Full List and What Changes
+
+### Bottom Navigation Tabs (Shell)
+1. **Dashboard** — home tab
+2. **Explore** — workout plans + AI plan generator  
+3. **+** — track options modal (keep existing TrackOptionsModal logic)
+4. **Progress** — monthly heatmap + mood/fitness chart
+5. **Profile** — replaces current Favorites; shows user stats, achievements, saved plans
+
+### Tracking Screens (opened from + modal)
+- Water Tracking
+- Sleep Tracking
+- Step Counter
+- Weight Tracking
+- Meal / Calorie Tracking → Food Search → Nutrition Details
+
+### Feature Screens
+- AI Coach (chatbot — fix route bug, keep Gemini logic, new UI)
+- Community Challenges (new)
+- Notifications Settings (new)
+
+### Auth Flow
+- Splash → Welcome → Login / Sign Up → Onboarding → User Info Steps → Dashboard
+
+### Settings (side drawer)
+- Account, Basic Info, Goal Settings, Food Preferences, Help, About, Privacy, Terms
+
+### New Screens to Create
+- `RecoveryScoreScreen` — shows daily score 0–100
+- `ChallengesScreen` — community challenges list + detail
+- `MoodLogWidget` — quick emoji log (embedded in Dashboard, not a full screen)
+- `NotificationPreferencesScreen` — FCM topic subscriptions
+
+---
+
+## 7. New Features to Implement
+
+### Feature 1 — Daily Recovery Score
+**Location:** New feature folder `lib/features/recovery/`  
+**Firestore path:** `users/{uid}/recovery/{date}`
+
+The Recovery Score is a 0–100 integer calculated daily from:
+- Sleep: 40% weight — did user log sleep? was it ≥ 7 hours?
+- Water: 25% weight — did user hit water goal?
+- Steps: 20% weight — did user hit step goal?
+- Workout: 15% weight — did user log a meal/activity? (proxy for activity)
+
+**Algorithm (run in a Cloud Function triggered at midnight, or computed client-side on first open):**
+```
+sleepScore = min(hoursSlept / 8.0, 1.0) * 40
+waterScore = min(glassesConsumed / waterGoal, 1.0) * 25
+stepsScore = min(stepsToday / stepsGoal, 1.0) * 20
+workoutScore = hasLoggedMeal ? 15 : 0
+total = (sleepScore + waterScore + stepsScore + workoutScore).round()
+```
+
+**UI:** Large circular arc gauge on dashboard (sits in `DashboardHeader`), separate detail screen
+`RecoveryScoreScreen` with breakdown bars per metric and today's recommendation
+("Push hard" / "Active recovery" / "Rest day").
+
+**Data model:**
+```dart
+class RecoveryScore {
+  final String date;
+  final int score;
+  final double sleepContribution;
+  final double waterContribution;
+  final double stepsContribution;
+  final double workoutContribution;
+  final String recommendation; // 'push' | 'active_recovery' | 'rest'
+}
+```
+
+### Feature 2 — AI Meal Photo Scanner
+**Location:** Inside `lib/features/meal_tracking/`  
+**Add to:** `CalorieTrackingScreen` — a camera icon button alongside the existing food search.
+
+When tapped:
+1. `image_picker` opens camera (already in pubspec)
+2. Image is converted to base64
+3. Sent to Gemini Vision (`google_generative_ai`) with prompt:
+   ```
+   Analyze this meal photo. Return JSON only:
+   { "foodName": "...", "servingSize": "...", "calories": 0, "protein": 0, "carbs": 0, "fat": 0 }
+   Numbers are grams except calories which is kcal. Estimate based on typical serving sizes.
+   ```
+4. Response parsed and pre-fills the food log entry form
+5. User can edit values before confirming
+
+**New use case:** `ScanMealPhoto` in `meal_tracking/domain/usecases/`  
+**New datasource method:** `analyzeMealImage(Uint8List imageBytes)` in `ChatbotDataSource`
+or a new `MealScannerDataSource`
+
+### Feature 3 — Mood × Fitness Correlator
+**Location:** New feature folder `lib/features/mood/`  
+**Firestore path:** `users/{uid}/mood/{date}`
+
+**Daily mood log:** A row of 5 emoji buttons embedded in the Dashboard (below the Recovery Score).
+User taps one. Takes < 2 seconds. Emojis: 😔 😕 😐 🙂 😄 mapped to scores 1–5.
+
+**Data model:**
+```dart
+class MoodEntry {
+  final String date;
+  final int score; // 1-5
+  final DateTime timestamp;
+}
+```
+
+**Correlation screen** (inside `ProgressScreen` as a tab or section):
+After 14+ days of data, show a chart: x-axis = day of week or week number, two lines —
+one for mood score (left y-axis, 1–5), one for combined fitness completion % (right y-axis, 0–100).
+Use `fl_chart` (already in pubspec).
+
+**Insight generation:** After 30+ days, compute Pearson correlation between mood and fitness
+completion. Surface as a card: "On days you hit your fitness goals, your mood is 63% higher."
+
+### Feature 4 — Community Challenges
+**Location:** New feature folder `lib/features/challenges/`  
+**Firestore structure:**
+```
+challenges/{challengeId}
+  - title: string
+  - description: string
+  - metric: 'steps' | 'water' | 'sleep' | 'calories'
+  - goal: number (e.g. 10000 for steps)
+  - durationDays: number
+  - startDate: timestamp
+  - endDate: timestamp
+  - participantCount: number
+
+challenges/{challengeId}/participants/{uid}
+  - joinedAt: timestamp
+  - currentProgress: number
+  - completed: boolean
+```
+
+**ChallengesScreen:** List of active challenges. Each card shows title, metric icon, participant count,
+days remaining, and a "Join" button. Joined challenges show current progress.
+
+**Progress update:** When a user logs steps/water/etc., check if they have an active challenge for
+that metric and update `participants/{uid}/currentProgress` in Firestore.
+
+**Leaderboard:** Top 10 participants ranked by `currentProgress`. Real-time via Firestore snapshot.
+
+Admin can create challenges via Firebase Console (no admin UI needed in app for MVP).
+
+### Feature 5 — Push Notifications (FCM)
+**Service:** `lib/core/services/notification_service.dart`
+
+Implement:
+1. **FCM token registration** — save token to `users/{uid}/fcmToken` on login
+2. **Foreground notifications** — use `flutter_local_notifications` to show heads-up
+3. **Background handler** — top-level function `@pragma('vm:entry-point') Future<void> firebaseMessagingBackgroundHandler`
+4. **Notification types:**
+   - `chat_message` — new message from coach
+   - `workout_reminder` — scheduled daily at user's preferred time
+   - `water_reminder` — if no water log by 11am
+   - `streak_alert` — if user is close to breaking a streak
+   - `challenge_update` — someone overtook them on a challenge leaderboard
+5. **Topic subscriptions:** `challenges`, `daily_tips`
+6. **Notification preferences screen** — toggle each type on/off, store in Firestore
+
+**Add to pubspec:**
+```yaml
+firebase_messaging: ^15.1.5
+flutter_local_notifications: ^18.0.1
+```
+
+---
+
+## 8. pubspec.yaml — Required Changes
+
+```yaml
+# Replace:
+googleai_dart: ^1.1.0
+# With:
+google_generative_ai: ^0.4.6
+
+# Add:
+firebase_messaging: ^15.1.5
+flutter_local_notifications: ^18.0.1
+```
+
+Remove `razorpay_flutter` if the payment feature is being removed. Keep it if the coach chat
+remains a paid feature.
+
+---
+
+## 9. Implementation Order
+
+Work in this order. Complete each step before starting the next.
+
+**Step 1 — Foundation (do this before anything visual)**
+- [ ] Fix Bug 4: clean up `main.dart` ProviderContainer anti-pattern
+- [ ] Fix Bug 6: replace `googleai_dart` with `google_generative_ai`, update `ChatbotDataSource`
+- [ ] Add `firebase_messaging` and `flutter_local_notifications` to pubspec
+- [ ] Update `AppColors` with new palette (dark theme first)
+- [ ] Inter is the app font, configured in `AppTheme` via `GoogleFonts.interTextTheme`.
+- [ ] Create `GlassCard` widget in `shared/widgets/`
+- [ ] Create base `UseCase` abstract class in `core/usecases/`
+
+**Step 2 — Theme migration**
+- [ ] Delete `lib/shared/theme/theme.dart`
+- [ ] Find and replace every `AppTheme.colors['...']` usage across all files with `AppColors` extension
+- [ ] Fix Bug 5: replace all `.withOpacity()` with `.withValues(alpha:)`
+- [ ] Verify app compiles and runs
+
+**Step 3 — Shell redesign**
+- [ ] New gradient background in `ShellScaffold`
+- [ ] Redesign `BottomNavBar` as floating glass pill
+- [ ] Redesign `CustomAppBar` with glass effect
+- [ ] Redesign side drawer with glass card style
+- [ ] Fix Bug 3: chatbot back navigation
+
+**Step 4 — Extract widgets from screens**
+For each feature folder, extract all inline widget definitions to their own files.
+Priority order: dashboard, meal_tracking, water_tracking, sleep_tracking, weight_tracking, progress.
+
+**Step 5 — Dashboard redesign**
+- [ ] `DashboardScreen` — only provider calls + widget calls
+- [ ] `DashboardGradientBackground` widget
+- [ ] `DashboardHeader` widget — greeting + avatar
+- [ ] `RecoveryScoreGauge` widget — circular arc, 0–100 score (Recovery Score Feature 1)
+- [ ] `MoodLogRow` widget — 5 emoji buttons (Mood Feature 3)
+- [ ] `DailyProgressGrid` — glass cards for steps/water/sleep/meals
+- [ ] `MealTrackingCard` — updated glass design
+
+**Step 6 — Notifications**
+- [ ] Implement `NotificationService` in `core/services/`
+- [ ] FCM token save on auth state change
+- [ ] Local notification display
+- [ ] `NotificationPreferencesScreen`
+- [ ] Wire water/steps/sleep logging to trigger streak-check notifications
+
+**Step 7 — New features**
+- [ ] Recovery Score (Feature 1) — domain + data + UI
+- [ ] AI Meal Photo Scanner (Feature 2) — add to meal tracking flow
+- [ ] Mood Logger (Feature 3) — domain + data + progress correlation chart
+- [ ] Community Challenges (Feature 4) — full feature folder
+
+**Step 8 — Remaining screens**
+Redesign each remaining screen with Liquid Glass UI following the same patterns established
+in Steps 3–5: Explore, Progress, Auth screens, Onboarding, Settings, Tracking screens.
+
+---
+
+## 10. Key Patterns — Follow These in Every File
+
+### Provider pattern
+```dart
+// Repository provider
+final waterRepositoryProvider = Provider<WaterRepository>((ref) {
+  return WaterRepositoryImpl(
+    dataSource: WaterDataSource(firestore: FirebaseFirestore.instance),
+  );
+});
+
+// Use case provider
+final addGlassUseCaseProvider = Provider<AddGlass>((ref) {
+  return AddGlass(ref.read(waterRepositoryProvider));
+});
+
+// State provider
+final waterStateProvider = StreamProvider.family<WaterData?, String>((ref, userId) {
+  return ref.read(waterRepositoryProvider).watchWaterData(userId);
+});
+```
+
+### Screen template
+```dart
+class WaterTrackingScreen extends ConsumerWidget {
+  const WaterTrackingScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userId = ref.watch(authUserIdProvider);
+    if (userId == null) return const AuthRedirectWidget();
+
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      appBar: const WaterTrackingAppBar(),
+      body: WaterTrackingBody(userId: userId),
+    );
+  }
+}
+```
+
+### Widget template
+```dart
+// lib/features/water_tracking/presentation/widgets/water_progress_ring.dart
+
+class WaterProgressRing extends StatelessWidget {
+  final int consumed;
+  final int goal;
+
+  const WaterProgressRing({
+    super.key,
+    required this.consumed,
+    required this.goal,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final progress = goal > 0 ? consumed / goal : 0.0;
+    // ... build UI
+  }
+}
+```
+
+### Error and loading states
+Each feature should have dedicated error and loading widgets:
+```
+features/water_tracking/presentation/widgets/
+  water_loading_state.dart
+  water_error_state.dart
+  water_empty_state.dart
+```
+
+---
+
+## 11. Firebase Firestore Structure (Reference)
+
+```
+users/{uid}
+  name, email, age, gender, goal, currentWeight, goalWeight, height, ...
+  fcmToken: string
+  
+users/{uid}/daily/{date}
+  steps: { steps, goalSteps }
+  water: { glassesConsumed, goalGlasses }
+  sleep: { hoursSlept, goalHours }
+  meal: { calories, caloriesGoal, protein, carbs, fat }
+
+users/{uid}/weight/{date}
+  currentWeight, goalWeight, initialWeight, targetDate
+
+users/{uid}/chatbot/{messageId}
+  text, isUser, timestamp
+
+users/{uid}/recovery/{date}
+  score, sleepContribution, waterContribution, stepsContribution,
+  workoutContribution, recommendation
+
+users/{uid}/mood/{date}
+  score (1-5), timestamp
+
+challenges/{challengeId}
+  title, description, metric, goal, durationDays, startDate, endDate, participantCount
+
+challenges/{challengeId}/participants/{uid}
+  joinedAt, currentProgress, completed
+
+chats/{chatId}
+  participants, lastMessage, lastMessageAt
+
+chats/{chatId}/messages/{messageId}
+  text, senderId, timestamp, status
+```
+
+---
+
+## 12. Liquid Glass UI Patterns for Each Screen Type
+
+### Tracking screen pattern
+```
+GradientBackground
+  └── SafeArea
+        └── CustomScrollView
+              ├── GlassAppBar (sliver)
+              ├── HeroAnimation (Lottie — keep existing)
+              ├── GlassCard — main metric (large number + circular progress)
+              ├── GlassCard — chart section
+              ├── GlassCard — tips / info
+              └── YeetButton — log entry action
+```
+
+### Dashboard pattern
+```
+GradientBackground
+  └── CustomScrollView
+        ├── DashboardHeader (greeting + avatar + date)
+        ├── RecoveryScoreGauge (large, prominent)
+        ├── MoodLogRow (emoji strip)
+        ├── DailyProgressGrid (2x2 glass cards: steps/water/sleep/calories)
+        └── MealTrackingCard (glass card with macro breakdown)
+```
+
+### List screen pattern (Explore, Challenges)
+```
+GradientBackground
+  └── SafeArea
+        ├── GlassSearchBar (sticky)
+        └── ListView
+              └── GlassCard (for each item, with subtle border gradient)
+```
+
+---
+
+## 13. Do Not Do
+
+- Do not use `AppTheme.colors[...]` anywhere
+- Do not define widgets inside screen files
+- Do not hardcode colors with hex values (use `AppColors`)
+- Do not hardcode route strings (use constants)
+- Do not import Firebase packages in domain layer
+- Do not put business logic in widgets (widgets are pure UI)
+- Do not use `print()` — use `debugPrint()` or a logging package
+- Do not use `Color.withOpacity()` — use `.withValues(alpha:)`
+- Do not leave TODO comments in committed code — implement or file an issue
+
+---
+
+*End of brief. When you start each step, state which step you're on and what file you're modifying.*

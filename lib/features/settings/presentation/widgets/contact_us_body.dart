@@ -1,47 +1,87 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../shared/theme/theme.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:yeetfit/core/theme/app_colors.dart';
+import 'package:yeetfit/core/theme/app_spacing.dart';
+import 'package:yeetfit/shared/widgets/glass_card.dart';
 
 class ContactUsBody extends StatelessWidget {
+  static const _email = 'sujinksureshofcl@gmail.com';
+
   const ContactUsBody({super.key});
+
+  Future<void> _emailSupport(BuildContext context) async {
+    final uri = Uri(
+      scheme: 'mailto',
+      path: _email,
+      query: 'subject=${Uri.encodeComponent('YeetFit Support')}',
+    );
+    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!opened && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open the mail app')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenEdge),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          const SizedBox(height: AppSpacing.xl),
+          Icon(Icons.mail_outline_rounded, size: 72, color: colors.primary),
+          const SizedBox(height: AppSpacing.md),
           Text(
             'Contact Us',
-            style: AppTheme.textStyles['subtitle']!.copyWith(
-              fontSize: 24.sp,
-              color: AppTheme.colors['primaryText'],
+            textAlign: TextAlign.center,
+            style: textTheme.headlineLarge!.copyWith(
+              color: colors.onBackground,
+              fontWeight: FontWeight.w700,
             ),
           ),
-          SizedBox(height: 16.h),
+          const SizedBox(height: AppSpacing.sm),
           Text(
-            'We’re here to help! Reach out to our support team for any questions or issues.',
-            style: AppTheme.textStyles['body']!.copyWith(
-              color: AppTheme.colors['primaryText'],
+            'Have a question or need help? We’re here for you.',
+            textAlign: TextAlign.center,
+            style: textTheme.bodyLarge!.copyWith(color: colors.textSecondary),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          GlassCard(
+            borderRadius: 16,
+            padding: EdgeInsets.zero,
+            child: Material(
+              type: MaterialType.transparency,
+              child: InkWell(
+                onTap: () => _emailSupport(context),
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Row(
+                    children: [
+                      Icon(Icons.email_outlined, color: colors.primary),
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: Text(
+                          _email,
+                          style: textTheme.bodyLarge!.copyWith(
+                            color: colors.onBackground,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
-          SizedBox(height: 16.h),
+          const SizedBox(height: AppSpacing.md),
           Text(
-            'Contact Information',
-            style: AppTheme.textStyles['subtitle']!.copyWith(
-              fontSize: 18.sp,
-              color: AppTheme.colors['primaryText'],
-            ),
-          ),
-          SizedBox(height: 8.h),
-          Text(
-            'Email: support@oyeetfit.com\n'
-            'Phone: +1-800-555-1234\n'
-            'Address: 123 Fitness Lane, Health City, HC 12345',
-            style: AppTheme.textStyles['body']!.copyWith(
-              color: AppTheme.colors['secondaryText'],
-            ),
+            'We typically respond within 24–48 hours.',
+            textAlign: TextAlign.center,
+            style: textTheme.bodyMedium!.copyWith(color: colors.textMuted),
           ),
         ],
       ),

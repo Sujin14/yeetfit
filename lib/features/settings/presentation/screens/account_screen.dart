@@ -1,29 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import '../../../../shared/theme/theme.dart';
 import '../widgets/account_body.dart';
+import '../widgets/settings_feedback_listener.dart';
+import '../widgets/settings_page_layout.dart';
 
-class AccountScreen extends ConsumerWidget {
+class AccountScreen extends StatelessWidget {
   const AccountScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Account',
-          style: AppTheme.textStyles['title']!.copyWith(color: AppTheme.colors['primaryText']),
-        ),
-        centerTitle: true,
-        backgroundColor: AppTheme.colors['lightBackground'],
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppTheme.colors['primaryText']),
-          onPressed: () => context.go('/settings'),
-        ),
-      ),
-      body: AccountBody(),
+  Widget build(BuildContext context) {
+    return const SettingsFeedbackListener(
+      child: SettingsPageLayout(title: 'Account', child: AccountBody()),
     );
   }
 }

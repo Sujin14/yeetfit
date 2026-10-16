@@ -1,37 +1,21 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../domain/entities/steps_data.dart';
 
-// Model for steps data entries and goals.
-class StepsData {
-  final String date;
-  final int steps;
-  final int goalSteps;
-  final double caloriesBurned;
-
-  StepsData({
-    required this.date,
-    required this.steps,
-    required this.goalSteps,
-    required this.caloriesBurned,
+// Firestore / local-cache representation of [StepsData].
+class StepsModel extends StepsData {
+  const StepsModel({
+    required super.date,
+    required super.steps,
+    required super.goalSteps,
+    required super.caloriesBurned,
   });
 
   // Creates from map (Firestore or local).
-  factory StepsData.fromMap(Map<String, dynamic> map) {
-    return StepsData(
+  factory StepsModel.fromMap(Map<String, dynamic> map) {
+    return StepsModel(
       date: map['date'] ?? DateTime.now().toIso8601String().split('T')[0],
       steps: (map['steps'] as num?)?.toInt() ?? 0,
       goalSteps: (map['goalSteps'] as num?)?.toInt() ?? 1000,
       caloriesBurned: (map['caloriesBurned'] as num?)?.toDouble() ?? 0.0,
     );
-  }
-
-  // Converts to Firestore map (adds timestamp).
-  Map<String, dynamic> toMap() {
-    return {
-      'date': date,
-      'steps': steps,
-      'goalSteps': goalSteps,
-      'caloriesBurned': caloriesBurned,
-      'timestamp': Timestamp.fromDate(DateTime.parse('$date 00:00:00')),
-    };
   }
 }

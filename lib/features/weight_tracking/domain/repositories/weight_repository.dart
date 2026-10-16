@@ -1,4 +1,4 @@
-import '../../data/model/weight_model.dart';
+import '../entities/weight_data.dart';
 
 // Abstract repository for weight tracking operations.
 abstract class WeightRepository {
@@ -17,24 +17,17 @@ abstract class WeightRepository {
     DateTime? targetDate,
   );
 
-  // Adds a weight entry for a date.
-  Future<void> addWeightEntry(
+  // Sets user's weight goal.
+  Future<void> setUserWeightGoal(
     String userId,
-    String date,
-    double currentWeight,
     double goalWeight,
     double initialWeight,
     DateTime? targetDate,
   );
-
-  // Sets user's weight goal.
-  Future<void> setUserWeightGoal(String userId, double goalWeight, double initialWeight, DateTime? targetDate);
 
   // Fetches weekly weight data.
   Future<List<WeightData>> getWeeklyWeightData(String userId);
 
   // Updates only current weight (merges with existing goal).
   Future<void> updateCurrentWeight(String userId, double currentWeight);
-
-
 }

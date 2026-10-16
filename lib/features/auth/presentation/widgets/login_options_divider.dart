@@ -1,37 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../shared/theme/theme.dart';
+import 'package:yeetfit/core/theme/app_colors.dart';
+import 'package:yeetfit/core/theme/app_spacing.dart';
 
+/// "── or ──" separator between email and social sign-in.
 class LoginOptionsDivider extends StatelessWidget {
   const LoginOptionsDivider({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final line = Expanded(
+      child: Divider(color: colors.textSecondary.withValues(alpha: 0.4)),
+    );
     return Row(
       children: [
-        Expanded(
-          child: Divider(
-            color: AppTheme.colors['secondaryText']!.withOpacity(0.3),
-            thickness: 1,
-          ),
-        ),
+        line,
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.w),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.smd),
           child: Text(
-            "or continue with",
-            style: AppTheme.textStyles['body']!.copyWith(
-              fontSize: 14.sp,
-              color: AppTheme.colors['secondaryText']!.withOpacity(0.7),
-              fontWeight: FontWeight.w500,
-            ),
+            'or',
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall!.copyWith(color: colors.textSecondary),
           ),
         ),
-        Expanded(
-          child: Divider(
-            color: AppTheme.colors['secondaryText']!.withOpacity(0.3),
-            thickness: 1,
-          ),
-        ),
+        line,
       ],
     );
   }

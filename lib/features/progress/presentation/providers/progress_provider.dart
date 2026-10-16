@@ -1,92 +1,77 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../../../shared/theme/theme.dart';
+import 'package:yeetfit/core/utils/nutrition_targets_fields.dart';
+import 'package:yeetfit/shared/providers/auth_providers.dart';
+import 'package:yeetfit/shared/providers/user_document_provider.dart';
 import '../../data/datasources/progress_datasource.dart';
-import '../../data/repositories/daily_progress_repository_impl.dart';
-import '../../domain/usecases/daily_progress.dart';
-import '../../domain/usecases/get_monthly_progress.dart';
+import '../../data/model/daily_progress_model.dart';
+import '../../domain/entities/daily_progress.dart';
+import '../../domain/entities/progress_metric.dart';
 
-// Repository provider
-final progressRepositoryProvider = Provider<ProgressRepositoryImpl>(
-  (ref) => ProgressRepositoryImpl(
-    dataSource: ProgressDataSourceImpl(
-      firestore: FirebaseFirestore.instance,
-      auth: FirebaseAuth.instance,
-    ),
-  ),
+final progressDataSourceProvider = Provider<ProgressDataSource>(
+  (ref) => ProgressDataSource(),
 );
 
-// UseCase provider
-final getMonthlyProgressProvider = Provider<GetMonthlyProgress>(
-  (ref) => GetMonthlyProgress(repository: ref.read(progressRepositoryProvider)),
-);
-
-// Selected metric (null = all)
-final selectedMetricProvider = StateProvider<String?>((ref) => null);
-
-// Monthly progress provider (re-reads selectedMetric on each fetch)
-final monthlyProgressProvider = StateNotifierProvider.autoDispose
-    .family<MonthlyProgressNotifier, AsyncValue<List<DailyProgress>>, DateTime>(
-      (ref, month) {
-        return MonthlyProgressNotifier(
-          ref,
-          ref.read(getMonthlyProgressProvider),
-          month,
-        );
-      },
+/// Metric chip selected on the Progress tab.
+final selectedProgressMetricProvider =
+    NotifierProvider<SelectedProgressMetricNotifier, ProgressMetric>(
+      SelectedProgressMetricNotifier.new,
     );
 
-// Heat color provider for a given date
-final dailyProgressColorProvider = Provider.autoDispose.family<Color, String>((
-  ref,
-  key,
-) {
-  // key: "<userId>|<yyyy-MM-dd>"
-  final parts = key.split('|');
-  final date = parts[1];
-  final month = DateTime.parse(date).copyWith(day: 1);
-  final entries = ref.watch(monthlyProgressProvider(month)).value ?? [];
-  final entry = entries.firstWhere(
-    (e) => e.date == date,
-    orElse: () => DailyProgress(date: date, completionRate: 0.0),
-  );
-  final p = entry.completionRate;
-  if (p >= 0.8) return AppTheme.colors['fullProgress']!;
-  if (p >= 0.5) return AppTheme.colors['threeQuarterProgress']!;
-  if (p >= 0.2) return AppTheme.colors['halfProgress']!;
-  return AppTheme.colors['noProgress']!;
-});
+class SelectedProgressMetricNotifier extends Notifier<ProgressMetric> {
+  @override
+  ProgressMetric build() => ProgressMetric.all;
 
-class MonthlyProgressNotifier
-    extends StateNotifier<AsyncValue<List<DailyProgress>>> {
-  final Ref _ref;
-  final GetMonthlyProgress _usecase;
-  final DateTime _month;
-
-  MonthlyProgressNotifier(this._ref, this._usecase, this._month)
-    : super(const AsyncValue.loading()) {
-    _fetch();
-    // Auto refresh when metric changes
-    _ref.listen<String?>(selectedMetricProvider, (_, __) {
-      refresh();
-    });
-  }
-
-  Future<void> _fetch() async {
-    try {
-      if (!mounted) return;
-      state = const AsyncValue.loading();
-      final metric = _ref.read(selectedMetricProvider);
-      final data = await _usecase.call(_month, metric: metric);
-      if (!mounted) return;
-      state = AsyncValue.data(data);
-    } catch (e, st) {
-      if (!mounted) return;
-      state = AsyncValue.error(e, st);
-    }
-  }
-
-  Future<void> refresh() => _fetch();
+  void select(ProgressMetric metric) => state = metric;
 }
+
+typedef ProgressQuery = ({DateTime month, ProgressMetric metric});
+
+/// `dailyCalorieTarget` from the user's profile, or null while it's missing
+/// or zero. Only changes to that field notify listeners.
+final progressCalorieTargetProvider = FutureProvider.autoDispose
+    .family<int?, String>(
+      (ref, userId) => ref.watch(
+        userDocumentProvider(
+          userId,
+        ).selectAsync((data) => NutritionTargetsFields.saved(data)?.calories),
+      ),
+    );
+
+/// Raw per-day docs of a month for one metric; refetches when the signed-in
+/// user changes. Errors surface immediately (with a manual retry) instead of
+/// Riverpod's automatic retry, since each attempt can take up to 12s per
+/// metric. Retry by invalidating this provider.
+final monthlyProgressDataProvider = FutureProvider.autoDispose
+    .family<List<DailyProgressModel>, ProgressQuery>((ref, query) {
+      final userId = ref.watch(authUserIdProvider);
+      if (userId == null) throw Exception('User not authenticated');
+      return ref
+          .read(progressDataSourceProvider)
+          .getMonthlyProgress(userId, query.month, metric: query.metric);
+    }, retry: (_, _) => null);
+
+/// Completion per day of a month for one metric. Calories are measured
+/// against the profile's calorie target.
+final monthlyProgressProvider = FutureProvider.autoDispose
+    .family<List<DailyProgress>, ProgressQuery>((ref, query) async {
+      final userId = ref.watch(authUserIdProvider);
+      if (userId == null) throw Exception('User not authenticated');
+
+      final usesCalories =
+          query.metric == ProgressMetric.calories ||
+          query.metric == ProgressMetric.all;
+      final calorieGoal = usesCalories
+          ? await ref.watch(progressCalorieTargetProvider(userId).future)
+          : null;
+      final days = await ref.watch(monthlyProgressDataProvider(query).future);
+      return [
+        for (final day in days)
+          DailyProgress(
+            date: day.date,
+            completionRate: day.getCompletionRate(
+              query.metric,
+              calorieGoal: calorieGoal,
+            ),
+          ),
+      ];
+    }, retry: (_, _) => null);

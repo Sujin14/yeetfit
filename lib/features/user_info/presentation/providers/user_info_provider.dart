@@ -1,475 +1,335 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../../../shared/theme/theme.dart';
+import 'package:yeetfit/shared/providers/auth_providers.dart';
+import '../../data/datasources/account_functions_service.dart';
 import '../../data/datasources/firestore_user_service.dart';
+import '../../data/datasources/profile_completion_status.dart';
 import '../../data/models/user_info_model.dart';
-import '../../data/repositories/user_repository_impl.dart';
-import '../../domain/usecases/save_user_info.dart';
 import '../../domain/validators/user_info_validators.dart';
 
 final userInfoControllerProvider =
-    StateNotifierProvider<UserInfoController, AsyncValue<UserInfoModel>>((ref) {
-      final repository = UserRepositoryImpl(
-        userService: FirestoreUserService(),
-      );
-      return UserInfoController(SaveUserInfo(repository), repository);
-    });
+    AsyncNotifierProvider<UserInfoController, UserInfoModel>(
+      UserInfoController.new,
+    );
 
-class UserInfoController extends StateNotifier<AsyncValue<UserInfoModel>> {
-  final SaveUserInfo saveUserInfo;
-  final UserRepositoryImpl repository;
-  int _currentStep = 0;
+class UserInfoController extends AsyncNotifier<UserInfoModel> {
+  final FirestoreUserService _userService = FirestoreUserService();
+  final AccountFunctionsService _accountService = AccountFunctionsService();
   bool _isSaving = false;
   final Map<String, dynamic> _formValues = {};
 
-  UserInfoController(this.saveUserInfo, this.repository)
-    : super(const AsyncValue.loading()) {
-    fetchUserData();
+  @override
+  Future<UserInfoModel> build() {
+    // Rebuilding recreates this notifier, so a new login never sees or saves
+    // over the previous user's cached profile or form values.
+    ref.watch(authStateProvider.select((user) => user.value?.uid));
+    return _load();
   }
-
-  int get currentStep => _currentStep;
-  bool get isSaving => _isSaving;
 
   void setFormValue(String key, dynamic value) {
     _formValues[key] = value;
   }
 
-  Future<void> fetchUserData() async {
+  dynamic formValue(String key) => _formValues[key];
+
+  Future<UserInfoModel> _load() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) {
-      state = AsyncValue.error(
-        Exception('User not authenticated'),
-        StackTrace.current,
-      );
-      return;
-    }
-    try {
-      final userData = await repository.getUserData(uid);
-      state = AsyncValue.data(
-        userData ??
-            UserInfoModel(
-              uid: uid,
-              email: FirebaseAuth.instance.currentUser?.email,
-            ),
-      );
-    } catch (e, stackTrace) {
-      state = AsyncValue.error(e, stackTrace);
-    }
+    if (uid == null) throw Exception('User not authenticated');
+    final userData = await _userService.getUserData(uid);
+    return userData ??
+        UserInfoModel(
+          uid: uid,
+          email: FirebaseAuth.instance.currentUser?.email,
+        );
   }
 
-  void updateName(String name) {
-    state.whenData((userInfo) {
-      state = AsyncValue.data(userInfo.copyWith(name: name.trim()));
-    });
+  Future<void> fetchUserData() async {
+    final result = await AsyncValue.guard(_load);
+    if (ref.mounted) state = result;
   }
 
-  void updateGender(String gender) {
-    state.whenData((userInfo) {
-      state = AsyncValue.data(userInfo.copyWith(gender: gender.trim()));
-    });
+  /// Replaces the cached profile after it was saved elsewhere (Settings).
+  void setProfile(UserInfoModel profile) => state = AsyncData(profile);
+
+  void _updateLoaded(UserInfoModel Function(UserInfoModel current) update) {
+    final current = state.value;
+    if (current != null) state = AsyncData(update(current));
   }
 
-  void updateAge(int age) {
-    state.whenData((userInfo) {
-      state = AsyncValue.data(userInfo.copyWith(age: age));
-    });
-  }
+  void updateGender(String gender) =>
+      _updateLoaded((userInfo) => userInfo.copyWith(gender: gender.trim()));
 
-  void updateGoal(String goal) {
-    state.whenData((userInfo) {
-      state = AsyncValue.data(userInfo.copyWith(goal: goal));
-    });
-  }
+  void updateGoal(String goal) =>
+      _updateLoaded((userInfo) => userInfo.copyWith(goal: goal));
 
-  void updateWeights({double? current, double? goal}) {
-    state.whenData((userInfo) {
-      state = AsyncValue.data(
-        userInfo.copyWith(
-          currentWeight: current ?? userInfo.currentWeight,
-          goalWeight: goal ?? userInfo.goalWeight,
-        ),
-      );
-    });
-  }
+  void updateActivityLevel(String activityLevel) => _updateLoaded(
+    (userInfo) => userInfo.copyWith(activityLevel: activityLevel),
+  );
 
-  void updateHeight(double height) {
-    state.whenData((userInfo) {
-      state = AsyncValue.data(userInfo.copyWith(height: height));
-    });
-  }
-
-  void updateActivityLevel(String activityLevel) {
-    state.whenData((userInfo) {
-      state = AsyncValue.data(userInfo.copyWith(activityLevel: activityLevel));
-    });
-  }
-
-  void updateTimeDuration(int duration) {
-    state.whenData((userInfo) {
-      state = AsyncValue.data(userInfo.copyWith(timeDurationWeeks: duration));
-    });
-  }
-
-  Future<void> updateProfileImage(XFile image, BuildContext context) async {
+  /// Uploads [image] (picked by the widget) and stores its URL on the profile.
+  /// Throws [ProfileImageUploadException] on failure; the form state is kept.
+  Future<void> updateProfileImage(XFile image) async {
     if (_isSaving) return;
     _isSaving = true;
     try {
       final uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid == null) {
-        throw Exception('User not authenticated');
+        throw const ProfileImageUploadException('User not authenticated');
       }
       final storageRef = FirebaseStorage.instance.ref().child(
-        'users/$uid/profile.jpg',
+        'profile_pictures/$uid/avatar.jpg',
       );
       await storageRef.putFile(File(image.path));
       final url = await storageRef.getDownloadURL();
-      state.whenData((userInfo) {
-        final updatedUserInfo = userInfo.copyWith(profileImageUrl: url);
-        state = AsyncValue.data(updatedUserInfo);
-        saveUserInfo(updatedUserInfo);
-      });
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Profile image updated'),
-            backgroundColor: AppTheme.colors['primaryAccent'],
-          ),
-        );
+      final current = state.value;
+      if (current != null) {
+        final updatedUserInfo = current.copyWith(profileImageUrl: url);
+        await _userService.saveUserData(updatedUserInfo);
+        if (ref.mounted) state = AsyncData(updatedUserInfo);
       }
-    } catch (e, stackTrace) {
-      if (e.toString().contains('requires recent authentication')) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Session expired. Please log in again.'),
-              backgroundColor: Colors.red,
-            ),
-          );
-          context.go('/login');
-        }
-      } else {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Failed to upload image: $e'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-      state = AsyncValue.error(e, stackTrace);
+    } on ProfileImageUploadException {
+      rethrow;
+    } catch (e) {
+      throw ProfileImageUploadException(
+        e.toString().contains('requires recent authentication')
+            ? 'Session expired. Please log in again.'
+            : 'Failed to upload image: $e',
+        requiresReauthentication: e.toString().contains(
+          'requires recent authentication',
+        ),
+      );
     } finally {
       _isSaving = false;
     }
   }
 
-  void updateDietPreference(String? dietPreference) {
-    state.whenData((userInfo) {
-      state = AsyncValue.data(
-        userInfo.copyWith(dietPreference: dietPreference),
-      );
-    });
-  }
-
-  void updateAllergies(Map<String, bool>? allergies) {
-    state.whenData((userInfo) {
-      state = AsyncValue.data(userInfo.copyWith(allergies: allergies));
-    });
-  }
-
-  void updateOtherAllergy(String? otherAllergy) {
-    state.whenData((userInfo) {
-      state = AsyncValue.data(userInfo.copyWith(otherAllergy: otherAllergy));
-    });
-  }
-
-  void updateCuisines(Map<String, bool>? cuisines) {
-    state.whenData((userInfo) {
-      state = AsyncValue.data(userInfo.copyWith(cuisines: cuisines));
-    });
-  }
-
-  void updateWaterGoal(double? waterGoal) {
-    state.whenData((userInfo) {
-      state = AsyncValue.data(userInfo.copyWith(waterGoal: waterGoal));
-    });
-  }
-
-  void updateStepsGoal(double? stepsGoal) {
-    state.whenData((userInfo) {
-      state = AsyncValue.data(userInfo.copyWith(stepsGoal: stepsGoal));
-    });
-  }
-
-  void updateSleepGoal(double? sleepGoal) {
-    state.whenData((userInfo) {
-      state = AsyncValue.data(userInfo.copyWith(sleepGoal: sleepGoal));
-    });
-  }
-
-  Future<bool> validateStepData(int step, GlobalKey<FormState> formKey) async {
-    formKey.currentState?.save();
-    if (!formKey.currentState!.validate()) return false;
-
+  /// Validates the collected values for [step]; returns an error message or
+  /// `null`. Form-field validation is done by the widget beforehand.
+  String? validateStep(int step) {
     final userInfo =
-        state.valueOrNull ??
+        state.value ??
         UserInfoModel(uid: FirebaseAuth.instance.currentUser?.uid ?? '');
-    String? error;
-    switch (step) {
-      case 0:
-        error =
-            UserInfoValidators.validateName(
-              _formValues['name'] ?? userInfo.name,
-            ) ??
+    return switch (step) {
+      0 =>
+        UserInfoValidators.validateName(_formValues['name'] ?? userInfo.name) ??
             UserInfoValidators.validateGender(
               _formValues['gender'] ?? userInfo.gender,
-            );
-        break;
-      case 1:
-        error = UserInfoValidators.validateAge(
-          _formValues['age']?.toString() ?? userInfo.age.toString(),
-        );
-        break;
-      case 2:
-        error = UserInfoValidators.validateGoal(
-          _formValues['goal'] ?? userInfo.goal,
-        );
-        break;
-      case 3:
-        error =
-            UserInfoValidators.validateWeight(
+            ),
+      1 => UserInfoValidators.validateAge(
+        _formValues['age']?.toString() ?? userInfo.age.toString(),
+      ),
+      2 => UserInfoValidators.validateGoal(
+        _formValues['goal'] ?? userInfo.goal,
+      ),
+      3 =>
+        UserInfoValidators.validateWeight(
               _formValues['currentWeight']?.toString() ??
                   userInfo.currentWeight.toString(),
             ) ??
             UserInfoValidators.validateWeight(
               _formValues['goalWeight']?.toString() ??
                   userInfo.goalWeight.toString(),
-            );
-        break;
-      case 4:
-        error = UserInfoValidators.validateHeight(
-          _formValues['height']?.toString() ?? userInfo.height.toString(),
-        );
-        break;
-      case 5:
-        error = UserInfoValidators.validateActivityLevel(
-          _formValues['activityLevel'] ?? userInfo.activityLevel,
-        );
-        break;
-      case 6:
-        error = UserInfoValidators.validateTimeDuration(
-          _formValues['timeDurationWeeks']?.toString() ??
-              userInfo.timeDurationWeeks?.toString() ??
-              '',
-        );
-        break;
-    }
-    return error == null;
-  }
-
-  Future<bool> saveStepData(
-    BuildContext context,
-    GlobalKey<FormState> formKey,
-    int step,
-  ) async {
-    if (_isSaving) return false;
-    final isValid = await validateStepData(step, formKey);
-    if (!isValid) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please fill in all required fields correctly'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-      return false;
-    }
-    try {
-      _isSaving = true;
-      final uid = FirebaseAuth.instance.currentUser?.uid;
-      if (uid == null) {
-        throw Exception('User not authenticated');
-      }
-      state.whenData((userInfo) async {
-        final updatedUserInfo = userInfo.copyWith(
-          uid: uid,
-          email: FirebaseAuth.instance.currentUser?.email,
-          name: _formValues['name'] ?? userInfo.name,
-          gender: _formValues['gender'] ?? userInfo.gender,
-          age: _formValues['age'] ?? userInfo.age,
-          goal: _formValues['goal'] ?? userInfo.goal,
-          currentWeight: _formValues['currentWeight'] ?? userInfo.currentWeight,
-          goalWeight: _formValues['goalWeight'] ?? userInfo.goalWeight,
-          height: _formValues['height'] ?? userInfo.height,
-          activityLevel: _formValues['activityLevel'] ?? userInfo.activityLevel,
-          timeDurationWeeks:
-              _formValues['timeDurationWeeks'] ?? userInfo.timeDurationWeeks,
-        );
-        await saveUserInfo(updatedUserInfo);
-        state = AsyncValue.data(updatedUserInfo);
-        _currentStep = step + 1;
-        if (context.mounted) {
-          context.go('/user-info-step/$_currentStep');
-        }
-      });
-      return true;
-    } catch (e, stackTrace) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error saving data: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-      state = AsyncValue.error(e, stackTrace);
-      return false;
-    } finally {
-      _isSaving = false;
-    }
-  }
-
-  Future<bool> submitUserData(
-    BuildContext context,
-    GlobalKey<FormState> formKey,
-  ) async {
-    if (_isSaving) return false;
-    final isValid = await validateStepData(6, formKey);
-    if (!isValid) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please fill in all required fields correctly'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-      return false;
-    }
-    try {
-      _isSaving = true;
-      final uid = FirebaseAuth.instance.currentUser?.uid;
-      if (uid == null) {
-        throw Exception('User not authenticated');
-      }
-      state.whenData((userInfo) async {
-        final updatedUserInfo = userInfo.copyWith(
-          uid: uid,
-          email: FirebaseAuth.instance.currentUser?.email,
-          timeDurationWeeks:
-              _formValues['timeDurationWeeks'] ?? userInfo.timeDurationWeeks,
-        );
-        await saveUserInfo(updatedUserInfo);
-        state = AsyncValue.data(updatedUserInfo);
-        if (context.mounted) {
-          context.go('/user-dashboard');
-        }
-      });
-      return true;
-    } catch (e, stackTrace) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error saving user data: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-      state = AsyncValue.error(e, stackTrace);
-      return false;
-    } finally {
-      _isSaving = false;
-    }
-  }
-
-  Future<bool> saveUserData(BuildContext context) async {
-    if (_isSaving) return false;
-    _isSaving = true;
-    try {
-      final uid = FirebaseAuth.instance.currentUser?.uid;
-      if (uid == null) {
-        throw Exception('User not authenticated');
-      }
-      state.whenData((userInfo) async {
-        final updatedUserInfo = userInfo.copyWith(
-          uid: uid,
-          email: FirebaseAuth.instance.currentUser?.email,
-        );
-        await saveUserInfo(updatedUserInfo);
-        state = AsyncValue.data(updatedUserInfo);
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Information updated'),
-              backgroundColor: Colors.green,
             ),
-          );
-          context.go('/account');
-        }
-      });
-      _isSaving = false;
-      return true;
-    } catch (e, stackTrace) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error saving user data: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-      state = AsyncValue.error(e, stackTrace);
-      _isSaving = false;
-      return false;
-    }
+      4 => UserInfoValidators.validateHeight(
+        _formValues['height']?.toString() ?? userInfo.height.toString(),
+      ),
+      5 => UserInfoValidators.validateActivityLevel(
+        _formValues['activityLevel'] ?? userInfo.activityLevel,
+      ),
+      6 => UserInfoValidators.validateTimeDuration(
+        _formValues['timeDurationWeeks']?.toString() ??
+            userInfo.timeDurationWeeks?.toString() ??
+            '',
+      ),
+      _ => null,
+    };
   }
 
-  Future<bool> deleteUserData(BuildContext context) async {
-    if (_isSaving) return false;
+  /// Saves the values collected up to [step] and returns the next step.
+  /// Throws [UserInfoSaveException] on invalid data or a failed save.
+  Future<int> saveStepData(int step) async {
+    await _save(
+      validateStep: step,
+      update: (userInfo) => userInfo.copyWith(
+        name: _formValues['name'] ?? userInfo.name,
+        gender: _formValues['gender'] ?? userInfo.gender,
+        age: _formValues['age'] ?? userInfo.age,
+        goal: _formValues['goal'] ?? userInfo.goal,
+        currentWeight: _formValues['currentWeight'] ?? userInfo.currentWeight,
+        goalWeight: _formValues['goalWeight'] ?? userInfo.goalWeight,
+        height: _formValues['height'] ?? userInfo.height,
+        activityLevel: _formValues['activityLevel'] ?? userInfo.activityLevel,
+        timeDurationWeeks:
+            _formValues['timeDurationWeeks'] ?? userInfo.timeDurationWeeks,
+      ),
+    );
+    return step + 1;
+  }
+
+  /// Saves the final step. Throws [UserInfoSaveException] on failure.
+  Future<void> submitUserData() {
+    return _save(
+      validateStep: 6,
+      completesProfile: true,
+      update: (userInfo) => userInfo.copyWith(
+        timeDurationWeeks:
+            _formValues['timeDurationWeeks'] ?? userInfo.timeDurationWeeks,
+      ),
+    );
+  }
+
+  /// On failure the in-memory profile is kept so the form isn't lost.
+  /// [completesProfile] also creates the coach-discoverable client doc.
+  Future<void> _save({
+    int? validateStep,
+    bool completesProfile = false,
+    required UserInfoModel Function(UserInfoModel current) update,
+  }) async {
+    if (_isSaving) {
+      throw const UserInfoSaveException('A save is already in progress');
+    }
+    if (validateStep != null) {
+      final error = this.validateStep(validateStep);
+      if (error != null) throw UserInfoSaveException(error);
+    }
+
     _isSaving = true;
     try {
-      final uid = FirebaseAuth.instance.currentUser?.uid;
-      if (uid == null) {
-        throw Exception('User not authenticated');
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw const UserInfoSaveException('User not authenticated');
       }
-      await repository.deleteUserData(uid);
-      await FirebaseAuth.instance.currentUser?.delete();
-      state = AsyncValue.data(UserInfoModel());
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Account deleted successfully'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        context.go('/login');
+      final current = state.value ?? UserInfoModel(uid: user.uid);
+      final updated = update(
+        current,
+      ).copyWith(uid: user.uid, email: user.email);
+      if (completesProfile) {
+        await _userService.saveUserDataWithClient(updated);
+      } else {
+        await _userService.saveUserData(updated);
       }
+      if (ref.mounted) state = AsyncData(updated);
+    } on UserInfoSaveException {
+      rethrow;
+    } catch (e) {
+      throw UserInfoSaveException('Error saving data: $e');
+    } finally {
       _isSaving = false;
-      return true;
-    } catch (e, stackTrace) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error deleting account: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-      state = AsyncValue.error(e, stackTrace);
-      _isSaving = false;
-      return false;
     }
   }
 
-  Future<void> previousStep(BuildContext context, int step) async {
-    if (_isSaving || step <= 0) return;
-    _currentStep = step - 1;
-    if (context.mounted) context.go('/user-info-step/$_currentStep');
+  /// Deletes the user's data and Auth account through the `deleteAccount`
+  /// Cloud Function. Throws on failure, including
+  /// [RecentLoginRequiredException]. The caller signs out afterwards.
+  Future<void> deleteAccount() async {
+    if (_isSaving) {
+      throw StateError('Another profile update is in progress');
+    }
+    _isSaving = true;
+    try {
+      if (FirebaseAuth.instance.currentUser == null) {
+        throw Exception('User not authenticated');
+      }
+      await _accountService.deleteAccount();
+      if (ref.mounted) state = AsyncData(UserInfoModel());
+    } finally {
+      _isSaving = false;
+    }
   }
+
+  /// Moves back one step and returns its index, or `null` when there is no
+  /// previous step. The widget performs the navigation.
+  int? previousStep(int step) {
+    if (_isSaving || step <= 0) return null;
+    return step - 1;
+  }
+}
+
+/// Outcome of a profile-setup save, consumed once by the stepper widget.
+sealed class UserInfoSaveResult {
+  const UserInfoSaveResult();
+}
+
+class UserInfoStepSaved extends UserInfoSaveResult {
+  final int nextStep;
+
+  const UserInfoStepSaved(this.nextStep);
+}
+
+class UserInfoSubmitted extends UserInfoSaveResult {
+  const UserInfoSubmitted();
+}
+
+/// Save status for the profile-setup stepper: loading while saving, data
+/// with the result on success, error with a [UserInfoSaveException].
+final userInfoSaveControllerProvider =
+    AsyncNotifierProvider.autoDispose<
+      UserInfoSaveController,
+      UserInfoSaveResult?
+    >(UserInfoSaveController.new);
+
+class UserInfoSaveController extends AsyncNotifier<UserInfoSaveResult?> {
+  @override
+  FutureOr<UserInfoSaveResult?> build() => null;
+
+  UserInfoController get _userInfoController =>
+      ref.read(userInfoControllerProvider.notifier);
+
+  Future<void> saveStep(int step) {
+    final userInfoController = _userInfoController;
+    return _run(
+      () async =>
+          UserInfoStepSaved(await userInfoController.saveStepData(step)),
+    );
+  }
+
+  Future<void> submit() {
+    final userInfoController = _userInfoController;
+    return _run(() async {
+      await userInfoController.submitUserData();
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid != null) ProfileCompletionStatus.markComplete(uid);
+      return const UserInfoSubmitted();
+    });
+  }
+
+  /// Clears a handled result so it isn't acted on twice.
+  void consume() => state = const AsyncData(null);
+
+  Future<void> _run(Future<UserInfoSaveResult> Function() action) async {
+    if (state.isLoading) return;
+    state = const AsyncLoading();
+    try {
+      final result = await action();
+      if (ref.mounted) state = AsyncData(result);
+    } on UserInfoSaveException catch (e, stackTrace) {
+      if (ref.mounted) state = AsyncError(e, stackTrace);
+    }
+  }
+}
+
+class UserInfoSaveException implements Exception {
+  final String message;
+
+  const UserInfoSaveException(this.message);
+
+  @override
+  String toString() => message;
+}
+
+class ProfileImageUploadException implements Exception {
+  final String message;
+  final bool requiresReauthentication;
+
+  const ProfileImageUploadException(
+    this.message, {
+    this.requiresReauthentication = false,
+  });
+
+  @override
+  String toString() => message;
 }

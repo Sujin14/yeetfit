@@ -1,97 +1,67 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../domain/validators/user_info_validators.dart';
 import '../providers/user_info_provider.dart';
+import 'number_picker_field.dart';
+import 'step_content_card.dart';
+import 'step_question.dart';
+import 'package:yeetfit/core/theme/app_spacing.dart';
 
-class WeightInput extends ConsumerStatefulWidget {
+class WeightInput extends ConsumerWidget {
+  static const double _minWeight = 30;
+  static const double _maxWeight = 300;
+  static const double _defaultWeight = 70;
+
   final GlobalKey<FormState> formKey;
 
-  const WeightInput({
-    super.key,
-    required this.formKey,
-  });
+  const WeightInput({super.key, required this.formKey});
 
   @override
-  _WeightInputState createState() => _WeightInputState();
-}
-
-class _WeightInputState extends ConsumerState<WeightInput> {
-  late TextEditingController _currentWeightController;
-  late TextEditingController _goalWeightController;
-
-  @override
-  void initState() {
-    super.initState();
-    final userInfo = ref.read(userInfoControllerProvider);
-    _currentWeightController = TextEditingController(
-      text: userInfo.value?.currentWeight == 0 ? '' : userInfo.value?.currentWeight.toString(),
-    );
-    _goalWeightController = TextEditingController(
-      text: userInfo.value?.goalWeight == 0 ? '' : userInfo.value?.goalWeight.toString(),
-    );
-  }
-
-  @override
-  void dispose() {
-    _currentWeightController.dispose();
-    _goalWeightController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userInfo = ref.read(userInfoControllerProvider).value;
     final controller = ref.read(userInfoControllerProvider.notifier);
+    final current = (userInfo?.currentWeight ?? 0) > 0
+        ? userInfo!.currentWeight
+        : _defaultWeight;
+    final goal = (userInfo?.goalWeight ?? 0) > 0
+        ? userInfo!.goalWeight
+        : current;
+
+    String? validate(double? value) =>
+        UserInfoValidators.validateWeight(value?.toString());
 
     return Form(
-      key: widget.formKey,
+      key: formKey,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "What is your current weight?",
-            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
-          ),
-          SizedBox(height: 8.h),
-          TextFormField(
-            controller: _currentWeightController,
-            decoration: InputDecoration(
-              hintText: "Enter current weight (kg)",
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.r),
-              ),
-              filled: true,
-              fillColor: Colors.grey[100],
+          const StepQuestion("What's your current weight?"),
+          StepContentCard(
+            child: NumberPickerField(
+              initialValue: current,
+              min: _minWeight,
+              max: _maxWeight,
+              step: 0.5,
+              fractionDigits: 1,
+              unit: 'kg',
+              validator: validate,
+              onSaved: (value) =>
+                  controller.setFormValue('currentWeight', value ?? 0),
             ),
-            keyboardType: TextInputType.number,
-            validator: UserInfoValidators.validateWeight,
-            onSaved: (value) {
-              final weight = double.tryParse(value ?? '') ?? 0;
-              controller.setFormValue('currentWeight', weight);
-            },
           ),
-          SizedBox(height: 24.h),
-          Text(
-            "What is your goal weight?",
-            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
-          ),
-          SizedBox(height: 8.h),
-          TextFormField(
-            controller: _goalWeightController,
-            decoration: InputDecoration(
-              hintText: "Enter goal weight (kg)",
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.r),
-              ),
-              filled: true,
-              fillColor: Colors.grey[100],
+          const SizedBox(height: AppSpacing.xl),
+          const StepQuestion("What's your goal weight?"),
+          StepContentCard(
+            child: NumberPickerField(
+              initialValue: goal,
+              min: _minWeight,
+              max: _maxWeight,
+              step: 0.5,
+              fractionDigits: 1,
+              unit: 'kg',
+              validator: validate,
+              onSaved: (value) =>
+                  controller.setFormValue('goalWeight', value ?? 0),
             ),
-            keyboardType: TextInputType.number,
-            validator: UserInfoValidators.validateWeight,
-            onSaved: (value) {
-              final weight = double.tryParse(value ?? '') ?? 0;
-              controller.setFormValue('goalWeight', weight);
-            },
           ),
         ],
       ),

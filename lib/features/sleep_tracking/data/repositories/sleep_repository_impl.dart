@@ -1,6 +1,8 @@
 import '../datasource/sleep_data_source.dart';
-import '../model/sleep_model.dart';
+import '../../domain/entities/sleep_data.dart';
 import '../../domain/repositories/sleep_repository.dart';
+
+String _todayKey() => DateTime.now().toIso8601String().split('T')[0];
 
 // Implementation of [SleepRepository] using Firestore.
 class SleepRepositoryImpl implements SleepRepository {
@@ -9,39 +11,44 @@ class SleepRepositoryImpl implements SleepRepository {
   const SleepRepositoryImpl(this._dataSource);
 
   @override
-  Future<SleepData?> getSleepData(String userId) async {
-    final today = DateTime.now().toIso8601String().split('T')[0];
-    return await _dataSource.getSleepData(userId, today);
-  }
+  Stream<SleepData?> watchTodaySleep(String userId) =>
+      _dataSource.watchSleepData(userId, _todayKey());
 
   @override
-  Future<double> getSleepGoal(String userId) async {
-    final today = DateTime.now().toIso8601String().split('T')[0];
-    return await _dataSource.getSleepGoal(userId, today);
-  }
-
-  @override
-  Future<void> addSleepEntry(String userId, DateTime bedtime, DateTime wakeUpTime, double duration) async {
-    final today = DateTime.now().toIso8601String().split('T')[0];
+  Future<void> addSleepEntry(
+    String userId,
+    DateTime bedtime,
+    DateTime wakeUpTime,
+    double duration,
+  ) async {
+    final today = _todayKey();
     final currentData = await _dataSource.getSleepData(userId, today);
-    final goalHours = currentData?.goalHours ?? 8.0;
-    await _dataSource.addSleepEntry(userId, today, bedtime, wakeUpTime, duration, goalHours);
+    await _dataSource.addSleepEntry(
+      userId,
+      today,
+      bedtime,
+      wakeUpTime,
+      duration,
+      currentData?.goalHours ?? 8.0,
+    );
   }
 
   @override
-  Future<void> setSleepGoal(String userId, double newGoal) async {
-    final today = DateTime.now().toIso8601String().split('T')[0];
-    final currentData = await _dataSource.getSleepData(userId, today);
-    final duration = currentData?.duration ?? 0.0;
-    final bedtime = currentData?.bedtime ?? DateTime.now();
-    final wakeUpTime = currentData?.wakeUpTime ?? DateTime.now();
-    await _dataSource.addSleepEntry(userId, today, bedtime, wakeUpTime, duration, newGoal);
-  }
+  Future<void> setSleepGoal(String userId, double newGoal) =>
+      _dataSource.setSleepGoal(userId, _todayKey(), newGoal);
 
   @override
   Future<List<SleepData>> getWeeklySleepData(String userId) async {
     final endDate = DateTime.now();
-    final startDate = endDate.subtract(const Duration(days: 6));
-    return await _dataSource.getWeeklySleepData(userId, startDate, endDate);
+    // Midnight six days ago: entries are timestamped at 00:00, and the chart
+    // needs today plus the six days before it.
+    final startDate = DateTime(
+      endDate.year,
+      endDate.month,
+      endDate.day,
+    ).subtract(const Duration(days: 6));
+    return List<SleepData>.of(
+      await _dataSource.getWeeklySleepData(userId, startDate, endDate),
+    );
   }
 }

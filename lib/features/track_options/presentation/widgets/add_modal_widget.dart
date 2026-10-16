@@ -1,22 +1,28 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../shared/theme/theme.dart';
 import '../../../../shared/widgets/drag_handle.dart';
-import '../../../../shared/widgets/glassmorphic_container.dart';
-import 'track_button.dart';
+import '../../../../shared/widgets/glass_card.dart';
+import '../../../../shared/widgets/track_button.dart';
+import 'package:yeetfit/core/theme/app_colors.dart';
+import 'package:yeetfit/core/routes/tracking_routes_constants.dart';
+import 'package:yeetfit/core/theme/app_spacing.dart';
 
 class AddModalWidget extends StatelessWidget {
   const AddModalWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return GlassmorphicContainer(
-      color: AppTheme.colors['lightBackground']!,
-      padding: EdgeInsets.all(16.w),
-      borderRadius: 24.r,
+    final colors = Theme.of(context).extension<AppColors>()!;
+    void open(String route) => context.push(route);
+
+    return GlassCard(
+      color: colors.background,
+      opacity: 0.2,
+      blurStrength: 10,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      borderRadius: 24,
+      border: Border.all(color: colors.secondary.withValues(alpha: 0.25)),
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -24,51 +30,46 @@ class AddModalWidget extends StatelessWidget {
             const DragHandle(),
             Text(
               'Track Your Progress',
-              style: GoogleFonts.roboto(
-                fontSize: 20.sp,
+              style: Theme.of(context).textTheme.headlineMedium!.copyWith(
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: AppTheme.colors['primarytext'],
+                color: colors.onBackground,
               ),
             ),
-            SizedBox(height: 24.h),
-            trackButton(
-              context,
+            const SizedBox(height: AppSpacing.lg),
+            TrackButton(
               icon: Icons.local_dining,
               label: 'Add Meal',
-              color: AppTheme.colors['gradientTextMiddle'] ?? Colors.blue,
-              onPressed: () => context.push('/modal/food'),
+              color: colors.secondary,
+              onTap: () => open(TrackingRouteConstants.calorieTracking),
             ),
-            SizedBox(height: 12.h),
-            trackButton(
-              context,
+            const SizedBox(height: AppSpacing.smd),
+            TrackButton(
               icon: Icons.bed,
               label: 'Add Sleep',
-              color: AppTheme.colors['teal'] ?? Colors.teal,
-              onPressed: () => context.push('/modal/sleep'),
+              color: colors.secondary,
+              onTap: () => open(TrackingRouteConstants.sleepTracking),
             ),
-            SizedBox(height: 12.h),
-            trackButton(
-              context,
+            const SizedBox(height: AppSpacing.smd),
+            TrackButton(
               icon: Icons.directions_walk,
               label: 'Add Steps',
-              color: AppTheme.colors['gradientTextMiddle'] ?? Colors.blue,
-              onPressed: () => context.push('/modal/steps'),
+              color: colors.secondary,
+              onTap: () => open(TrackingRouteConstants.stepCounter),
             ),
-            SizedBox(height: 12.h),
-            trackButton(
-              context,
+            const SizedBox(height: AppSpacing.smd),
+            TrackButton(
               icon: Icons.water_drop,
               label: 'Add Water',
-              color: AppTheme.colors['teal'] ?? Colors.teal,
-              onPressed: () => context.push('/modal/water'),
+              color: colors.secondary,
+              onTap: () => open(TrackingRouteConstants.waterTracking),
             ),
-            SizedBox(height: 12.h),
-            trackButton(
-              context,
+            const SizedBox(height: AppSpacing.smd),
+            TrackButton(
               icon: Icons.scale,
               label: 'Add Weight',
-              color: AppTheme.colors['gradientTextMiddle'] ?? Colors.blue,
-              onPressed: () => context.push('/modal/weight'),
+              color: colors.secondary,
+              onTap: () => open(TrackingRouteConstants.weightTracking),
             ),
           ],
         ),

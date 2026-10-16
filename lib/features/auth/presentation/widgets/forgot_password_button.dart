@@ -1,18 +1,16 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../domain/entities/auth_result.dart';
 import '../providers/auth_providers.dart';
 import '../../utils/auth_strings.dart';
-import '../../utils/widget_styles.dart';
-import '../../../../shared/theme/theme.dart';
+import 'package:yeetfit/core/theme/app_colors.dart';
 
 class ForgotPasswordButton extends ConsumerWidget {
   const ForgotPasswordButton({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = Theme.of(context).extension<AppColors>()!;
     return TextButton(
       onPressed: () async {
         final email = await _askForEmailDialog(context);
@@ -20,55 +18,59 @@ class ForgotPasswordButton extends ConsumerWidget {
           final result = await ref
               .read(resetPasswordControllerProvider.notifier)
               .resetPassword(email.trim());
+          if (!context.mounted) return;
           _showSnackBar(context, result);
         }
       },
       child: Text(
-        "Forgot Password?",
-        style: WidgetStyles.linkTextStyle(kIsWeb),
+        'Forgot password?',
+        style: Theme.of(
+          context,
+        ).textTheme.labelLarge!.copyWith(color: colors.onBackground),
       ),
     );
   }
 
-  Future<String?> _askForEmailDialog(BuildContext context) async {
+  Future<String?> _askForEmailDialog(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final textTheme = Theme.of(context).textTheme;
     String email = '';
     return showDialog<String>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: colors.surface,
         title: Text(
-          "Reset Password",
-          style: AppTheme.textStyles['title']!.copyWith(
-            fontSize: (kIsWeb ? 20.sp : 18.sp).clamp(16.0, 20.0),
-            color: AppTheme.colors['primaryText'],
-          ),
+          'Reset Password',
+          style: textTheme.titleLarge!.copyWith(color: colors.onSurface),
         ),
         content: TextField(
+          autofocus: true,
           decoration: InputDecoration(
-            labelText: "Enter your email",
-            labelStyle: AppTheme.textStyles['body']!.copyWith(
-              color: AppTheme.colors['secondaryText'],
+            labelText: 'Enter your email',
+            labelStyle: textTheme.bodyMedium!.copyWith(
+              color: colors.textSecondary,
             ),
           ),
+          style: textTheme.bodyLarge!.copyWith(color: colors.onSurface),
           keyboardType: TextInputType.emailAddress,
           onChanged: (value) => email = value,
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: Text(
-              "Cancel",
-              style: AppTheme.textStyles['body']!.copyWith(
-                color: AppTheme.colors['error'],
+              'Cancel',
+              style: textTheme.bodyMedium!.copyWith(
+                color: colors.textSecondary,
               ),
             ),
           ),
           ElevatedButton(
-            onPressed: () => Navigator.pop(context, email),
+            onPressed: () => Navigator.pop(dialogContext, email),
+            style: ElevatedButton.styleFrom(backgroundColor: colors.primary),
             child: Text(
-              "Send",
-              style: AppTheme.textStyles['body']!.copyWith(
-                color: AppTheme.colors['primaryText'],
-              ),
+              'Send',
+              style: textTheme.bodyMedium!.copyWith(color: colors.onPrimary),
             ),
           ),
         ],
@@ -77,10 +79,11 @@ class ForgotPasswordButton extends ConsumerWidget {
   }
 
   void _showSnackBar(BuildContext context, AuthResult result) {
+    final colors = Theme.of(context).extension<AppColors>()!;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(result.message ?? AuthStrings.genericError),
-        backgroundColor: result.success ? AppTheme.colors['success'] : AppTheme.colors['error'],
+        backgroundColor: result.success ? colors.success : colors.error,
       ),
     );
   }

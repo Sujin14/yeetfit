@@ -1,69 +1,47 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../domain/validators/user_info_validators.dart';
 import '../providers/user_info_provider.dart';
+import 'number_picker_field.dart';
+import 'step_content_card.dart';
+import 'step_question.dart';
 
-class TimeDurationInput extends ConsumerStatefulWidget {
+class TimeDurationInput extends ConsumerWidget {
+  static const double _minWeeks = 1;
+  static const double _maxWeeks = 104;
+  static const int _defaultWeeks = 12;
+
   final GlobalKey<FormState> formKey;
 
-  const TimeDurationInput({
-    super.key,
-    required this.formKey,
-  });
+  const TimeDurationInput({super.key, required this.formKey});
 
   @override
-  _TimeDurationInputState createState() => _TimeDurationInputState();
-}
-
-class _TimeDurationInputState extends ConsumerState<TimeDurationInput> {
-  late TextEditingController _timeDurationController;
-
-  @override
-  void initState() {
-    super.initState();
-    final userInfo = ref.read(userInfoControllerProvider);
-    _timeDurationController = TextEditingController(
-      text: userInfo.value?.timeDurationWeeks == null ? '' : userInfo.value?.timeDurationWeeks.toString(),
-    );
-  }
-
-  @override
-  void dispose() {
-    _timeDurationController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final savedWeeks =
+        ref.read(userInfoControllerProvider).value?.timeDurationWeeks ??
+        _defaultWeeks;
     final controller = ref.read(userInfoControllerProvider.notifier);
 
     return Form(
-      key: widget.formKey,
+      key: formKey,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "In how many weeks do you want to achieve your goal?",
-            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
-          ),
-          SizedBox(height: 8.h),
-          TextFormField(
-            controller: _timeDurationController,
-            decoration: InputDecoration(
-              hintText: "Enter duration (weeks)",
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.r),
+          const StepQuestion('How many weeks to reach your goal?'),
+          StepContentCard(
+            child: NumberPickerField(
+              initialValue: (savedWeeks > 0 ? savedWeeks : _defaultWeeks)
+                  .toDouble(),
+              min: _minWeeks,
+              max: _maxWeeks,
+              unit: 'weeks',
+              validator: (value) => UserInfoValidators.validateTimeDuration(
+                value?.round().toString(),
               ),
-              filled: true,
-              fillColor: Colors.grey[100],
+              onSaved: (value) => controller.setFormValue(
+                'timeDurationWeeks',
+                value?.round() ?? 0,
+              ),
             ),
-            keyboardType: TextInputType.number,
-            validator: UserInfoValidators.validateTimeDuration,
-            onSaved: (value) {
-              final duration = int.tryParse(value ?? '') ?? 0;
-              controller.setFormValue('timeDurationWeeks', duration);
-            },
           ),
         ],
       ),

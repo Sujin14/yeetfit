@@ -1,37 +1,48 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
-import '../../../../shared/theme/theme.dart';
-import '../../../../shared/widgets/glassmorphic_container.dart';
+import 'package:yeetfit/core/theme/app_colors.dart';
+import 'package:yeetfit/shared/widgets/glass_card.dart';
+import 'package:yeetfit/core/theme/app_spacing.dart';
 
-// Tip card for water tracking.
 class WaterTipCard extends StatelessWidget {
   const WaterTipCard({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return GlassmorphicContainer(
-      color: AppTheme.colors['navBarActive']!,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'General Tip',
-            style: GoogleFonts.roboto(
-              fontWeight: FontWeight.bold,
-              fontSize: 16.sp,
-              color: AppTheme.colors['primaryText']?.withOpacity(0.8),
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenEdge),
+      child: GlassCard(
+        padding: const EdgeInsets.all(AppSpacing.cardPadding),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.lightbulb_outline_rounded, color: colors.warning),
+            const SizedBox(width: AppSpacing.smd),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Hydration tip',
+                    style: textTheme.titleMedium!.copyWith(
+                      color: colors.onBackground,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Drinking water before meals can help with portion '
+                    'control. Stay hydrated to support your metabolism!',
+                    style: textTheme.bodyMedium!.copyWith(
+                      color: colors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          SizedBox(height: 6.h),
-          Text(
-            'Drinking water before meals can help with portion control. Stay hydrated to support your metabolism!',
-            style: GoogleFonts.roboto(
-              fontSize: 14.sp,
-              color: AppTheme.colors['primaryText']?.withOpacity(0.6),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

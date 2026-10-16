@@ -2,8 +2,10 @@ import 'package:go_router/go_router.dart';
 import 'package:yeetfit/features/meal_tracking/presentation/screens/calorie_tracking_screen.dart';
 import 'package:yeetfit/features/meal_tracking/presentation/screens/food_search_screen.dart';
 import 'package:yeetfit/features/meal_tracking/presentation/screens/weekly_calorie_chart_screen.dart';
-import 'package:yeetfit/features/meal_tracking/data/model/food_model.dart';
+import 'package:yeetfit/features/meal_tracking/domain/entities/food_item.dart';
 import 'package:yeetfit/features/meal_tracking/presentation/screens/nutrition_details_screen.dart';
+import 'package:yeetfit/features/meal_tracking/domain/entities/scanned_meal.dart';
+import 'package:yeetfit/features/meal_tracking/presentation/screens/meal_scan_result_screen.dart';
 import 'package:yeetfit/features/sleep_tracking/presentation/screens/sleep_tracking_screen.dart';
 import 'package:yeetfit/features/steps_tracking/presentation/screens/step_counter_screen.dart';
 import 'package:yeetfit/features/water_tracking/presentation/screens/water_tracking_screen.dart';
@@ -30,6 +32,13 @@ List<GoRoute> get trackingRoutes => [
     builder: (context, state) {
       final foodItem = state.extra as FoodItem;
       return NutritionDetailsScreen(foodItem: foodItem);
+    },
+  ),
+  GoRoute(
+    path: TrackingRouteConstants.mealScanResult,
+    builder: (context, state) {
+      final meal = state.extra as ScannedMeal;
+      return MealScanResultScreen(result: meal);
     },
   ),
   GoRoute(

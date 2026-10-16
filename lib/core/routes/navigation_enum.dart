@@ -1,13 +1,11 @@
-// Enum for bottom navigation indices and titles in ShellScaffold.
+// Bottom navigation tabs in ShellScaffold; declaration order is the nav index.
 enum NavigationTab {
-  dashboard(TabIndex: 0, title: 'Dashboard', route: '/user-dashboard'),
-  explore(TabIndex: 1, title: 'Explore', route: '/explore'),
-  track(TabIndex: 2, title: 'Track'), // No route; placeholder for modals.
-  progress(TabIndex: 3, title: 'Progress', route: '/progress'),
-  favorites(TabIndex: 4, title: 'Favorites', route: '/favorites');
+  dashboard('Dashboard'),
+  explore('Explore'),
+  track('Track'), // Opens the track options modal; no branch of its own.
+  progress('Progress'),
+  coaches('Coaches');
 
-  const NavigationTab({required this.TabIndex, this.title = '', this.route = ''});
-  final int TabIndex;
+  const NavigationTab(this.title);
   final String title;
-  final String route;
 }

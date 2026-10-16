@@ -1,41 +1,53 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../data/model/food_model.dart';
-import '../widgets/nutrition_back_button.dart';
-import '../widgets/nutrition_card.dart';
+import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yeetfit/shared/providers/auth_providers.dart';
+import 'package:yeetfit/shared/widgets/glass_sliver_app_bar.dart';
+import 'package:yeetfit/shared/widgets/shell_gradient_background.dart';
+import '../../domain/entities/food_item.dart';
+import '../widgets/nutrition_add_button.dart';
 import '../widgets/nutrition_header.dart';
-import '../../../../shared/theme/theme.dart';
+import '../widgets/nutrition_macro_card.dart';
+import 'package:yeetfit/core/theme/app_spacing.dart';
 
-// Screen for food nutrition details.
-class NutritionDetailsScreen extends StatelessWidget {
+/// Nutrition for one food. Unsaved search results ([FoodItem.id] is null)
+/// get an "Add to log" action that pops `true` once logged.
+class NutritionDetailsScreen extends ConsumerWidget {
   final FoodItem foodItem;
 
   const NutritionDetailsScreen({super.key, required this.foodItem});
 
   @override
-  Widget build(BuildContext context) {
-    final isWide = MediaQuery.of(context).size.width > 700;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userId = ref.watch(authUserIdProvider);
+    final canAdd = foodItem.id == null && userId != null;
 
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: AppTheme.colors['transparent'],
-        elevation: 0,
-        leading: NutritionBackButton(isLargeScreen: isWide),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: isWide ? 80.w : 16.w,
-            vertical: 24.h,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              NutritionHeader(foodItem: foodItem),
-              SizedBox(height: 24.h),
-              NutritionCards(),
-            ],
-          ),
+    return ShellGradientBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        bottomNavigationBar: canAdd
+            ? NutritionAddButton(
+                userId: userId,
+                foodItem: foodItem,
+                onAdded: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Added ${foodItem.foodName} to ${foodItem.mealType}',
+                      ),
+                    ),
+                  );
+                  context.pop(true);
+                },
+              )
+            : null,
+        body: CustomScrollView(
+          slivers: [
+            const GlassSliverAppBar(title: 'Nutrition Details'),
+            SliverToBoxAdapter(child: NutritionHeader(foodItem: foodItem)),
+            SliverToBoxAdapter(child: NutritionMacroCard(foodItem: foodItem)),
+            const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
+          ],
         ),
       ),
     );

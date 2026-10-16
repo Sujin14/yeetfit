@@ -1,30 +1,14 @@
-import '../../data/model/food_model.dart';
+import '../entities/food_item.dart';
 
-// Abstract repository for food/meal tracking.
 abstract class FoodRepository {
-  // Fetches today's food for meal type.
-  Future<List<FoodItem>> getFoodData(String userId, String mealType);
+  /// Every logged entry for [date] across all meal slots.
+  Stream<List<FoodItem>> watchTodayMeals(String userId, String date);
 
-  // Fetches today's calorie goal.
-  Future<double> getCalorieGoal(String userId);
+  /// Logs [item] under today's date.
+  Future<void> addFoodEntry(String userId, FoodItem item);
 
-  // Adds food entry for today.
-  Future<void> addFoodEntry(
-    String userId,
-    String mealType,
-    String foodName,
-    double calories,
-    double protein,
-    double fat,
-    double carbs,
-    double fiber,
-    double quantity,
-    String? image,
-  );
+  Future<void> deleteFoodEntry(String userId, String entryId);
 
-  // Sets calorie goal for today.
-  Future<void> setCalorieGoal(String userId, double newGoal);
-
-  // Fetches weekly food for meal type.
-  Future<List<FoodItem>> getWeeklyFoodData(String userId, String mealType);
+  /// Entries from the last 7 days, today included.
+  Future<List<FoodItem>> getWeeklyFoodData(String userId);
 }

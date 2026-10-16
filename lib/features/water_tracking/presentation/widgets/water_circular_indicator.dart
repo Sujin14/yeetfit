@@ -1,65 +1,67 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../shared/theme/theme.dart';
-import '../../../../shared/widgets/glassmorphic_container.dart';
+import 'package:yeetfit/core/theme/app_colors.dart';
+import 'package:yeetfit/shared/widgets/progress_ring_painter.dart';
+import 'package:yeetfit/core/theme/app_spacing.dart';
 
-// Circular progress indicator for water intake.
+/// Circular progress ring with the consumed/goal count in the centre.
 class WaterCircularIndicator extends StatelessWidget {
-  final double progress;
+  static const double size = 160;
 
-  const WaterCircularIndicator({super.key, required this.progress});
+  final int consumed;
+  final int goal;
+  final Color progressColor;
+
+  const WaterCircularIndicator({
+    super.key,
+    required this.consumed,
+    required this.goal,
+    required this.progressColor,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final textTheme = Theme.of(context).textTheme;
+    final progress = goal > 0 ? (consumed / goal).clamp(0.0, 1.0) : 0.0;
+
+    return SizedBox.square(
+      dimension: size,
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          Stack(
-            alignment: Alignment.center,
+          SizedBox.expand(
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(end: progress),
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.easeOutCubic,
+              builder: (context, value, _) => CustomPaint(
+                painter: ProgressRingPainter(
+                  progress: value,
+                  strokeWidth: 14,
+                  color: progressColor,
+                  trackColor: Colors.white.withValues(alpha: 0.1),
+                ),
+              ),
+            ),
+          ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 160.w,
-                height: 160.h,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.transparent,
+              Icon(Icons.water_drop_rounded, color: progressColor, size: 28),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                '$consumed / $goal',
+                style: textTheme.headlineMedium!.copyWith(
+                  color: colors.onBackground,
                 ),
               ),
-              SizedBox(
-                width: 160.w,
-                height: 160.h,
-                child: CircularProgressIndicator(
-                  value: progress,
-                  strokeWidth: 20.w,
-                  backgroundColor: AppTheme.colors['white']?.withOpacity(0.5),
-                  valueColor: AlwaysStoppedAnimation(
-                    AppTheme.colors['aquaBlue'],
-                  ),
-                ),
-              ),
-              GlassmorphicContainer(
-                color: AppTheme.colors['teal']!,
-                padding: EdgeInsets.zero,
-                borderRadius: 40.r,
-                child: Container(
-                  width: 80.w,
-                  height: 80.h,
-                  decoration: const BoxDecoration(shape: BoxShape.circle),
-                  child: Icon(
-                    Icons.water_drop_outlined,
-                    size: 40.sp,
-                    color: AppTheme.colors['aquaBlue'],
-                  ),
+              Text(
+                'glasses',
+                style: textTheme.bodySmall!.copyWith(
+                  color: colors.textSecondary,
                 ),
               ),
             ],
-          ),
-          SizedBox(height: 20.h),
-          Text(
-            '1 Glass = 250 ml',
-            style: TextStyle(
-              color: AppTheme.colors['primaryText']?.withOpacity(0.7),
-            ),
           ),
         ],
       ),

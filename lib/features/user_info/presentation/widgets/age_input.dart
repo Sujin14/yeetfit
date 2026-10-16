@@ -1,69 +1,41 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../domain/validators/user_info_validators.dart';
 import '../providers/user_info_provider.dart';
+import 'number_picker_field.dart';
+import 'step_content_card.dart';
+import 'step_question.dart';
 
-class AgeInput extends ConsumerStatefulWidget {
+class AgeInput extends ConsumerWidget {
+  static const int _minAge = 13;
+  static const int _maxAge = 100;
+  static const int _defaultAge = 25;
+
   final GlobalKey<FormState> formKey;
 
-  const AgeInput({
-    super.key,
-    required this.formKey,
-  });
+  const AgeInput({super.key, required this.formKey});
 
   @override
-  _AgeInputState createState() => _AgeInputState();
-}
-
-class _AgeInputState extends ConsumerState<AgeInput> {
-  late TextEditingController _ageController;
-
-  @override
-  void initState() {
-    super.initState();
-    final userInfo = ref.read(userInfoControllerProvider);
-    _ageController = TextEditingController(
-      text: userInfo.value?.age == 0 ? '' : userInfo.value!.age.toString(),
-    );
-  }
-
-  @override
-  void dispose() {
-    _ageController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final savedAge = ref.read(userInfoControllerProvider).value?.age ?? 0;
     final controller = ref.read(userInfoControllerProvider.notifier);
 
     return Form(
-      key: widget.formKey,
+      key: formKey,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "What is your age?",
-            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
-          ),
-          SizedBox(height: 8.h),
-          TextFormField(
-            controller: _ageController,
-            decoration: InputDecoration(
-              hintText: "Enter your age",
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.r),
-              ),
-              filled: true,
-              fillColor: Colors.grey[100],
+          const StepQuestion('How old are you?'),
+          StepContentCard(
+            child: NumberPickerField(
+              initialValue: (savedAge == 0 ? _defaultAge : savedAge).toDouble(),
+              min: _minAge.toDouble(),
+              max: _maxAge.toDouble(),
+              unit: 'years',
+              validator: (value) =>
+                  UserInfoValidators.validateAge(value?.round().toString()),
+              onSaved: (value) =>
+                  controller.setFormValue('age', value?.round() ?? 0),
             ),
-            keyboardType: TextInputType.number,
-            validator: UserInfoValidators.validateAge,
-            onSaved: (value) {
-              final age = int.tryParse(value ?? '') ?? 0;
-              controller.setFormValue('age', age);
-            },
           ),
         ],
       ),

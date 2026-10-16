@@ -1,12 +1,9 @@
-import '../../data/model/sleep_model.dart';
+import '../entities/sleep_data.dart';
 
 // Abstract repository for sleep tracking operations.
 abstract class SleepRepository {
-  // Fetches today's sleep data.
-  Future<SleepData?> getSleepData(String userId);
-
-  // Fetches today's sleep goal.
-  Future<double> getSleepGoal(String userId);
+  // Streams today's sleep entry; `null` until one is saved.
+  Stream<SleepData?> watchTodaySleep(String userId);
 
   // Adds sleep entry.
   Future<void> addSleepEntry(

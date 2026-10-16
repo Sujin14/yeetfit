@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../data/model/weight_model.dart';
 import '../providers/weight_provider.dart';
-import '../../../../shared/theme/theme.dart';
+import 'package:yeetfit/core/theme/app_colors.dart';
+import 'package:yeetfit/core/theme/app_spacing.dart';
 
 /// Dialog for setting weight goal.
 class WeightGoalDialog extends ConsumerStatefulWidget {
@@ -24,105 +22,106 @@ class _WeightGoalDialogState extends ConsumerState<WeightGoalDialog> {
   @override
   void initState() {
     super.initState();
-    final goal = ref.read(weightGoalProvider(widget.userId)).value ??
-        WeightData(
-          date: DateTime.now().toIso8601String().split('T')[0],
-          currentWeight: 75.0,
-          goalWeight: 70.0,
-          initialWeight: 75.0,
-        );
-    goalController.text = goal.goalWeight.toStringAsFixed(1);
-    initialController.text = goal.initialWeight.toStringAsFixed(1);
-    targetDate = goal.targetDate;
+    final goal = ref.read(weightGoalProvider(widget.userId)).value;
+    goalController.text = (goal?.goalWeight ?? 70.0).toStringAsFixed(1);
+    initialController.text = (goal?.initialWeight ?? 75.0).toStringAsFixed(1);
+    targetDate = goal?.targetDate;
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final colorScheme = Theme.of(context).colorScheme;
     return AlertDialog(
-      backgroundColor: AppTheme.colors['white']!,
+      backgroundColor: colorScheme.surface,
       contentPadding: EdgeInsets.zero,
       title: Text(
         'Set Weight Goal',
-        style: GoogleFonts.roboto(
+        style: Theme.of(context).textTheme.titleLarge!.copyWith(
           fontWeight: FontWeight.bold,
-          fontSize: 18.sp,
-          color: AppTheme.colors['onSurface'],
+          fontSize: 18,
+          color: colors.onSurface,
         ),
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(
-            width: 250.w,
+            width: 250,
             child: TextField(
               controller: goalController,
               decoration: InputDecoration(
                 labelText: 'Goal Weight (kg)',
-                labelStyle: GoogleFonts.roboto(
-                  color: AppTheme.colors['onSurface']!.withOpacity(0.7),
-                  fontSize: 14.sp,
+                labelStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                  color: colors.onSurface.withValues(alpha: 0.7),
+                  fontSize: 14,
                 ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.r),
-                  borderSide: BorderSide(color: AppTheme.colors['borderGradientStart']!),
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: colors.borderStart),
                 ),
                 filled: true,
-                fillColor: Colors.transparent,
+                fillColor: colorScheme.surfaceContainerHighest,
               ),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              style: GoogleFonts.roboto(
-                color: AppTheme.colors['onSurface'],
-                fontSize: 16.sp,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                color: colorScheme.onSurface,
+                fontSize: 16,
               ),
             ),
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: AppSpacing.md),
           SizedBox(
-            width: 250.w,
+            width: 250,
             child: TextField(
               controller: initialController,
               decoration: InputDecoration(
                 labelText: 'Initial Weight (kg)',
-                labelStyle: GoogleFonts.roboto(
-                  color: AppTheme.colors['onSurface']!.withOpacity(0.7),
-                  fontSize: 14.sp,
+                labelStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                  color: colors.onSurface.withValues(alpha: 0.7),
+                  fontSize: 14,
                 ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.r),
-                  borderSide: BorderSide(color: AppTheme.colors['borderGradientStart']!),
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: colors.borderStart),
                 ),
                 filled: true,
-                fillColor: Colors.transparent,
+                fillColor: colorScheme.surfaceContainerHighest,
               ),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              style: GoogleFonts.roboto(
-                color: AppTheme.colors['onSurface'],
-                fontSize: 16.sp,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                color: colorScheme.onSurface,
+                fontSize: 16,
               ),
             ),
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: AppSpacing.md),
           ListTile(
             title: Text(
               'Target Date',
-              style: GoogleFonts.roboto(
-                color: AppTheme.colors['onSurface'],
-                fontSize: 14.sp,
+              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                color: colors.onSurface,
+                fontSize: 14,
               ),
             ),
             trailing: Text(
               targetDate != null
                   ? '${targetDate!.day}/${targetDate!.month}/${targetDate!.year}'
                   : 'Select Date',
-              style: GoogleFonts.roboto(
-                color: AppTheme.colors['onSurface'],
-                fontSize: 14.sp,
+              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                color: colors.onSurface,
+                fontSize: 14,
               ),
             ),
             onTap: () async {
               final date = await showDatePicker(
                 context: context,
-                initialDate: targetDate ?? DateTime.now().add(const Duration(days: 180)),
+                initialDate:
+                    targetDate ?? DateTime.now().add(const Duration(days: 180)),
                 firstDate: DateTime.now(),
                 lastDate: DateTime.now().add(const Duration(days: 365)),
               );
@@ -138,9 +137,9 @@ class _WeightGoalDialogState extends ConsumerState<WeightGoalDialog> {
           onPressed: () => Navigator.pop(context),
           child: Text(
             'Cancel',
-            style: GoogleFonts.roboto(
-              color: AppTheme.colors['onSurface'],
-              fontSize: 14.sp,
+            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+              color: colors.onSurface,
+              fontSize: 14,
             ),
           ),
         ),
@@ -148,8 +147,13 @@ class _WeightGoalDialogState extends ConsumerState<WeightGoalDialog> {
           onPressed: () {
             final goalWeight = double.tryParse(goalController.text);
             final initialWeight = double.tryParse(initialController.text);
-            if (goalWeight != null && initialWeight != null && goalWeight > 0 && initialWeight > 0) {
-              ref.read(weightGoalProvider(widget.userId).notifier).setGoal(goalWeight, initialWeight, targetDate);
+            if (goalWeight != null &&
+                initialWeight != null &&
+                goalWeight > 0 &&
+                initialWeight > 0) {
+              ref
+                  .read(weightGoalProvider(widget.userId).notifier)
+                  .setGoal(goalWeight, initialWeight, targetDate);
               Navigator.pop(context);
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -157,12 +161,14 @@ class _WeightGoalDialogState extends ConsumerState<WeightGoalDialog> {
               );
             }
           },
-          style: ElevatedButton.styleFrom(backgroundColor: AppTheme.colors['teal']!.withOpacity(0.3)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: colors.primary.withValues(alpha: 0.3),
+          ),
           child: Text(
             'Save',
-            style: GoogleFonts.roboto(
-              color: AppTheme.colors['onSurface'],
-              fontSize: 14.sp,
+            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+              color: colors.onSurface,
+              fontSize: 14,
             ),
           ),
         ),

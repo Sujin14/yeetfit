@@ -1,34 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../domain/entities/food_item.dart';
 
-// Model for food entries.
-class FoodItem {
-  final String date;
-  final String mealType;
-  final String foodName;
-  final double calories;
-  final double protein;
-  final double fat;
-  final double carbs;
-  final double fiber;
-  final double quantity;
-  final String? image;
-
-  FoodItem({
-    required this.date,
-    required this.mealType,
-    required this.foodName,
-    required this.calories,
-    required this.protein,
-    required this.fat,
-    required this.carbs,
-    required this.fiber,
-    required this.quantity,
-    this.image,
-  });
-
-  // Creates from Firestore map.
-  factory FoodItem.fromMap(Map<String, dynamic> map) {
+/// Firestore and Edamam mapping for [FoodItem].
+abstract final class FoodItemModel {
+  static FoodItem fromMap(Map<String, dynamic> map, {String? id}) {
     return FoodItem(
+      id: id,
       date: map['date'] ?? DateTime.now().toIso8601String().split('T')[0],
       mealType: map['mealType'] ?? '',
       foodName: map['foodName'] ?? '',
@@ -42,29 +18,34 @@ class FoodItem {
     );
   }
 
-  // Converts to Firestore map.
-  Map<String, dynamic> toMap() {
-    return {
-      'date': date,
-      'mealType': mealType,
-      'foodName': foodName,
-      'calories': calories,
-      'protein': protein,
-      'fat': fat,
-      'carbs': carbs,
-      'fiber': fiber,
-      'quantity': quantity,
-      'image': image,
-      'timestamp': Timestamp.fromDate(DateTime.parse('$date 00:00:00')),
-    };
-  }
+  /// Entry fields as stored; the datasource adds `date` and `timestamp`.
+  static Map<String, dynamic> toMap(FoodItem item) => {
+    'mealType': item.mealType,
+    'foodName': item.foodName,
+    'calories': item.calories,
+    'protein': item.protein,
+    'fat': item.fat,
+    'carbs': item.carbs,
+    'fiber': item.fiber,
+    'quantity': item.quantity,
+    'image': item.image,
+  };
 
-  // Creates from Edamam JSON API.
-  factory FoodItem.fromJson(Map<String, dynamic> json, {required double quantity}) {
+  /// From an Edamam `food` object, scaled to [quantity] grams.
+  static FoodItem fromEdamamJson(
+    Map<String, dynamic> json, {
+    required double quantity,
+  }) {
     final nutrients = json['nutrients'] as Map<String, dynamic>? ?? {};
     final measures = json['measures'] as List<dynamic>? ?? [];
     final servingWeight = measures.isNotEmpty
-        ? (measures.firstWhere((m) => m['label'] == 'Serving', orElse: () => {'weight': 100.0})['weight'] as num?)?.toDouble() ?? 100.0
+        ? (measures.firstWhere(
+                        (m) => m['label'] == 'Serving',
+                        orElse: () => {'weight': 100.0},
+                      )['weight']
+                      as num?)
+                  ?.toDouble() ??
+              100.0
         : 100.0;
     final scale = quantity / servingWeight;
     return FoodItem(

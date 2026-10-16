@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:yeetfit/core/services/streak_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../model/steps_model.dart';
 
@@ -9,7 +11,7 @@ class StepsDataSource {
   static const String _localStepsKey = 'last_steps_data';
 
   // Fetches steps data for a date (Firestore + local fallback).
-  Future<StepsData?> getStepsData(String userId, String date) async {
+  Future<StepsModel?> getStepsData(String userId, String date) async {
     final docRef = _firestore
         .collection('users')
         .doc(userId)
@@ -21,7 +23,7 @@ class StepsDataSource {
     try {
       final doc = await docRef.get();
       if (doc.exists) {
-        return StepsData.fromMap(doc.data()!);
+        return StepsModel.fromMap(doc.data()!);
       }
     } catch (e) {
       // Fall through to local on Firestore error
@@ -31,7 +33,7 @@ class StepsDataSource {
     final localData = prefs.getString('$_localStepsKey$userId$date');
     if (localData != null) {
       try {
-        return StepsData.fromMap(
+        return StepsModel.fromMap(
           Map<String, dynamic>.from(json.decode(localData)),
         );
       } catch (_) {
@@ -106,6 +108,16 @@ class StepsDataSource {
 
     try {
       await docRef.set(firestoreData, SetOptions(merge: true));
+      if (steps > 0) unawaited(StreakService().checkAfterLog(userId));
+      if (date == StreakService.todayKey()) {
+        unawaited(
+          StreakService().updateChallengeProgress(
+            userId,
+            'steps',
+            steps.toDouble(),
+          ),
+        );
+      }
     } catch (e) {
       // Firestore fail—local only
     }
@@ -118,7 +130,7 @@ class StepsDataSource {
   }
 
   // Fetches weekly steps data (Firestore + local supplement).
-  Future<List<StepsData>> getWeeklyStepsData(
+  Future<List<StepsModel>> getWeeklyStepsData(
     String userId,
     DateTime startDate,
     DateTime endDate,
@@ -153,11 +165,11 @@ class StepsDataSource {
         .get();
 
     final firestoreData = querySnapshot.docs
-        .map((doc) => StepsData.fromMap(doc.data()))
+        .map((doc) => StepsModel.fromMap(doc.data()))
         .toList();
 
     final prefs = await SharedPreferences.getInstance();
-    final localData = <StepsData>[];
+    final localData = <StepsModel>[];
     for (
       var date = queryStartDate;
       date.isBefore(queryEndDate.add(const Duration(days: 1)));
@@ -170,7 +182,7 @@ class StepsDataSource {
           !firestoreData.any((d) => d.date == dateString)) {
         try {
           final map = Map<String, dynamic>.from(json.decode(localString));
-          localData.add(StepsData.fromMap(map));
+          localData.add(StepsModel.fromMap(map));
         } catch (_) {
           // Ignore
         }

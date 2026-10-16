@@ -1,113 +1,95 @@
+import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:yeetfit/core/constants/function_regions.dart';
 import '../../data/datasources/chatbot_datasource.dart';
 import '../../data/model/chatbot_message_model.dart';
-import '../../data/repositories/chatbot_repository.dart';
-import '../../domain/usecases/get_chatbot_messages.dart';
-import '../../domain/usecases/send_chatbot_messages.dart';
 
 final chatbotDataSourceProvider = Provider(
   (ref) => ChatbotDataSource(
-    apiKey: 'AIzaSyBjjOkDLAiU8ntHw-2c880Ua8IRtYTOfVA',
     firestore: FirebaseFirestore.instance,
+    functions: FirebaseFunctions.instanceFor(region: FunctionRegions.general),
   ),
 );
 
-final chatbotRepositoryProvider = Provider(
-  (ref) => ChatbotRepositoryImpl(ref.read(chatbotDataSourceProvider)),
-);
+/// Yana conversation: persisted history plus in-flight local bubbles.
+/// Disposed with the chatbot screen, which cancels the Firestore listener.
+final chatbotProvider = StreamNotifierProvider.autoDispose
+    .family<ChatbotNotifier, List<ChatbotMessage>, String>(ChatbotNotifier.new);
 
-final sendChatbotMessageProvider = Provider(
-  (ref) => SendChatbotMessage(ref.read(chatbotRepositoryProvider)),
-);
+class ChatbotNotifier extends StreamNotifier<List<ChatbotMessage>> {
+  final String userId;
 
-final getChatbotMessagesProvider = Provider(
-  (ref) => GetChatbotMessages(ref.read(chatbotRepositoryProvider)),
-);
+  List<ChatbotMessage> _stored = const [];
+  ChatbotMessage? _pendingUserMessage;
+  ChatbotMessage? _transientReply;
 
-final chatbotProvider =
-    StateNotifierProvider.family<
-      ChatbotNotifier,
-      AsyncValue<List<ChatbotMessage>>,
-      String
-    >(
-      (ref, userId) => ChatbotNotifier(
-        ref.read(sendChatbotMessageProvider),
-        ref.read(getChatbotMessagesProvider),
-        userId,
-      ),
-    );
+  ChatbotNotifier(this.userId);
 
-final chatbotMessagesProvider =
-    Provider.family<AsyncValue<List<ChatbotMessage>>, String>((ref, userId) {
-      return ref.watch(chatbotProvider(userId));
+  @override
+  Stream<List<ChatbotMessage>> build() {
+    return ref.read(chatbotDataSourceProvider).getMessages(userId).map((
+      messages,
+    ) {
+      _stored = messages;
+      return _merged();
     });
-
-class ChatbotNotifier extends StateNotifier<AsyncValue<List<ChatbotMessage>>> {
-  final SendChatbotMessage _sendMessage;
-  final GetChatbotMessages _getMessages;
-  final String _userId;
-
-  ChatbotNotifier(this._sendMessage, this._getMessages, this._userId)
-    : super(const AsyncValue.loading()) {
-    _loadMessages();
   }
 
-  void _loadMessages() {
-    state = const AsyncValue.loading();
-    _getMessages
-        .call(_userId)
-        .listen(
-          (messages) {
-            state = AsyncValue.data(messages);
-          },
-          onError: (error) {
-            state = AsyncValue.error(error, StackTrace.current);
-          },
+  /// Persisted history plus local-only bubbles: the user's message until
+  /// Firestore echoes it back, then "Processing..." or a failure notice.
+  List<ChatbotMessage> _merged() {
+    final pending = _pendingUserMessage;
+    final echoed =
+        pending != null &&
+        _stored.any(
+          (m) =>
+              m.isUser &&
+              m.text == pending.text &&
+              !m.timestamp.isBefore(pending.timestamp),
         );
+    final reply = _transientReply;
+    return [..._stored, if (pending != null && !echoed) pending, ?reply];
   }
+
+  void _publish() => state = AsyncData(_merged());
 
   Future<void> sendMessage(String message) async {
-  try {
     final baseTime = DateTime.now();
-
-    final userMessage = ChatbotMessage(
+    _pendingUserMessage = ChatbotMessage(
       text: message,
       isUser: true,
       timestamp: baseTime,
     );
-
-    final processingMessage = ChatbotMessage(
+    _transientReply = ChatbotMessage(
       text: 'Processing...',
       isUser: false,
       timestamp: baseTime.add(const Duration(milliseconds: 1)),
     );
+    _publish();
 
-    final currentMessages = state.value ?? [];
-    state = AsyncValue.data([
-      ...currentMessages,
-      userMessage,
-      processingMessage,
-    ]);
-
-    final botResponse = await _sendMessage.call(_userId, message);
-
-    final botMessage = ChatbotMessage(
-      text: botResponse.text,
-      isUser: false,
-      timestamp: baseTime.add(const Duration(milliseconds: 2)),
-    );
-
-    final updatedMessages = [
-      ...currentMessages,
-      userMessage,
-      botMessage,
-    ];
-
-    state = AsyncValue.data(updatedMessages);
-  } catch (e, st) {
-    state = AsyncValue.error(e, st);
+    final dataSource = ref.read(chatbotDataSourceProvider);
+    try {
+      await dataSource.sendMessage(userId, message);
+      _transientReply = null;
+    } catch (e) {
+      debugPrint('Chatbot send failed: $e');
+      // Keep the conversation on screen and explain inline instead of
+      // replacing the whole chat with an error state.
+      _transientReply = ChatbotMessage(
+        text: "Couldn't reach Yana. ${_describe(e)}",
+        isUser: false,
+        timestamp: baseTime.add(const Duration(milliseconds: 2)),
+      );
+    } finally {
+      _pendingUserMessage = null;
+    }
+    if (ref.mounted) _publish();
   }
-}
 
+  static String _describe(Object error) {
+    final text = error.toString().replaceFirst('Exception: ', '');
+    return kDebugMode ? text : 'Please try again in a moment.';
+  }
 }

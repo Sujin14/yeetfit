@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yeetfit/shared/widgets/chart_bars_shimmer.dart';
+import 'package:yeetfit/shared/widgets/glass_card.dart';
+import 'package:yeetfit/shared/widgets/yeet_error_state.dart';
 import '../providers/weight_provider.dart';
-import '../../../../shared/theme/theme.dart';
-import '../../../../shared/widgets/glassmorphic_container.dart';
+import 'package:yeetfit/core/theme/app_colors.dart';
+import 'package:yeetfit/core/theme/app_spacing.dart';
 
 /// Section for displaying weekly weight trend chart.
 class WeightChartSection extends ConsumerWidget {
@@ -15,128 +16,158 @@ class WeightChartSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = Theme.of(context).extension<AppColors>()!;
     final weeklyDataAsync = ref.watch(weeklyWeightDataProvider(userId));
+    final labelStyle = Theme.of(
+      context,
+    ).textTheme.bodySmall!.copyWith(color: colors.textSecondary);
 
-    return GlassmorphicContainer(
-      color: AppTheme.colors['indigo']!,
-      padding: EdgeInsets.all(16.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Weight Trend',
-            style: GoogleFonts.roboto(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.colors['onSurface'],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenEdge),
+      child: GlassCard(
+        padding: const EdgeInsets.all(AppSpacing.cardPadding),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Weight Trend',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium!.copyWith(color: colors.onBackground),
             ),
-          ),
-          SizedBox(height: 16.h),
-          SizedBox(
-            height: 200.h,
-            child: weeklyDataAsync.when(
-              data: (weeklyData) {
-                final minWeight = weeklyData.isNotEmpty
-                    ? weeklyData
-                              .map((e) => e.currentWeight)
-                              .reduce((a, b) => a < b ? a : b) -
-                          5
-                    : 65.0;
-                final maxWeight = weeklyData.isNotEmpty
-                    ? weeklyData
-                              .map((e) => e.currentWeight)
-                              .reduce((a, b) => a > b ? a : b) +
-                          5
-                    : 80.0;
+            const SizedBox(height: AppSpacing.md),
+            SizedBox(
+              height: 200,
+              child: weeklyDataAsync.when(
+                data: (weeklyData) {
+                  final goalWeight = weeklyData.isNotEmpty
+                      ? weeklyData.last.goalWeight
+                      : null;
+                  final values = [
+                    ...weeklyData.map((e) => e.currentWeight),
+                    ?goalWeight,
+                  ];
+                  final minWeight = values.isNotEmpty
+                      ? values.reduce((a, b) => a < b ? a : b) - 5
+                      : 65.0;
+                  final maxWeight = values.isNotEmpty
+                      ? values.reduce((a, b) => a > b ? a : b) + 5
+                      : 80.0;
 
-                return LineChart(
-                  LineChartData(
-                    gridData: FlGridData(
-                      show: true,
-                      drawVerticalLine: false,
-                      getDrawingHorizontalLine: (value) => FlLine(
-                        color: AppTheme.colors['onSurface']!.withOpacity(0.2),
-                        strokeWidth: 1,
+                  return LineChart(
+                    LineChartData(
+                      backgroundColor: Colors.transparent,
+                      minY: minWeight,
+                      maxY: maxWeight,
+                      gridData: FlGridData(
+                        drawVerticalLine: false,
+                        horizontalInterval: 5,
+                        getDrawingHorizontalLine: (_) => FlLine(
+                          color: Colors.white.withValues(alpha: 0.05),
+                          strokeWidth: 1,
+                        ),
                       ),
-                    ),
-                    titlesData: FlTitlesData(
-                      bottomTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          reservedSize: 30.h,
-                          getTitlesWidget: (value, meta) {
-                            final date = DateTime.now().subtract(
-                              Duration(days: 6 - value.toInt()),
-                            );
-                            return Padding(
-                              padding: EdgeInsets.only(top: 8.h),
-                              child: Text(
-                                date.day.toString(),
-                                style: GoogleFonts.roboto(
-                                  fontSize: 12.sp,
-                                  color: AppTheme.colors['onSurface'],
+                      extraLinesData: ExtraLinesData(
+                        horizontalLines: [
+                          if (goalWeight != null)
+                            HorizontalLine(
+                              y: goalWeight,
+                              color: colors.secondary,
+                              strokeWidth: 1.5,
+                              dashArray: const [6, 4],
+                              label: HorizontalLineLabel(
+                                show: true,
+                                alignment: Alignment.topRight,
+                                style: labelStyle.copyWith(
+                                  color: colors.secondary,
                                 ),
+                                labelResolver: (_) => 'Goal',
                               ),
-                            );
-                          },
-                        ),
+                            ),
+                        ],
                       ),
-                      leftTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          reservedSize: 40.w,
-                          getTitlesWidget: (value, meta) {
-                            return Text(
-                              '${value.toInt()} kg',
-                              style: GoogleFonts.roboto(
-                                fontSize: 12.sp,
-                                color: AppTheme.colors['onSurface'],
-                              ),
-                            );
-                          },
-                          interval: 5,
-                        ),
-                      ),
-                      topTitles: const AxisTitles(
-                        sideTitles: SideTitles(showTitles: false),
-                      ),
-                      rightTitles: const AxisTitles(
-                        sideTitles: SideTitles(showTitles: false),
-                      ),
-                    ),
-                    borderData: FlBorderData(show: false),
-                    lineBarsData: [
-                      LineChartBarData(
-                        spots: List.generate(
-                          weeklyData.length,
-                          (index) => FlSpot(
-                            index.toDouble(),
-                            weeklyData[index].currentWeight,
+                      titlesData: FlTitlesData(
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            interval: 1,
+                            reservedSize: 28,
+                            getTitlesWidget: (value, meta) {
+                              final index = value.toInt();
+                              if (index < 0 || index >= weeklyData.length) {
+                                return const SizedBox.shrink();
+                              }
+                              final date = DateTime.tryParse(
+                                weeklyData[index].date,
+                              );
+                              return Padding(
+                                padding: const EdgeInsets.only(
+                                  top: AppSpacing.sm,
+                                ),
+                                child: Text(
+                                  date?.day.toString() ?? '',
+                                  style: labelStyle,
+                                ),
+                              );
+                            },
                           ),
                         ),
-                        isCurved: true,
-                        color: AppTheme.colors['teal'],
-                        barWidth: 4,
-                        dotData: const FlDotData(show: true),
-                        belowBarData: BarAreaData(
-                          show: true,
-                          color: AppTheme.colors['teal']!.withOpacity(0.2),
+                        leftTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 32,
+                            interval: 5,
+                            getTitlesWidget: (value, meta) =>
+                                Text('${value.toInt()}', style: labelStyle),
+                          ),
+                        ),
+                        topTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                        rightTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
                         ),
                       ),
-                    ],
-                    minY: minWeight,
-                    maxY: maxWeight,
-                  ),
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) => Text(
-                'Error: $error',
-                style: TextStyle(color: AppTheme.colors['onSurface']),
+                      borderData: FlBorderData(show: false),
+                      lineBarsData: [
+                        LineChartBarData(
+                          spots: List.generate(
+                            weeklyData.length,
+                            (index) => FlSpot(
+                              index.toDouble(),
+                              weeklyData[index].currentWeight,
+                            ),
+                          ),
+                          isCurved: true,
+                          preventCurveOverShooting: true,
+                          color: colors.primary,
+                          barWidth: 3,
+                          dotData: const FlDotData(show: true),
+                          belowBarData: BarAreaData(
+                            show: true,
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                colors.primary.withValues(alpha: 0.25),
+                                colors.primary.withValues(alpha: 0),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                loading: () => const ChartBarsShimmer(),
+                error: (error, _) => YeetErrorState.compact(
+                  message: '$error',
+                  onRetry: () => ref.invalidate(weightHistoryProvider(userId)),
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

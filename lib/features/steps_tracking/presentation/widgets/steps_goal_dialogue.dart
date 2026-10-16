@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../providers/steps_provider.dart';
-import '../../../../shared/theme/theme.dart';
+import 'package:yeetfit/core/theme/app_colors.dart';
+import 'package:yeetfit/core/theme/app_spacing.dart';
 
 // Dialog for setting steps goal.
 class StepsGoalDialog extends ConsumerStatefulWidget {
   final String userId;
-  final TextEditingController controller;
+  final int initialGoal;
 
   const StepsGoalDialog({
     super.key,
     required this.userId,
-    required this.controller,
+    required this.initialGoal,
   });
 
   @override
@@ -22,45 +21,55 @@ class StepsGoalDialog extends ConsumerStatefulWidget {
 }
 
 class _StepsGoalDialogState extends ConsumerState<StepsGoalDialog> {
+  late final TextEditingController _controller = TextEditingController(
+    text: '${widget.initialGoal}',
+  );
+
   @override
   void dispose() {
-    widget.controller.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = ScreenUtil().screenWidth >= 600.w;
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final isDesktop = MediaQuery.sizeOf(context).width >= 600;
     return AlertDialog(
-      backgroundColor: AppTheme.colors['lightBackground'],
+      backgroundColor: colors.background,
       contentPadding: EdgeInsets.zero,
       title: Text(
         'Set Steps Goal',
-        style: GoogleFonts.roboto(
+        style: Theme.of(context).textTheme.headlineMedium!.copyWith(
           fontWeight: FontWeight.bold,
-          fontSize: isDesktop ? 18.sp : 20.sp,
-          color: AppTheme.colors['primaryText']!.withOpacity(0.8),
+          fontSize: isDesktop ? 18 : 20,
+          color: colors.onBackground.withValues(alpha: 0.8),
         ),
       ),
       content: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+        padding: EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
         child: TextField(
-          controller: widget.controller,
+          controller: _controller,
           decoration: InputDecoration(
             hintText: 'Enter goal steps (e.g., 10000)',
-            hintStyle: GoogleFonts.roboto(
-              color: AppTheme.colors['primaryText']!.withOpacity(0.7),
-              fontSize: isDesktop ? 14.sp : 16.sp,
+            hintStyle: Theme.of(context).textTheme.bodyLarge!.copyWith(
+              color: colors.onBackground.withValues(alpha: 0.7),
+              fontSize: isDesktop ? 14 : 16,
             ),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10.r),
-              borderSide: BorderSide(color: AppTheme.colors['primaryText']!.withOpacity(0.8)),
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(
+                color: colors.onBackground.withValues(alpha: 0.8),
+              ),
             ),
           ),
           keyboardType: TextInputType.number,
-          style: GoogleFonts.roboto(
-            color: AppTheme.colors['primaryText']!.withOpacity(0.7),
-            fontSize: isDesktop ? 14.sp : 16.sp,
+          style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+            color: colors.onBackground.withValues(alpha: 0.7),
+            fontSize: isDesktop ? 14 : 16,
           ),
         ),
       ),
@@ -69,17 +78,19 @@ class _StepsGoalDialogState extends ConsumerState<StepsGoalDialog> {
           onPressed: () => context.pop(),
           child: Text(
             'Cancel',
-            style: GoogleFonts.roboto(
-              color: AppTheme.colors['primaryText']!.withOpacity(0.8),
-              fontSize: isDesktop ? 14.sp : 16.sp,
+            style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+              color: colors.onBackground.withValues(alpha: 0.8),
+              fontSize: isDesktop ? 14 : 16,
             ),
           ),
         ),
         ElevatedButton(
           onPressed: () {
-            final newGoal = int.tryParse(widget.controller.text);
+            final newGoal = int.tryParse(_controller.text);
             if (newGoal != null && newGoal > 0) {
-              ref.read(stepsGoalProvider(widget.userId).notifier).setGoal(newGoal);
+              ref
+                  .read(stepsGoalProvider(widget.userId).notifier)
+                  .setGoal(newGoal);
               context.pop();
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -87,12 +98,14 @@ class _StepsGoalDialogState extends ConsumerState<StepsGoalDialog> {
               );
             }
           },
-          style: ElevatedButton.styleFrom(backgroundColor: AppTheme.colors['teal']!.withOpacity(0.3)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: colors.primary.withValues(alpha: 0.3),
+          ),
           child: Text(
             'Save',
-            style: GoogleFonts.roboto(
-              color: AppTheme.colors['white'],
-              fontSize: isDesktop ? 14.sp : 16.sp,
+            style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+              color: Colors.white,
+              fontSize: isDesktop ? 14 : 16,
             ),
           ),
         ),

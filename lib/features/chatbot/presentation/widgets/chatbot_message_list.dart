@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../../../shared/theme/theme.dart';
+import 'package:yeetfit/core/theme/app_colors.dart';
+import 'package:yeetfit/shared/widgets/chat_bubble.dart';
+import 'package:yeetfit/shared/widgets/chat_date_chip.dart';
+import 'package:yeetfit/shared/widgets/chat_shimmer.dart';
+import 'package:yeetfit/shared/widgets/yeet_error_state.dart';
 import '../../data/model/chatbot_message_model.dart';
 import '../providers/chatbot_provider.dart';
+import 'package:yeetfit/core/theme/app_spacing.dart';
 
 class ChatbotMessageList extends ConsumerStatefulWidget {
   final String userId;
@@ -23,7 +27,7 @@ class _ChatbotMessageListState extends ConsumerState<ChatbotMessageList> {
     super.dispose();
   }
 
-  void scrollToBottom() {
+  void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
@@ -31,7 +35,7 @@ class _ChatbotMessageListState extends ConsumerState<ChatbotMessageList> {
     });
   }
 
-  String getDateLabel(DateTime date) {
+  static String _dateLabel(DateTime date) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final msgDate = DateTime(date.year, date.month, date.day);
@@ -43,44 +47,15 @@ class _ChatbotMessageListState extends ConsumerState<ChatbotMessageList> {
 
   @override
   Widget build(BuildContext context) {
-    final messagesAsync = ref.watch(chatbotMessagesProvider(widget.userId));
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final messagesAsync = ref.watch(chatbotProvider(widget.userId));
 
     return messagesAsync.when(
       data: (messages) {
-        WidgetsBinding.instance.addPostFrameCallback((_) => scrollToBottom());
+        WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
 
-        if (messages.isEmpty) {
-          // Show introduction when there are no messages
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Container(
-                  margin: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
-                  padding: EdgeInsets.all(16.w),
-                  decoration: BoxDecoration(
-                    color: AppTheme.colors['navigationAccent']!.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(16.r),
-                  ),
-                  child: Text(
-                    "👋 Hi! I'm YeetFit Coach.\n"
-                    "I'm here to help you with fitness and health questions.\n"
-                    "Please note: I might occasionally make mistakes — "
-                    "always double-check important advice!",
-                    textAlign: TextAlign.left,
-                    style: AppTheme.textStyles['body']!.copyWith(
-                      color: AppTheme.colors['primaryText'],
-                      fontSize: 14.sp,
-                      height: 1.4,
-                    ),
-                  ),
-                
-              ),
-            ],
-          );
-        }
-
-        final List<Widget> messageWidgets = [];
-        String? lastDateLabel;
+        // ChatbotBody renders the empty state over the full screen.
+        if (messages.isEmpty) return const SizedBox.shrink();
 
         final sortedMessages = List<ChatbotMessage>.from(messages)
           ..sort((a, b) {
@@ -91,63 +66,34 @@ class _ChatbotMessageListState extends ConsumerState<ChatbotMessageList> {
             return 0;
           });
 
+        final messageWidgets = <Widget>[];
+        String? lastDateLabel;
         for (final message in sortedMessages) {
-          final dateLabel = getDateLabel(message.timestamp);
-
+          final dateLabel = _dateLabel(message.timestamp);
           if (lastDateLabel != dateLabel) {
-            messageWidgets.add(
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: 8.h),
-                child: Center(
-                  child: Text(
-                    dateLabel,
-                    style: AppTheme.textStyles['body']!.copyWith(
-                      color: AppTheme.colors['secondaryText'],
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            );
+            messageWidgets.add(ChatDateChip(label: dateLabel));
             lastDateLabel = dateLabel;
           }
-
           messageWidgets.add(
-            Align(
-              alignment: message.isUser
-                  ? Alignment.centerRight
-                  : Alignment.centerLeft,
-              child: Container(
-                margin: EdgeInsets.symmetric(vertical: 4.h),
-                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                constraints: BoxConstraints(maxWidth: 300.w),
-                decoration: BoxDecoration(
-                  color: message.isUser
-                      ? AppTheme.colors['primaryAccent']!.withOpacity(0.8)
-                      : AppTheme.colors['navigationAccent']!.withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(16.r),
-                ),
-                child: Text(
-                  message.text,
-                  style: AppTheme.textStyles['body']!.copyWith(
-                    color: message.isUser
-                        ? AppTheme.colors['onSurfaceDark']
-                        : AppTheme.colors['primaryText'],
-                  ),
-                ),
-              ),
+            ChatBubble(
+              text: message.text,
+              isMine: message.isUser,
+              renderMarkdown: !message.isUser,
             ),
           );
         }
 
         return ListView(
           controller: _scrollController,
-          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
           children: messageWidgets,
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(child: Text('Error: $error')),
+      loading: () => const ChatShimmer(),
+      error: (error, _) => YeetErrorState(
+        message: "Couldn't load your chat with Yana: $error",
+        onRetry: () => ref.invalidate(chatbotProvider(widget.userId)),
+      ),
     );
   }
 }

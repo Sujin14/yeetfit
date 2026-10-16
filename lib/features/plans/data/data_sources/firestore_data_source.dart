@@ -6,98 +6,77 @@ class FirestoreDataSource {
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
 
-  FirestoreDataSource({
-    FirebaseFirestore? firestore,
-    FirebaseAuth? auth,
-  })  : _firestore = firestore ?? FirebaseFirestore.instance,
-        _auth = auth ?? FirebaseAuth.instance;
+  FirestoreDataSource({FirebaseFirestore? firestore, FirebaseAuth? auth})
+    : _firestore = firestore ?? FirebaseFirestore.instance,
+      _auth = auth ?? FirebaseAuth.instance;
 
-  Future<PlanModel?> getPlan(String type) async {
-    final userId = _auth.currentUser?.uid;
-    if (userId == null) {
-      throw UnauthorizedException('User not logged in');
-    }
-    try {
-      final collection = type == 'diets' ? 'diets' : 'workouts';
-      final snapshot = await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection(collection)
-          .where('type', isEqualTo: type == 'diets' ? 'diet' : 'workout')
-          .orderBy('createdAt', descending: true)
-          .limit(1)
-          .get();
-      if (snapshot.docs.isEmpty) {
-        return null;
-      }
-      return PlanModel.fromFirestore(snapshot.docs.first);
-    } catch (e) {
-      throw DataException('Failed to fetch $type plan: $e');
-    }
+  CollectionReference<Map<String, dynamic>> _plans(
+    String userId,
+    String collection,
+  ) => _firestore.collection('users').doc(userId).collection(collection);
+
+  /// [collection] is `diets` or `workouts`; [type] is `diet` or `workout`.
+  Stream<List<PlanModel>> watchPlans(
+    String userId, {
+    required String collection,
+    required String type,
+  }) {
+    return _plans(userId, collection)
+        .where('type', isEqualTo: type)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map(PlanModel.fromFirestore).toList());
   }
 
-  Future<List<PlanModel>> getAllPlans(String type) async {
-    final userId = _auth.currentUser?.uid;
-    if (userId == null) {
-      throw UnauthorizedException('User not logged in');
-    }
-    try {
-      final collection = type == 'diets' ? 'diets' : 'workouts';
-      final snapshot = await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection(collection)
-          .where('type', isEqualTo: type == 'diets' ? 'diet' : 'workout')
-          .orderBy('createdAt', descending: true)
-          .get();
-      return snapshot.docs.map((doc) => PlanModel.fromFirestore(doc)).toList();
-    } catch (e) {
-      throw DataException('Failed to fetch $type plans: $e');
-    }
+  Stream<PlanModel?> watchPlan(
+    String userId, {
+    required String collection,
+    required String? planId,
+  }) {
+    return _plans(userId, collection)
+        .doc(planId)
+        .snapshots()
+        .map((doc) => doc.exists ? PlanModel.fromFirestore(doc) : null);
   }
 
   Future<List<PlanModel>> getFavoritePlans() async {
     final userId = _auth.currentUser?.uid;
     if (userId == null) {
-      throw UnauthorizedException('User not logged in');
+      throw const UnauthorizedException('User not logged in');
     }
     try {
-      final dietSnapshot = await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('diets')
+      final dietSnapshot = await _plans(userId, 'diets')
           .where('isFavorite', isEqualTo: true)
           .orderBy('createdAt', descending: true)
           .get();
-      final workoutSnapshot = await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('workouts')
+      final workoutSnapshot = await _plans(userId, 'workouts')
           .where('isFavorite', isEqualTo: true)
           .orderBy('createdAt', descending: true)
           .get();
       return [
-        ...dietSnapshot.docs.map((doc) => PlanModel.fromFirestore(doc)),
-        ...workoutSnapshot.docs.map((doc) => PlanModel.fromFirestore(doc)),
+        ...dietSnapshot.docs.map(PlanModel.fromFirestore),
+        ...workoutSnapshot.docs.map(PlanModel.fromFirestore),
       ];
     } catch (e) {
       throw DataException('Failed to fetch favorite plans: $e');
     }
   }
 
-  Future<void> toggleFavorite(String planId, String type, bool isFavorite) async {
+  Future<void> toggleFavorite(
+    String planId,
+    String type,
+    bool isFavorite,
+  ) async {
     final userId = _auth.currentUser?.uid;
     if (userId == null) {
-      throw UnauthorizedException('User not logged in');
+      throw const UnauthorizedException('User not logged in');
     }
     try {
       final collection = type == 'diet' ? 'diets' : 'workouts';
-      await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection(collection)
-          .doc(planId)
-          .update({'isFavorite': isFavorite});
+      await _plans(
+        userId,
+        collection,
+      ).doc(planId).update({'isFavorite': isFavorite});
     } catch (e) {
       throw DataException('Failed to update favorite status: $e');
     }
@@ -106,10 +85,16 @@ class FirestoreDataSource {
 
 class UnauthorizedException implements Exception {
   final String message;
-  UnauthorizedException(this.message);
+  const UnauthorizedException(this.message);
+
+  @override
+  String toString() => message;
 }
 
 class DataException implements Exception {
   final String message;
-  DataException(this.message);
+  const DataException(this.message);
+
+  @override
+  String toString() => message;
 }

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../providers/weight_provider.dart';
-import '../../../../shared/theme/theme.dart';
+import 'package:yeetfit/core/theme/app_colors.dart';
+import 'package:yeetfit/shared/widgets/button_spinner.dart';
 
-/// Dialog for entering current weight.
+/// Dialog for entering current weight. Saving is delegated to
+/// [WeightSaveController]; the tracking screen closes this dialog and
+/// reacts to the result.
 class WeightEntryDialog extends ConsumerStatefulWidget {
   final String userId;
 
@@ -26,89 +27,65 @@ class _WeightEntryDialogState extends ConsumerState<WeightEntryDialog> {
     weightController.text = currentWeight.toStringAsFixed(1);
   }
 
+  void _save() => ref
+      .read(weightSaveControllerProvider(widget.userId).notifier)
+      .save(weightController.text);
+
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final isSaving = ref
+        .watch(weightSaveControllerProvider(widget.userId))
+        .isLoading;
+
     return AlertDialog(
-      backgroundColor: AppTheme.colors['white']!,
-      contentPadding: EdgeInsets.zero,
+      backgroundColor: colorScheme.surface,
       title: Text(
         'Enter Current Weight',
-        style: GoogleFonts.roboto(
-          fontWeight: FontWeight.bold,
-          fontSize: 18.sp,
-          color: AppTheme.colors['onSurface'],
-        ),
+        style: textTheme.titleLarge!.copyWith(color: colorScheme.onSurface),
       ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(height: 16.h),
-          SizedBox(
-            width: 250.w,
-            child: TextField(
-              controller: weightController,
-              decoration: InputDecoration(
-                labelText: 'Current Weight (kg)',
-                labelStyle: GoogleFonts.roboto(
-                  color: AppTheme.colors['onSurface']!.withOpacity(0.7),
-                  fontSize: 14.sp,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.r),
-                  borderSide: BorderSide(
-                    color: AppTheme.colors['borderGradientStart']!,
-                  ),
-                ),
-                filled: true,
-                fillColor: Colors.transparent,
-              ),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              style: GoogleFonts.roboto(
-                color: AppTheme.colors['onSurface'],
-                fontSize: 16.sp,
-              ),
-            ),
+      content: TextField(
+        controller: weightController,
+        autofocus: true,
+        enabled: !isSaving,
+        decoration: InputDecoration(
+          labelText: 'Current Weight (kg)',
+          labelStyle: textTheme.bodyMedium!.copyWith(
+            color: colors.textSecondary,
           ),
-          SizedBox(height: 10.h),
-        ],
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: colors.borderStart),
+          ),
+          filled: true,
+          fillColor: colorScheme.surfaceContainerHighest,
+        ),
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        textInputAction: TextInputAction.done,
+        onSubmitted: (_) => _save(),
+        style: textTheme.bodyLarge!.copyWith(color: colorScheme.onSurface),
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: isSaving ? null : () => Navigator.pop(context),
           child: Text(
             'Cancel',
-            style: GoogleFonts.roboto(
-              color: AppTheme.colors['onSurface'],
-              fontSize: 14.sp,
-            ),
+            style: textTheme.bodyMedium!.copyWith(color: colors.textSecondary),
           ),
         ),
         ElevatedButton(
-          onPressed: () {
-            final currentWeight = double.tryParse(weightController.text);
-            if (currentWeight != null && currentWeight > 0) {
-              ref
-                  .read(currentWeightProvider(widget.userId).notifier)
-                  .updateWeight(currentWeight, context);
-              Navigator.pop(context);
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Please enter a valid weight')),
-              );
-            }
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppTheme.colors['teal']!.withOpacity(0.3),
-          ),
-          child: Text(
-            'Save',
-            style: GoogleFonts.roboto(
-              color: AppTheme.colors['onSurface'],
-              fontSize: 14.sp,
-            ),
-          ),
+          onPressed: isSaving ? null : _save,
+          style: ElevatedButton.styleFrom(backgroundColor: colors.primary),
+          child: isSaving
+              ? ButtonSpinner(color: colors.onPrimary)
+              : Text(
+                  'Save',
+                  style: textTheme.bodyMedium!.copyWith(
+                    color: colors.onPrimary,
+                  ),
+                ),
         ),
       ],
     );

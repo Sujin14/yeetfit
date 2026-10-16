@@ -1,4 +1,12 @@
-// lib/features/dashboard/presentation/providers/selected_date_provider.dart
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-final selectedDateProvider = StateProvider<DateTime>((ref) => DateTime.now());
+final selectedDateProvider = NotifierProvider<SelectedDateNotifier, DateTime>(
+  SelectedDateNotifier.new,
+);
+
+class SelectedDateNotifier extends Notifier<DateTime> {
+  @override
+  DateTime build() => DateTime.now();
+
+  void select(DateTime date) => state = date;
+}

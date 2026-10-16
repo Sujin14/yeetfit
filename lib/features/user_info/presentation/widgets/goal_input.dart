@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../../../shared/theme/theme.dart';
 import '../../domain/validators/user_info_validators.dart';
 import '../providers/user_info_provider.dart';
+import '../utils/profile_options.dart';
+import 'profile_option_field.dart';
+import 'step_content_card.dart';
+import 'step_question.dart';
 
 class GoalInput extends ConsumerWidget {
   final GlobalKey<FormState> formKey;
@@ -17,38 +19,20 @@ class GoalInput extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userInfo = ref.watch(userInfoControllerProvider);
-    const goals = ['weight loss', 'weight gain', 'muscle building'];
+    final savedGoal = ref.read(userInfoControllerProvider).value?.goal ?? '';
 
     return Form(
       key: formKey,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "What is your fitness goal?",
-            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
-          ),
-          SizedBox(height: 8.h),
-          DropdownButtonFormField<String>(
-            value: userInfo.value?.goal.isEmpty ?? true ? null : userInfo.value!.goal,
-            decoration: InputDecoration(
-              hintText: "Select your goal",
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.r),
-              ),
-              filled: true,
-              fillColor: AppTheme.colors['gray']!,
+          const StepQuestion("What's your fitness goal?"),
+          StepContentCard(
+            child: ProfileOptionField(
+              options: fitnessGoalOptions,
+              initialValue: savedGoal.isEmpty ? null : savedGoal,
+              validator: UserInfoValidators.validateGoal,
+              onChanged: onGoalChanged,
             ),
-            items: goals.map((goal) {
-              return DropdownMenuItem<String>(value: goal, child: Text(goal));
-            }).toList(),
-            validator: UserInfoValidators.validateGoal,
-            onChanged: (value) {
-              if (value != null) {
-                onGoalChanged(value);
-              }
-            },
           ),
         ],
       ),

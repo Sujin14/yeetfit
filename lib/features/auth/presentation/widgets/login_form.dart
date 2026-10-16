@@ -1,16 +1,15 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:yeetfit/shared/widgets/shimmer_widget.dart';
+import 'package:yeetfit/shared/widgets/gradient_button.dart';
+import 'package:yeetfit/shared/widgets/yeet_text_field.dart';
 import '../providers/auth_providers.dart';
 import '../validators/auth_validators.dart';
 import '../../utils/navigation_utils.dart';
 import '../../utils/auth_strings.dart';
-import '../../utils/widget_styles.dart';
-import '../../../../shared/widgets/custom_text_form_field.dart';
 import 'forgot_password_button.dart';
-import '../../../../shared/theme/theme.dart';
+import 'google_button.dart';
+import 'login_options_divider.dart';
+import 'package:yeetfit/core/theme/app_spacing.dart';
 
 class LoginForm extends ConsumerStatefulWidget {
   const LoginForm({super.key});
@@ -21,87 +20,88 @@ class LoginForm extends ConsumerStatefulWidget {
 
 class _LoginFormState extends ConsumerState<LoginForm> {
   final _formKey = GlobalKey<FormState>();
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _obscurePassword = true;
 
-  void _login() async {
-    if (_formKey.currentState!.validate()) {
-      FocusScope.of(context).unfocus();
-      final result = await ref.read(loginControllerProvider.notifier).login(
-            emailController.text.trim(),
-            passwordController.text.trim(),
-          );
-      handleAuthResult(context, result, AuthStrings.loginFailed);
-    }
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) return;
+    FocusScope.of(context).unfocus();
+    final result = await ref
+        .read(loginControllerProvider.notifier)
+        .loginWithEmail(
+          _emailController.text.trim(),
+          _passwordController.text.trim(),
+        );
+    if (!mounted) return;
+    handleAuthResult(context, result, AuthStrings.loginFailed);
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final isLoading = ref.watch(loginControllerProvider);
-    final maxButtonWidth = kIsWeb ? 300.w : 250.w;
 
     return Form(
       key: _formKey,
       autovalidateMode: AutovalidateMode.onUserInteraction,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          CustomTextFormField(
-            controller: emailController,
-            labelText: 'Email',
-            keyboardType: TextInputType.emailAddress,
-            textInputAction: TextInputAction.next,
-            validator: AuthValidators.validateEmail,
-            prefixIcon: Icons.email_outlined,
-          ),
-          SizedBox(height: 16.h),
-          CustomTextFormField(
-            controller: passwordController,
-            labelText: 'Password',
-            textInputAction: TextInputAction.done,
-            validator: AuthValidators.validatePassword,
-            isPassword: true,
-            prefixIcon: Icons.lock_outline,
-          ),
-          SizedBox(height: 8.h),
-          const Align(
-            alignment: Alignment.centerRight,
-            child: ForgotPasswordButton(),
-          ),
-          SizedBox(height: 24.h),
-          ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: maxButtonWidth),
-            child: ElevatedButton(
-              onPressed: isLoading ? null : _login,
-              style: ElevatedButton.styleFrom(
-                padding: WidgetStyles.buttonPadding(kIsWeb),
-                shape: RoundedRectangleBorder(
-                  borderRadius: WidgetStyles.buttonBorderRadius(),
-                ),
-                elevation: 0,
-                shadowColor: AppTheme.colors['transparent'],
-              ),
-              child: isLoading
-                  ? ShimmerLoading.text(
-                      key: UniqueKey(),
-                      text: 'Login',
-                      textStyle: WidgetStyles.buttonTextStyle(),
-                    )
-                  : Text(
-                      'Login',
-                      style: WidgetStyles.buttonTextStyle(),
-                    ),
+      child: AutofillGroup(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            YeetTextField(
+              controller: _emailController,
+              hintText: 'Email',
+              prefixIcon: Icons.email_outlined,
+              keyboardType: TextInputType.emailAddress,
+              textInputAction: TextInputAction.next,
+              autofillHints: const [AutofillHints.email],
+              validator: AuthValidators.validateEmail,
+              onPhoto: true,
             ),
-          ),
-        ],
+            const SizedBox(height: AppSpacing.md),
+            YeetTextField(
+              controller: _passwordController,
+              hintText: 'Password',
+              prefixIcon: Icons.lock_outline,
+              obscureText: _obscurePassword,
+              suffixIcon: _obscurePassword
+                  ? Icons.visibility_outlined
+                  : Icons.visibility_off_outlined,
+              suffixTooltip: _obscurePassword
+                  ? 'Show password'
+                  : 'Hide password',
+              onSuffixTap: () =>
+                  setState(() => _obscurePassword = !_obscurePassword),
+              textInputAction: TextInputAction.done,
+              autofillHints: const [AutofillHints.password],
+              onFieldSubmitted: (_) => isLoading ? null : _login(),
+              validator: AuthValidators.validatePassword,
+              onPhoto: true,
+            ),
+            const Align(
+              alignment: Alignment.centerRight,
+              child: ForgotPasswordButton(),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            GradientButton(
+              label: 'Sign in',
+              isLoading: isLoading,
+              onPressed: _login,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            const LoginOptionsDivider(),
+            const SizedBox(height: AppSpacing.md),
+            const GoogleButton(),
+          ],
+        ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    emailController.dispose();
-    passwordController.dispose();
-    super.dispose();
   }
 }

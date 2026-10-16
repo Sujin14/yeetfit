@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../../../shared/theme/theme.dart';
-import '../../../../shared/widgets/glassmorphic_container.dart';
+import 'package:intl/intl.dart';
+import 'package:yeetfit/core/theme/app_colors.dart';
+import 'package:yeetfit/shared/providers/auth_providers.dart';
+import 'package:yeetfit/shared/widgets/chat_bubble.dart';
 import '../../data/model/message_model.dart';
 import '../controllers/chat_controller.dart';
-import '../providers/chat_provider.dart';
+import 'message_options_dialog.dart';
+import 'package:yeetfit/core/theme/app_spacing.dart';
 
 class MessageBubble extends ConsumerWidget {
   final MessageModel message;
@@ -19,127 +20,68 @@ class MessageBubble extends ConsumerWidget {
     required this.controller,
   });
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isMe = ref.watch(isMessageFromCurrentUserProvider(message.senderId));
-
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
-      child: Align(
-        alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-        child: Column(
-          crossAxisAlignment: isMe
-              ? CrossAxisAlignment.end
-              : CrossAxisAlignment.start,
-          children: [
-            GestureDetector(
-              onLongPress: () => _showMessageOptions(context),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxWidth: MediaQuery.of(context).size.width * 0.7,
-                ),
-                child: GlassmorphicContainer(
-                  padding: EdgeInsets.all(8.w),
-                  color: isMe
-                      ? AppTheme.colors['primaryAccent']!
-                      : AppTheme.colors['secondaryAccent']!,
-                  borderRadius: 12.r,
-                  child: Text(
-                    message.content,
-                    softWrap: true,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 10,
-                    style:
-                        AppTheme.textStyles['bodyMedium']?.copyWith(
-                          color: AppTheme.colors['primaryText'],
-                        ) ??
-                        TextStyle(color: AppTheme.colors['white']),
-                  ),
-                ),
-              ),
+  void _showMessageOptions(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final messenger = ScaffoldMessenger.of(context);
+    showDialog(
+      context: context,
+      builder: (dialogContext) => MessageOptionsDialog(
+        onCopy: () {
+          Clipboard.setData(ClipboardData(text: message.content));
+          messenger.showSnackBar(
+            SnackBar(
+              content: const Text('Message copied to clipboard'),
+              backgroundColor: colors.primary,
+              behavior: SnackBarBehavior.floating,
             ),
-            SizedBox(height: 4.h),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: isMe
-                  ? MainAxisAlignment.end
-                  : MainAxisAlignment.start,
-              children: [
-                Text(
-                  DateFormat('hh:mm a').format(message.timestamp),
-                  style:
-                      AppTheme.textStyles['bodySmall']?.copyWith(
-                        color: AppTheme.colors['secondaryText'],
-                      ) ??
-                      TextStyle(color: AppTheme.colors['gray']),
-                ),
-                if (isMe) ...[
-                  SizedBox(width: 4.w),
-                  controller.getMessageStatusIcon(message.status),
-                ],
-              ],
-            ),
-          ],
-        ),
+          );
+          Navigator.of(dialogContext).pop();
+        },
+        onDelete: () {
+          controller.deleteMessages(message.id);
+          Navigator.of(dialogContext).pop();
+        },
       ),
     );
   }
 
-  void _showMessageOptions(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) {
-        return AlertDialog(
-          title: Text(
-            'Message Options',
-            style:
-                AppTheme.textStyles['titleMedium'] ?? TextStyle(fontSize: 18),
+  static Widget _statusIcon(AppColors colors, String status) {
+    return switch (status) {
+      'sent' => Icon(Icons.check, size: 16, color: colors.textSecondary),
+      'delivered' => Icon(
+        Icons.done_all,
+        size: 16,
+        color: colors.textSecondary,
+      ),
+      'read' => Icon(Icons.done_all, size: 16, color: colors.primary),
+      _ => const SizedBox.shrink(),
+    };
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final isMe = ref.watch(authUserIdProvider) == message.senderId;
+
+    return ChatBubble(
+      text: message.content,
+      isMine: isMe,
+      onLongPress: () => _showMessageOptions(context),
+      footer: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            DateFormat('hh:mm a').format(message.timestamp),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall!.copyWith(color: colors.textMuted),
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                title: Text(
-                  'Copy',
-                  style:
-                      AppTheme.textStyles['bodyMedium'] ??
-                      TextStyle(fontSize: 16),
-                ),
-                onTap: () {
-                  Clipboard.setData(ClipboardData(text: message.content));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Message copied to clipboard',
-                        style: AppTheme.textStyles['bodyMedium']?.copyWith(
-                          color: AppTheme.colors['onSurfaceDark'],
-                        ),
-                      ),
-                      backgroundColor: AppTheme.colors['primaryAccent'],
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                  Navigator.of(context).pop();
-                },
-              ),
-              ListTile(
-                title: Text(
-                  'Delete',
-                  style:
-                      AppTheme.textStyles['bodyMedium']?.copyWith(
-                        color: AppTheme.colors['error'],
-                      ) ??
-                      TextStyle(color: AppTheme.colors['error']),
-                ),
-                onTap: () {
-                  controller.deleteMessages(message.id);
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          ),
-        );
-      },
+          if (isMe) ...[
+            const SizedBox(width: AppSpacing.xs),
+            _statusIcon(colors, message.status),
+          ],
+        ],
+      ),
     );
   }
 }

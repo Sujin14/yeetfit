@@ -1,88 +1,54 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../../../shared/theme/theme.dart';
+import 'package:yeetfit/shared/widgets/gradient_send_button.dart';
+import 'package:yeetfit/shared/widgets/yeet_text_field.dart';
 import '../providers/chatbot_provider.dart';
+import 'package:yeetfit/core/theme/app_spacing.dart';
 
-class ChatbotMessageInput extends ConsumerStatefulWidget {
+class ChatbotMessageInput extends ConsumerWidget {
   final String userId;
+  final TextEditingController controller;
+  final FocusNode focusNode;
 
-  const ChatbotMessageInput({super.key, required this.userId});
+  const ChatbotMessageInput({
+    super.key,
+    required this.userId,
+    required this.controller,
+    required this.focusNode,
+  });
 
-  @override
-  ConsumerState<ChatbotMessageInput> createState() =>
-      _ChatbotMessageInputState();
-}
-
-class _ChatbotMessageInputState extends ConsumerState<ChatbotMessageInput> {
-  final _controller = TextEditingController();
-  final _focusNode = FocusNode();
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    _focusNode.dispose();
-    super.dispose();
-  }
-
-  void _sendMessage() {
-    final message = _controller.text.trim();
+  void _sendMessage(WidgetRef ref) {
+    final message = controller.text.trim();
     if (message.isNotEmpty) {
-      ref.read(chatbotProvider(widget.userId).notifier).sendMessage(message);
-      _controller.clear();
-      _focusNode.requestFocus();
+      ref.read(chatbotProvider(userId).notifier).sendMessage(message);
+      controller.clear();
+      focusNode.requestFocus();
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-      decoration: BoxDecoration(
-        color: AppTheme.colors['lightBackground'],
-        border: Border(
-          top: BorderSide(color: AppTheme.colors['borderGradientStart']!),
-        ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        16,
+        4,
+        16,
+        MediaQuery.paddingOf(context).bottom + 8,
       ),
       child: Row(
         children: [
           Expanded(
-            child: TextField(
-              controller: _controller,
-              focusNode: _focusNode,
-              style: AppTheme.textStyles['body']!.copyWith(
-                color: AppTheme.colors['primaryText'],
-              ),
-              decoration: InputDecoration(
-                hintText: 'Ask about health or fitness...',
-                hintStyle: AppTheme.textStyles['body']!.copyWith(
-                  color: AppTheme.colors['secondaryText']!.withOpacity(0.7),
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16.r),
-                  borderSide: BorderSide(
-                    color: AppTheme.colors['borderGradientStart']!,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16.r),
-                  borderSide: BorderSide(
-                    color: AppTheme.colors['primaryAccent']!,
-                  ),
-                ),
-              ),
-              onSubmitted: (_) => _sendMessage(),
+            child: YeetTextField(
+              controller: controller,
+              focusNode: focusNode,
+              hintText: 'Ask Yana anything about fitness...',
+              textCapitalization: TextCapitalization.sentences,
+              textInputAction: TextInputAction.send,
+              onFieldSubmitted: (_) => _sendMessage(ref),
             ),
           ),
-          SizedBox(width: 8.w),
-          IconButton(
-            icon: Icon(
-              Icons.send,
-              color: AppTheme.colors['primaryAccent'],
-              size: 24.sp,
-            ),
-            onPressed: _sendMessage,
-          ),
+          const SizedBox(width: AppSpacing.sm),
+          GradientSendButton(onPressed: () => _sendMessage(ref)),
         ],
       ),
     );

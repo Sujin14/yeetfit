@@ -1,135 +1,96 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
+import 'package:yeetfit/core/services/streak_service.dart';
+import '../../domain/entities/food_item.dart';
 import '../model/food_model.dart';
 
-// Data source for food/meal tracking using Firestore.
+/// Today's food log in Firestore at `users/{uid}/progress/food/food`.
+/// Legacy `{date}-goal` docs may still sit alongside the entries; daily
+/// targets now live on the `users/{uid}` profile.
 class FoodDataSource {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Fetches food entries for date and meal type.
-  Future<List<FoodItem>> getFoodData(String userId, String date, String mealType) async {
-    final querySnapshot = await _firestore
-        .collection('users')
-        .doc(userId)
-        .collection('progress')
-        .doc('food')
-        .collection('food')
+  CollectionReference<Map<String, dynamic>> _food(String userId) => _firestore
+      .collection('users')
+      .doc(userId)
+      .collection('progress')
+      .doc('food')
+      .collection('food');
+
+  static Timestamp _startOfDay(String date) =>
+      Timestamp.fromDate(DateTime.parse('$date 00:00:00'));
+
+  /// All of [date]'s entries in one listener; the `{date}-goal` doc shares
+  /// the date and is skipped.
+  Stream<List<FoodItem>> watchTodayMeals(String userId, String date) {
+    return _food(userId)
         .where('date', isEqualTo: date)
-        .where('mealType', isEqualTo: mealType)
-        .get();
+        .snapshots()
+        .map(
+          (snapshot) => [
+            for (final doc in snapshot.docs)
+              if (doc.id != _goalDocId(date))
+                FoodItemModel.fromMap(doc.data(), id: doc.id),
+          ],
+        );
+  }
 
+  static String _goalDocId(String date) => '$date-goal';
+
+  Future<void> deleteFoodEntry(String userId, String entryId) async {
+    await _food(userId).doc(entryId).delete();
+    unawaited(_syncCalorieChallenges(userId));
+  }
+
+  /// Logs [item] under today's date, whatever its own `date` is.
+  Future<void> addFoodEntry(String userId, FoodItem item) async {
+    final date = StreakService.todayKey();
+    await _food(userId).add({
+      ...FoodItemModel.toMap(item),
+      'date': date,
+      'timestamp': _startOfDay(date),
+    });
+    unawaited(StreakService().checkAfterLog(userId));
+    unawaited(_syncCalorieChallenges(userId));
+  }
+
+  // Challenges track the day's total, not the single entry just added.
+  Future<void> _syncCalorieChallenges(String userId) async {
     try {
-      return querySnapshot.docs.map((doc) => FoodItem.fromMap(doc.data())).toList();
+      final snapshot = await _food(
+        userId,
+      ).where('date', isEqualTo: StreakService.todayKey()).get();
+      final totalCalories = snapshot.docs.fold<double>(
+        0,
+        (total, doc) =>
+            total + ((doc.data()['calories'] as num?)?.toDouble() ?? 0),
+      );
+      await StreakService().updateChallengeProgress(
+        userId,
+        'calories',
+        totalCalories,
+      );
     } catch (e) {
-      rethrow;
+      debugPrint('Calorie challenge sync failed: $e');
     }
   }
 
-  // Fetches calorie goal for date.
-  Future<double> getCalorieGoal(String userId, String date) async {
-    final docRef = _firestore
-        .collection('users')
-        .doc(userId)
-        .collection('progress')
-        .doc('food')
-        .collection('food')
-        .doc('$date-goal');
-
-    try {
-      final doc = await docRef.get();
-      if (!doc.exists) return 0.0;
-      final data = doc.data()!;
-      final raw = (data['calorieGoal'] as num?)?.toDouble();
-      if (raw == null || raw == 1750.0) return 0.0;
-      return raw;
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  // Adds food entry for date and meal type.
-  Future<void> addFoodEntry(
-    String userId,
-    String date,
-    String mealType,
-    String foodName,
-    double calories,
-    double protein,
-    double fat,
-    double carbs,
-    double fiber,
-    double quantity,
-    String? image,
-  ) async {
-    final docRef = _firestore
-        .collection('users')
-        .doc(userId)
-        .collection('progress')
-        .doc('food')
-        .collection('food')
-        .doc();
-
-    try {
-      await docRef.set({
-        'date': date,
-        'mealType': mealType,
-        'foodName': foodName,
-        'calories': calories,
-        'protein': protein,
-        'fat': fat,
-        'carbs': carbs,
-        'fiber': fiber,
-        'quantity': quantity,
-        'image': image,
-        'timestamp': Timestamp.fromDate(DateTime.parse('$date 00:00:00')),
-      });
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  // Fetches weekly food data for meal type.
-  Future<List<FoodItem>> getWeeklyFoodData(
-    String userId,
-    DateTime startDate,
-    DateTime endDate,
-    String mealType,
-  ) async {
-    final querySnapshot = await _firestore
-        .collection('users')
-        .doc(userId)
-        .collection('progress')
-        .doc('food')
-        .collection('food')
-        .where('mealType', isEqualTo: mealType)
-        .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+  /// Every document from the last 7 days (today included). Goal docs come
+  /// back too, with an empty `mealType`.
+  Future<List<FoodItem>> getWeeklyFoodData(String userId) async {
+    final now = DateTime.now();
+    final startDate = DateTime(now.year, now.month, now.day - 6);
+    final endDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
+    final snapshot = await _food(userId)
+        .where(
+          'timestamp',
+          isGreaterThanOrEqualTo: Timestamp.fromDate(startDate),
+        )
         .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
         .get();
-
-    try {
-      return querySnapshot.docs.map((doc) => FoodItem.fromMap(doc.data())).toList();
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  // Sets calorie goal for date.
-  Future<void> setCalorieGoal(String userId, String date, double newGoal) async {
-    final docRef = _firestore
-        .collection('users')
-        .doc(userId)
-        .collection('progress')
-        .doc('food')
-        .collection('food')
-        .doc('$date-goal');
-
-    try {
-      await docRef.set({
-        'date': date,
-        'calorieGoal': newGoal,
-        'timestamp': Timestamp.fromDate(DateTime.parse('$date 00:00:00')),
-      }, SetOptions(merge: true));
-    } catch (e) {
-      rethrow;
-    }
+    return snapshot.docs
+        .map((doc) => FoodItemModel.fromMap(doc.data()))
+        .toList();
   }
 }

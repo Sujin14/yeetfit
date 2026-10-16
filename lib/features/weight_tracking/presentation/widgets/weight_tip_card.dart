@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
-import '../../../../shared/theme/theme.dart';
-import '../../../../shared/widgets/glassmorphic_container.dart';
+import 'package:yeetfit/core/theme/app_colors.dart';
+import 'package:yeetfit/shared/widgets/glass_card.dart';
+import 'package:yeetfit/core/theme/app_spacing.dart';
 
 /// Tip card for weight tracking advice.
 class WeightTipCard extends StatelessWidget {
@@ -10,29 +9,42 @@ class WeightTipCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GlassmorphicContainer(
-      color: AppTheme.colors['deepOrange']!,
-      padding: EdgeInsets.all(14.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Weight Loss Tip',
-            style: GoogleFonts.roboto(
-              fontWeight: FontWeight.bold,
-              fontSize: 14.sp,
-              color: AppTheme.colors['onSurface'],
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenEdge),
+      child: GlassCard(
+        padding: const EdgeInsets.all(AppSpacing.cardPadding),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.lightbulb_outline_rounded, color: colors.warning),
+            const SizedBox(width: AppSpacing.smd),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Weight tip',
+                    style: textTheme.titleMedium!.copyWith(
+                      color: colors.onBackground,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Consistency is key! Track your weight weekly and focus on '
+                    'sustainable habits like balanced nutrition and regular '
+                    'exercise.',
+                    style: textTheme.bodyMedium!.copyWith(
+                      color: colors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          SizedBox(height: 6.h),
-          Text(
-            'Consistency is key! Track your weight weekly and focus on sustainable habits like balanced nutrition and regular exercise.',
-            style: GoogleFonts.roboto(
-              fontSize: 11.sp,
-              color: AppTheme.colors['onSurface']!.withOpacity(0.7),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -4,6 +4,7 @@ class TrackingRouteConstants {
   static const String foodSearch = '/food-search';
   static const String nutritionDetails = '/nutrition-details';
   static const String weeklyCalorieChart = '/weekly-calorie-chart';
+  static const String mealScanResult = '/meal-scan-result';
   static const String stepCounter = '/modal/steps';
   static const String sleepTracking = '/modal/sleep';
   static const String waterTracking = '/modal/water';
@@ -11,4 +12,8 @@ class TrackingRouteConstants {
   static const String waterSuccess = '/success/:goal';
   static const String weightSuccess = '/weight-success/:goal';
   static const String stepsSuccess = '/steps-success/:goal';
+
+  static String waterSuccessPath(String goal) => '/success/$goal';
+  static String weightSuccessPath(String goal) => '/weight-success/$goal';
+  static String stepsSuccessPath(String goal) => '/steps-success/$goal';
 }

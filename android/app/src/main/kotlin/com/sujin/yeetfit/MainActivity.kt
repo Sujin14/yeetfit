@@ -1,5 +1,7 @@
 package com.sujin.yeetfit
 
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 
-class MainActivity : FlutterActivity()
+// FlutterFragmentActivity: the health plugin requests Health Connect
+// permissions through registerForActivityResult, which needs a ComponentActivity.
+class MainActivity : FlutterFragmentActivity()

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yeetfit/shared/widgets/launch_gradient_background.dart';
+import 'package:yeetfit/shared/widgets/yeet_error_state.dart';
 import '../providers/user_info_provider.dart';
+import '../widgets/user_info_shimmer.dart';
 import '../widgets/user_info_stepper.dart';
 
 class UserInfoStepPage extends ConsumerWidget {
@@ -13,32 +15,16 @@ class UserInfoStepPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userInfoState = ref.watch(userInfoControllerProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Complete Your Profile',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 22.sp),
-        ),
+    return LaunchGradientBackground(
+      child: Scaffold(
         backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: userInfoState.when(
-        data: (_) => Padding(
-          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
-          child: UserInfoStepper(step: step),
-        ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('Error: $error', style: TextStyle(fontSize: 16.sp, color: Theme.of(context).colorScheme.error)),
-              SizedBox(height: 16.h),
-              ElevatedButton(
-                onPressed: () => ref.read(userInfoControllerProvider.notifier).fetchUserData(),
-                child: const Text('Retry'),
-              ),
-            ],
+        body: userInfoState.when(
+          data: (_) => UserInfoStepper(step: step),
+          loading: () => const UserInfoShimmer(),
+          error: (error, _) => YeetErrorState(
+            message: "Couldn't load your profile: $error",
+            onRetry: () =>
+                ref.read(userInfoControllerProvider.notifier).fetchUserData(),
           ),
         ),
       ),

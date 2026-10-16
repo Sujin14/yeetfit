@@ -1,64 +1,38 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../../../shared/theme/theme.dart';
-import '../providers/progress_provider.dart';
+import 'package:intl/intl.dart';
+import 'package:yeetfit/core/theme/app_colors.dart';
+import 'package:yeetfit/core/theme/app_spacing.dart';
 
-class ProgressHeader extends ConsumerWidget {
-  final ValueChanged<String?> onMetricChanged;
-  const ProgressHeader({super.key, required this.onMetricChanged});
+/// "Progress" title with the current month underneath.
+class ProgressHeader extends StatelessWidget {
+  final DateTime month;
+
+  const ProgressHeader({super.key, required this.month});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isDesktop = MediaQuery.of(context).size.width >= 600;
-    final selected = ref.watch(selectedMetricProvider) ?? 'All Metrics';
-
-    return Container(
-      padding: EdgeInsets.all(isDesktop ? 20.w : 16.w),
-      decoration: BoxDecoration(
-        color: AppTheme.colors['indigo']!.withOpacity(0.7),
-        borderRadius: BorderRadius.circular(12.r),
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+    final textTheme = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.screenEdge,
+        AppSpacing.sm,
+        AppSpacing.screenEdge,
+        AppSpacing.smd,
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Progress Heatmap',
-            style: AppTheme.textStyles['title']!.copyWith(
-              fontSize: 20.sp,
-              color: AppTheme.colors['primaryText'],
+            'Progress',
+            style: textTheme.headlineLarge!.copyWith(
+              color: colors.onBackground,
             ),
           ),
-          DropdownButton<String>(
-            value: selected,
-            dropdownColor: AppTheme.colors['white'],
-            style: AppTheme.textStyles['body']!.copyWith(
-              color: AppTheme.colors['primaryText'],
-              fontSize: isDesktop ? 16.sp : 14.sp,
-            ),
-            icon: Icon(
-              Icons.arrow_drop_down,
-              color: AppTheme.colors['primaryText'],
-            ),
-            underline: const SizedBox(),
-            onChanged: (value) {
-              final v = value == 'All Metrics' ? null : value;
-              ref.read(selectedMetricProvider.notifier).state = v;
-              onMetricChanged(value);
-            },
-            items: const [
-              DropdownMenuItem(
-                value: 'All Metrics',
-                child: Text('All Metrics'),
-              ),
-              DropdownMenuItem(value: 'food', child: Text('Meal Tracking')),
-              DropdownMenuItem(value: 'sleep', child: Text('Sleep')),
-              DropdownMenuItem(value: 'steps', child: Text('Steps')),
-              DropdownMenuItem(value: 'water', child: Text('Water')),
-              DropdownMenuItem(value: 'weight', child: Text('Weight')),
-            ],
+          const SizedBox(height: 2),
+          Text(
+            DateFormat('MMMM yyyy').format(month),
+            style: textTheme.bodyMedium!.copyWith(color: colors.textSecondary),
           ),
         ],
       ),

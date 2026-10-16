@@ -1,47 +1,23 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:yeetfit/core/services/streak_service.dart';
 import '../model/water_model.dart';
 
 // Data source for water tracking using Firestore.
 class WaterDataSource {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  CollectionReference<Map<String, dynamic>> _water(String userId) => _firestore
+      .collection('users')
+      .doc(userId)
+      .collection('progress')
+      .doc('water')
+      .collection('water');
+
   // Fetches water data for a date.
-  Future<WaterData?> getWaterData(String userId, String date) async {
-    final docRef = _firestore
-        .collection('users')
-        .doc(userId)
-        .collection('progress')
-        .doc('water')
-        .collection('water')
-        .doc(date);
-
-    try {
-      final doc = await docRef.get();
-      if (doc.exists) {
-        return WaterData.fromMap(doc.data()!);
-      }
-      return null;
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  // Fetches water goal for a date.
-  Future<int> getWaterGoal(String userId, String date) async {
-    final docRef = _firestore
-        .collection('users')
-        .doc(userId)
-        .collection('progress')
-        .doc('water')
-        .collection('water')
-        .doc(date);
-
-    try {
-      final doc = await docRef.get();
-      return doc.exists ? (doc.data()?['goalGlasses'] ?? 8) : 8;
-    } catch (e) {
-      rethrow;
-    }
+  Future<WaterModel?> getWaterData(String userId, String date) async {
+    final doc = await _water(userId).doc(date).get();
+    return doc.exists ? WaterModel.fromMap(doc.data()!) : null;
   }
 
   // Updates water data for a date.
@@ -51,46 +27,39 @@ class WaterDataSource {
     int glassesConsumed,
     int goalGlasses,
   ) async {
-    final docRef = _firestore
-        .collection('users')
-        .doc(userId)
-        .collection('progress')
-        .doc('water')
-        .collection('water')
-        .doc(date);
-
-    try {
-      await docRef.set({
-        'date': date,
-        'glassesConsumed': glassesConsumed,
-        'goalGlasses': goalGlasses,
-        'timestamp': Timestamp.fromDate(DateTime.now()),
-      }, SetOptions(merge: true));
-    } catch (e) {
-      rethrow;
+    await _water(userId).doc(date).set({
+      'date': date,
+      'glassesConsumed': glassesConsumed,
+      'goalGlasses': goalGlasses,
+      'timestamp': Timestamp.fromDate(DateTime.now()),
+    }, SetOptions(merge: true));
+    if (glassesConsumed > 0) unawaited(StreakService().checkAfterLog(userId));
+    if (date == StreakService.todayKey()) {
+      unawaited(
+        StreakService().updateChallengeProgress(
+          userId,
+          'water',
+          glassesConsumed.toDouble(),
+        ),
+      );
     }
   }
 
   // Fetches weekly water data in range.
-  Future<List<WaterData>> getWeeklyWaterData(
+  Future<List<WaterModel>> getWeeklyWaterData(
     String userId,
     DateTime startDate,
     DateTime endDate,
   ) async {
-    final querySnapshot = await _firestore
-        .collection('users')
-        .doc(userId)
-        .collection('progress')
-        .doc('water')
-        .collection('water')
-        .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+    final querySnapshot = await _water(userId)
+        .where(
+          'timestamp',
+          isGreaterThanOrEqualTo: Timestamp.fromDate(startDate),
+        )
         .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
         .get();
-
-    try {
-      return querySnapshot.docs.map((doc) => WaterData.fromMap(doc.data())).toList();
-    } catch (e) {
-      rethrow;
-    }
+    return querySnapshot.docs
+        .map((doc) => WaterModel.fromMap(doc.data()))
+        .toList();
   }
 }

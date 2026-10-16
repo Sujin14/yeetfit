@@ -1,30 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:rxdart/rxdart.dart';
-import 'database_service.dart';
 import '../model/message_model.dart';
 
-class FirestoreChatService implements DatabaseService {
+class FirestoreChatService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  FirestoreChatService() {
-    _firestore.settings = const Settings(
-      persistenceEnabled: true,
-      cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
-    );
-  }
-
-  Future<List<MessageModel>> parseMessages(List<QueryDocumentSnapshot> docs) async {
-    return await compute((List<QueryDocumentSnapshot> docs) {
-      return docs
-          .map((doc) => MessageModel.fromMap(doc.data() as Map<String, dynamic>, doc.id))
-          .toList();
-    }, docs);
-  }
-
-  @override
-  Stream<List<Map<String, dynamic>>> getChatMessages(String chatId) {
+  Stream<List<MessageModel>> getChatMessages(String chatId) {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
       return Stream.error(Exception('User not authenticated'));
@@ -33,11 +15,11 @@ class FirestoreChatService implements DatabaseService {
         .collection('chats')
         .doc(chatId)
         .snapshots()
-        .debounce((_) => TimerStream(true, const Duration(milliseconds: 100)))
-        .asyncMap<List<Map<String, dynamic>>>((chatDoc) async {
-          if (!chatDoc.exists) {
-            return <Map<String, dynamic>>[];
-          }
+        .debounce(
+          (_) => TimerStream<void>(null, const Duration(milliseconds: 100)),
+        )
+        .asyncMap((chatDoc) async {
+          if (!chatDoc.exists) return <MessageModel>[];
           final snapshot = await _firestore
               .collection('chats')
               .doc(chatId)
@@ -46,85 +28,69 @@ class FirestoreChatService implements DatabaseService {
               .orderBy('timestamp', descending: true)
               .limit(50)
               .get();
-          final messages = await parseMessages(snapshot.docs);
-          return messages.map((m) => m.toMap()).toList();
+          return snapshot.docs
+              .map((doc) => MessageModel.fromMap(doc.data(), doc.id))
+              .toList();
         });
   }
 
-  @override
-  Stream<Map<String, dynamic>> getMessageStatus(String chatId, String messageId) {
-    return _firestore
-        .collection('chats')
-        .doc(chatId)
-        .collection('messages')
-        .doc(messageId)
-        .snapshots()
-        .map((doc) {
-          if (!doc.exists) {
-            throw Exception('Message not found');
-          }
-          return MessageModel.fromMap(doc.data()!, doc.id).toMap();
-        });
-  }
-
-  @override
-  Stream<Map<String, dynamic>> getUserProfile(String userId) {
+  /// `null` once the user's profile no longer exists (account deleted).
+  Stream<Map<String, dynamic>?> getUserProfile(String userId) {
     return _firestore
         .collection('users')
         .doc(userId)
         .snapshots()
-        .map((doc) {
-          if (!doc.exists) {
-            return {'name': 'Admin', 'profileImage': ''};
-          }
-          return doc.data() ?? {'name': 'Admin', 'profileImage': ''};
-        });
+        .map((doc) => doc.data());
   }
 
-  @override
-  Future<void> sendMessage(String chatId, Map<String, dynamic> message) async {
+  Future<bool> userExists(String userId) async =>
+      (await _firestore.collection('users').doc(userId).get()).exists;
+
+  static String chatIdFor(String userA, String userB) {
+    final ids = [userA, userB]..sort();
+    return '${ids[0]}_${ids[1]}';
+  }
+
+  Future<void> sendMessage(String chatId, MessageModel message) async {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
       throw Exception('User not authenticated');
     }
+    final data = message.toMap();
     await _firestore
         .collection('chats')
         .doc(chatId)
         .collection('messages')
-        .doc(message['id'])
-        .set(message);
+        .doc(message.id)
+        .set(data);
     await _firestore.collection('chats').doc(chatId).update({
-      'lastMessage': message['content'],
-      'lastMessageTime': message['timestamp'],
-      'participants': message['participants'],
-      'participantName': message['participantName'],
+      'lastMessage': data['content'],
+      'lastMessageTime': data['timestamp'],
+      'participants': data['participants'],
+      'participantName': data['participantName'],
     });
   }
 
-  @override
-  Future<void> updateTypingStatus(String chatId, String userId, bool isTyping) async {
-    await _firestore.collection('chats').doc(chatId).update({
+  Future<void> updateTypingStatus(String chatId, String userId, bool isTyping) {
+    return _firestore.collection('chats').doc(chatId).update({
       'typing_$userId': isTyping,
     });
   }
 
-  @override
   Stream<bool> getTypingStatus(String chatId, String userId) {
     return _firestore
         .collection('chats')
         .doc(chatId)
         .snapshots()
-        .map<bool>((doc) {
-          if (!doc.exists) {
-            return false;
-          }
-          return (doc.data()?['typing_$userId'] as bool?) ?? false;
-        });
+        .map((doc) => (doc.data()?['typing_$userId'] as bool?) ?? false);
   }
 
-  @override
-  Future<void> updateMessageStatus(String chatId, String messageId, String status) async {
-    await _firestore
+  Future<void> updateMessageStatus(
+    String chatId,
+    String messageId,
+    String status,
+  ) {
+    return _firestore
         .collection('chats')
         .doc(chatId)
         .collection('messages')
@@ -132,31 +98,32 @@ class FirestoreChatService implements DatabaseService {
         .update({'status': status});
   }
 
-  @override
   Future<void> deleteChat(String chatId) async {
-    final chatDoc = await _firestore.collection('chats').doc(chatId).get();
-    if (!chatDoc.exists) {
-      throw Exception('Chat does not exist: $chatId');
-    }
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null) {
-      throw Exception('User not authenticated');
-    }
-    final userDoc = await _firestore.collection('users').doc(currentUser.uid).get();
-    final isAdmin = userDoc.exists && userDoc.data()?['role'] == 'admin';
-    final participants = List<String>.from(chatDoc.data()?['participants'] ?? []);
-    if (!isAdmin && !participants.contains(currentUser.uid)) {
-      throw Exception('User ${currentUser.uid} is not authorized to delete chat $chatId');
-    }
-    final messages = await _firestore.collection('chats').doc(chatId).collection('messages').get();
-    for (var doc in messages.docs) {
+    await _ensureCanModifyChat(chatId, 'Not authorized to delete this chat');
+    final chatRef = _firestore.collection('chats').doc(chatId);
+    final messages = await chatRef.collection('messages').get();
+    for (final doc in messages.docs) {
       await doc.reference.delete();
     }
-    await _firestore.collection('chats').doc(chatId).delete();
+    await chatRef.delete();
   }
 
-  @override
   Future<void> deleteMessage(String chatId, String messageId) async {
+    await _ensureCanModifyChat(chatId, 'Not authorized to delete this message');
+    await _firestore
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .doc(messageId)
+        .delete();
+  }
+
+  /// Throws unless the chat exists and the signed-in user is an admin or one
+  /// of its participants.
+  Future<void> _ensureCanModifyChat(
+    String chatId,
+    String unauthorizedMessage,
+  ) async {
     final chatDoc = await _firestore.collection('chats').doc(chatId).get();
     if (!chatDoc.exists) {
       throw Exception('Chat does not exist: $chatId');
@@ -165,26 +132,34 @@ class FirestoreChatService implements DatabaseService {
     if (currentUser == null) {
       throw Exception('User not authenticated');
     }
-    final userDoc = await _firestore.collection('users').doc(currentUser.uid).get();
+    final userDoc = await _firestore
+        .collection('users')
+        .doc(currentUser.uid)
+        .get();
     final isAdmin = userDoc.exists && userDoc.data()?['role'] == 'admin';
-    final participants = List<String>.from(chatDoc.data()?['participants'] ?? []);
+    final participants = List<String>.from(
+      chatDoc.data()?['participants'] ?? [],
+    );
     if (!isAdmin && !participants.contains(currentUser.uid)) {
-      throw Exception('User ${currentUser.uid} is not authorized to delete message $messageId');
+      throw Exception(unauthorizedMessage);
     }
-    await _firestore.collection('chats').doc(chatId).collection('messages').doc(messageId).delete();
   }
 
-  @override
   Future<String> createOrGetChat(
-      String adminId, String participantId, String participantName) async {
+    String adminId,
+    String participantId,
+    String participantName,
+  ) async {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null || currentUser.uid != participantId) {
-      throw Exception('User is not authenticated or participantId does not match current user');
+      throw Exception(
+        'User is not authenticated or participantId does not match current user',
+      );
     }
     if (adminId.isEmpty || participantId.isEmpty || adminId == participantId) {
       throw Exception('Invalid admin or participant ID');
     }
-    final chatId = _generateChatId(adminId, participantId);
+    final chatId = chatIdFor(adminId, participantId);
     final chatRef = _firestore.collection('chats').doc(chatId);
     final chatDoc = await chatRef.get();
     if (!chatDoc.exists) {
@@ -198,10 +173,5 @@ class FirestoreChatService implements DatabaseService {
       }, SetOptions(merge: true));
     }
     return chatId;
-  }
-
-  String _generateChatId(String adminId, String participantId) {
-    final ids = [adminId, participantId]..sort();
-    return '${ids[0]}_${ids[1]}';
   }
 }

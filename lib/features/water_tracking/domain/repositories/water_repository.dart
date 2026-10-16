@@ -1,12 +1,9 @@
-import '../../data/model/water_model.dart';
+import '../entities/water_data.dart';
 
 // Abstract repository for water tracking operations.
 abstract class WaterRepository {
   // Fetches today's water data.
   Future<WaterData?> getWaterData(String userId);
-
-  // Fetches today's water goal.
-  Future<int> getWaterGoal(String userId);
 
   // Adds one glass of water.
   Future<void> addGlass(String userId);

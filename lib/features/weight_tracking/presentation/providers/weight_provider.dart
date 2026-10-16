@@ -1,201 +1,200 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:yeetfit/shared/theme/theme.dart';
+import 'package:yeetfit/core/entities/progress_level.dart';
 import '../../data/datasources/weight_datasource.dart';
-import '../../data/model/weight_model.dart';
+import '../../domain/entities/weight_data.dart';
 import '../../data/repositories/weight_repository_impl.dart';
 import '../../domain/repositories/weight_repository.dart';
-import '../../domain/usecases/add_weight_entry.dart';
-import '../../domain/usecases/get_weight_data.dart';
-import '../../domain/usecases/get_weekly_weight_data.dart';
-import '../../domain/usecases/set_weight_goal.dart';
-import 'package:go_router/go_router.dart';
 
-// Provider for Firebase Auth instance.
-final firebaseAuthProvider = Provider((ref) => FirebaseAuth.instance);
-
-// Provider for current authenticated user ID (centralized).
-final authUserIdProvider = Provider<String?>((ref) {
-  final auth = ref.watch(firebaseAuthProvider);
-  return auth.currentUser?.uid;
-});
-
-// Provider for weight repository.
 final weightRepositoryProvider = Provider<WeightRepository>(
   (ref) => WeightRepositoryImpl(WeightDataSource()),
 );
 
-// Providers for use cases.
-final addWeightEntryProvider = Provider<AddWeightEntry>(
-  (ref) => AddWeightEntry(ref.read(weightRepositoryProvider)),
-);
-
-final setWeightGoalProvider = Provider<SetWeightGoal>(
-  (ref) => SetWeightGoal(ref.read(weightRepositoryProvider)),
-);
-
-final getWeightDataProvider = Provider<GetWeightData>(
-  (ref) => GetWeightData(ref.read(weightRepositoryProvider)),
-);
-
-final getWeeklyWeightDataProvider = Provider<GetWeeklyWeightData>(
-  (ref) => GetWeeklyWeightData(ref.read(weightRepositoryProvider)),
-);
-
-// Today's weight data for user.
-final currentWeightDataProvider = FutureProvider.family<WeightData?, String>(
-  (ref, userId) async {
-    return await ref.read(getWeightDataProvider).call(userId);
-  },
-);
-
-// Notifier for current weight, with update and success nav listener.
-final currentWeightProvider = StateNotifierProvider.autoDispose
-    .family<CurrentWeightNotifier, AsyncValue<double>, String>(
-  (ref, userId) => CurrentWeightNotifier(ref, userId),
-);
+// Today's weight, with an update method used by the save controller.
+final currentWeightProvider = AsyncNotifierProvider.autoDispose
+    .family<CurrentWeightNotifier, double, String>(CurrentWeightNotifier.new);
 
 // Notifier for weight goal.
-final weightGoalProvider = StateNotifierProvider.autoDispose
-    .family<WeightGoalNotifier, AsyncValue<WeightData>, String>(
-  (ref, userId) => WeightGoalNotifier(
-    ref,
-    ref.read(weightRepositoryProvider),
-    ref.read(setWeightGoalProvider),
-    userId,
-  ),
-);
+final weightGoalProvider = AsyncNotifierProvider.autoDispose
+    .family<WeightGoalNotifier, WeightData, String>(WeightGoalNotifier.new);
 
-// Computed progress and color for UI.
-final weightProgressProvider = Provider.autoDispose.family<Map<String, dynamic>, String>(
-  (ref, userId) {
-    final currentWeight = ref.watch(currentWeightProvider(userId).select((value) => value.value ?? 75.0));
-    final goal = ref.watch(weightGoalProvider(userId).select((value) => value.value));
-    final goalWeight = goal?.goalWeight ?? 70.0;
-    final initialWeight = goal?.initialWeight ?? 75.0;
-    final progress = initialWeight != goalWeight
-        ? ((initialWeight - currentWeight) / (initialWeight - goalWeight)).clamp(0.0, 1.0)
-        : 0.0;
-
-    Color color;
-    if (progress >= 1.0) {
-      color =  AppTheme.colors['fullProgress']!;// Green
-    } else if (progress > 0.5) {
-      color = AppTheme.colors['halfProgress']!; // Yellow
-    } else if (progress >= 0.25) {
-      color = AppTheme.colors['quarterProgress']!; // Orange
-    } else {
-      color = AppTheme.colors['noProgress']!; // Red
-    }
-    return {'progress': progress, 'color': color};
-  },
-);
-
-// Weekly weight data, merged with today.
-final weeklyWeightDataProvider = FutureProvider.autoDispose.family<List<WeightData>, String>(
-  (ref, userId) async {
-    final weeklyData = await ref.read(getWeeklyWeightDataProvider).call(userId);
-    final today = DateTime.now().toIso8601String().split('T')[0];
-    final currentWeight = ref.watch(currentWeightProvider(userId).select((value) => value.value ?? 75.0));
-    final goal = ref.watch(weightGoalProvider(userId).select((value) => value.value));
-
-    final updatedData = weeklyData.where((data) => data.date != today).toList()
-      ..add(WeightData(
-        date: today,
-        currentWeight: currentWeight,
-        goalWeight: goal?.goalWeight ?? 70.0,
-        initialWeight: goal?.initialWeight ?? 75.0,
-        targetDate: goal?.targetDate,
-      ));
-    updatedData.sort((a, b) => a.date.compareTo(b.date));
-    return updatedData;
-  },
-);
-
-// Notifier for current weight updates.
-class CurrentWeightNotifier extends StateNotifier<AsyncValue<double>> {
-  final Ref _ref;
-  final String _userId;
-
-  CurrentWeightNotifier(this._ref, this._userId) : super(const AsyncValue.loading()) {
-    _fetchWeight();
-  }
-
-  Future<void> _fetchWeight() async {
-    try {
-      state = const AsyncValue.loading();
-      final weightData = await _ref.read(weightRepositoryProvider).getWeightData(_userId);
-      final weight = weightData?.currentWeight ?? 75.0;
-      state = AsyncValue.data(weight);
-    } catch (e, stackTrace) {
-      state = AsyncValue.error(e, stackTrace);
-    }
-  }
-
-  // Updates weight and checks for goal achievement.
-  Future<void> updateWeight(double currentWeight, BuildContext context) async {
-    try {
-      state = const AsyncValue.loading();
-      final goal = await _ref.read(weightRepositoryProvider).getUserWeightGoal(_userId);
-
-      await _ref.read(weightRepositoryProvider).updateWeight(
-        _userId,
-        currentWeight,
-        goal?.goalWeight,
-        goal?.initialWeight,
-        goal?.targetDate,
+// Computed progress toward the goal and its level for UI.
+final weightProgressProvider = Provider.autoDispose
+    .family<({double progress, ProgressLevel level}), String>((ref, userId) {
+      final currentWeight = ref.watch(
+        currentWeightProvider(userId).select((value) => value.value ?? 75.0),
       );
+      final goal = ref.watch(
+        weightGoalProvider(userId).select((value) => value.value),
+      );
+      final goalWeight = goal?.goalWeight ?? 70.0;
+      final initialWeight = goal?.initialWeight ?? 75.0;
+      final progress = initialWeight != goalWeight
+          ? ((initialWeight - currentWeight) / (initialWeight - goalWeight))
+                .clamp(0.0, 1.0)
+          : 0.0;
+      return (progress: progress, level: ProgressLevel.fromRatio(progress));
+    });
 
-      state = AsyncValue.data(currentWeight);
+/// Last seven days of saved entries, fetched once per screen visit.
+final weightHistoryProvider = FutureProvider.autoDispose
+    .family<List<WeightData>, String>(
+      (ref, userId) =>
+          ref.read(weightRepositoryProvider).getWeeklyWeightData(userId),
+    );
 
-      // Check if goal achieved and navigate.
-      if (goal != null && (currentWeight - goal.goalWeight).abs() < 0.1) {
-        final goalStr = goal.goalWeight.toStringAsFixed(1);
-        if (context.mounted) {
-          context.push('/weight-success/$goalStr');
-        }
+/// [weightHistoryProvider] with today's live weight and goal merged in,
+/// sorted by date.
+final weeklyWeightDataProvider = Provider.autoDispose
+    .family<AsyncValue<List<WeightData>>, String>((ref, userId) {
+      final today = DateTime.now().toIso8601String().split('T')[0];
+      final currentWeight = ref.watch(
+        currentWeightProvider(userId).select((value) => value.value ?? 75.0),
+      );
+      final goal = ref.watch(
+        weightGoalProvider(userId).select((value) => value.value),
+      );
+      return ref
+          .watch(weightHistoryProvider(userId))
+          .whenData(
+            (history) => [
+              for (final entry in history)
+                if (entry.date != today) entry,
+              WeightData(
+                date: today,
+                currentWeight: currentWeight,
+                goalWeight: goal?.goalWeight ?? 70.0,
+                initialWeight: goal?.initialWeight ?? 75.0,
+                targetDate: goal?.targetDate,
+              ),
+            ]..sort((a, b) => a.date.compareTo(b.date)),
+          );
+    });
+
+class CurrentWeightNotifier extends AsyncNotifier<double> {
+  final String userId;
+
+  CurrentWeightNotifier(this.userId);
+
+  WeightRepository get _repository => ref.read(weightRepositoryProvider);
+
+  @override
+  Future<double> build() async {
+    final weightData = await _repository.getWeightData(userId);
+    return weightData?.currentWeight ?? 75.0;
+  }
+
+  /// Saves today's weight and returns the goal it was saved against (null
+  /// when no goal is set). Keeps the last value while saving (progress is
+  /// shown by the save controller). Failures propagate to the caller.
+  Future<WeightData?> updateWeight(double currentWeight) async {
+    final repository = _repository;
+    final goal = await repository.getUserWeightGoal(userId);
+    await repository.updateWeight(
+      userId,
+      currentWeight,
+      goal?.goalWeight,
+      goal?.initialWeight,
+      goal?.targetDate,
+    );
+    if (ref.mounted) state = AsyncData(currentWeight);
+    return goal;
+  }
+}
+
+/// A saved weight and the goal it was saved against (null when none is set).
+class WeightSaveResult {
+  final double weight;
+  final double? goalWeight;
+
+  const WeightSaveResult({required this.weight, this.goalWeight});
+
+  bool get goalReached =>
+      goalWeight != null && (weight - goalWeight!).abs() < 0.1;
+}
+
+/// Saves a weight entry: `data(null)` while idle, `data(result)` once saved;
+/// errors carry a user-facing message. The tracking screen reacts once and
+/// calls `consume()`.
+final weightSaveControllerProvider = AsyncNotifierProvider.autoDispose
+    .family<WeightSaveController, WeightSaveResult?, String>(
+      WeightSaveController.new,
+    );
+
+class WeightSaveController extends AsyncNotifier<WeightSaveResult?> {
+  final String userId;
+
+  WeightSaveController(this.userId);
+
+  @override
+  FutureOr<WeightSaveResult?> build() => null;
+
+  Future<void> save(String input) async {
+    if (state.isLoading) return;
+    final weight = double.tryParse(input.trim());
+    if (weight == null || weight <= 0) {
+      state = AsyncError('Please enter a valid weight', StackTrace.current);
+      return;
+    }
+    state = const AsyncLoading();
+    try {
+      final goal = await ref
+          .read(currentWeightProvider(userId).notifier)
+          .updateWeight(weight);
+      if (ref.mounted) {
+        state = AsyncData(
+          WeightSaveResult(weight: weight, goalWeight: goal?.goalWeight),
+        );
       }
     } catch (e, stackTrace) {
-      state = AsyncValue.error(e, stackTrace);
+      if (ref.mounted) {
+        state = AsyncError('Failed to save weight: $e', stackTrace);
+      }
     }
+  }
+
+  /// Resets a delivered result or error so the next save notifies again.
+  void consume() {
+    if (!state.isLoading) state = const AsyncData(null);
   }
 }
 
 // Notifier for weight goal management.
-class WeightGoalNotifier extends StateNotifier<AsyncValue<WeightData>> {
-  final Ref _ref;
-  final WeightRepository _repository;
-  final SetWeightGoal _setWeightGoal;
-  final String _userId;
+class WeightGoalNotifier extends AsyncNotifier<WeightData> {
+  final String userId;
 
-  WeightGoalNotifier(this._ref, this._repository, this._setWeightGoal, this._userId)
-      : super(const AsyncValue.loading()) {
-    _fetchGoal();
+  WeightGoalNotifier(this.userId);
+
+  WeightRepository get _repository => ref.read(weightRepositoryProvider);
+
+  @override
+  Future<WeightData> build() => _fetchGoal();
+
+  Future<WeightData> _fetchGoal() async {
+    final goal = await _repository.getUserWeightGoal(userId);
+    return goal ??
+        WeightData(
+          date: DateTime.now().toIso8601String().split('T')[0],
+          currentWeight: 75.0,
+          goalWeight: 70.0,
+          initialWeight: 75.0,
+        );
   }
 
-  Future<void> _fetchGoal() async {
-    try {
-      state = const AsyncValue.loading();
-      final goal = await _repository.getUserWeightGoal(_userId);
-      final goalData = goal ?? WeightData(
-        date: DateTime.now().toIso8601String().split('T')[0],
-        currentWeight: 75.0,
-        goalWeight: 70.0,
-        initialWeight: 75.0,
+  Future<void> setGoal(
+    double goalWeight,
+    double initialWeight,
+    DateTime? targetDate,
+  ) async {
+    final result = await AsyncValue.guard(() async {
+      await _repository.setUserWeightGoal(
+        userId,
+        goalWeight,
+        initialWeight,
+        targetDate,
       );
-      state = AsyncValue.data(goalData);
-    } catch (e, stackTrace) {
-      state = AsyncValue.error(e, stackTrace);
-    }
-  }
-
-  Future<void> setGoal(double goalWeight, double initialWeight, DateTime? targetDate) async {
-    try {
-      await _setWeightGoal.call(_userId, goalWeight, initialWeight, targetDate);
-      await _fetchGoal();
-    } catch (e, stackTrace) {
-      state = AsyncValue.error(e, stackTrace);
-    }
+      return _fetchGoal();
+    });
+    if (ref.mounted) state = result;
   }
 }

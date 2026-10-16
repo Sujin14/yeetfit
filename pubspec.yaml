@@ -1,63 +1,71 @@
 name: yeetfit
 description: "A new Flutter project."
 publish_to: 'none'
-version: 1.0.2+3
+version: 2.0.0+1
 
 environment:
   sdk: ^3.8.1
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.8
-  rename: ^3.1.0
-  google_fonts: ^6.2.1
-  lottie: ^3.3.1
-  flutter_screenutil: ^5.9.3
-  build_runner: ^2.4.14
-  fl_chart: ^1.0.0
-  percent_indicator: ^4.2.5
-  smooth_page_indicator: ^1.2.1
-  youtube_player_iframe: ^5.2.2
+  # google_fonts 9+, go_router 18+, cached_network_image 4+ and shimmer 4+ are
+  # built on the standalone `material_ui` package, whose types (TextTheme,
+  # MaterialApp, Theme) are incompatible with `package:flutter/material.dart`.
+  # Keep them on the last major that targets flutter/material until the app
+  # itself migrates to material_ui.
+  google_fonts: ^8.2.1
+  lottie: ^3.6.1
+  fl_chart: ^1.2.0
+  youtube_player_iframe: ^6.0.2
   rxdart: ^0.28.0
-  image_picker: ^1.1.2
-  flutter_hooks: ^0.20.4
-  hooks_riverpod: ^2.4.9
-  firebase_core: ^4.0.0
-  firebase_auth: ^6.0.0
-  cloud_firestore: ^6.0.0
-  cloud_functions: ^6.0.0
-  google_sign_in: ^6.2.1
-  go_router: ^13.2.0
-  glassmorphism: ^3.0.0
-  intl: ^0.20.2
-  cached_network_image: ^3.3.1
-  webview_flutter: ^4.9.0
-  http: ^1.4.0
-  url_launcher: ^6.3.2
-  table_calendar: ^3.2.0
-  pedometer: ^4.1.1
-  razorpay_flutter: ^1.4.0
-  permission_handler: ^12.0.1
-  shared_preferences: ^2.5.3
-  workmanager: ^0.9.0+2
-  firebase_storage: ^13.0.0
+  image_picker: ^1.2.3
+  image_cropper: ^9.0.0
+  hooks_riverpod: ^3.4.3
+  firebase_core: ^4.15.0
+  firebase_auth: ^6.7.0
+  cloud_firestore: ^6.10.0
+  cloud_functions: ^6.5.0
+  google_sign_in: ^7.2.0
+  go_router: ^17.5.0
+  intl: ^0.20.3
+  cached_network_image: ^3.4.1
+  url_launcher: ^6.3.3
+  permission_handler: ^13.0.2
+  shared_preferences: ^2.5.5
+  workmanager: ^0.10.10
+  firebase_storage: ^13.6.0
   shimmer: ^3.0.0
-  flutter_heatmap_calendar: ^1.0.5
-  animated_text_kit: ^4.2.3
-  googleai_dart: ^1.1.0
-  
+  connectivity_plus: ^6.1.1
+  package_info_plus: ^8.1.2
+  firebase_messaging: ^16.7.0
+  flutter_local_notifications: ^18.0.1
+  health: ^13.3.1
+  showcaseview: ^3.0.0
+  metered_realtime: ^0.2.0
+  flutter_webrtc: ^1.6.2+hotfix.4
+  timezone: ^0.10.1
+  flutter_timezone: ^5.1.1
+  flutter_markdown_plus: ^1.0.12
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
+  build_runner: ^2.16.1
+  rename: ^3.1.0
+
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icons/app_icon.png"
-  adaptive_icon_background: "#ffffff"
-  adaptive_icon_foreground: "assets/icons/app_icon.png"
-
-  flutter_lints: ^5.0.0
+  image_path: "assets/images/yeetfit_logo.webp"
+  adaptive_icon_background: "#0D0D2B"
+  adaptive_icon_foreground: "assets/images/yeetfit_logo.webp"
+  adaptive_icon_foreground_inset: 0
+  remove_alpha_ios: true
+  min_sdk_android: 26
+  web:
+    generate: false
 
 flutter:
 
@@ -67,3 +75,17 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/animations/
+
+  # google_fonts loads these instead of downloading. It matches them by file
+  # name (`Inter-<Weight>.ttf`), so keep the names unchanged.
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Inter-Bold.ttf
+          weight: 700
