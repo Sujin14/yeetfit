@@ -42,7 +42,7 @@ class AboutBody extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.xl),
         Text(
-          '© 2024 YeetFit. All rights reserved.',
+          '© 2026 YeetFit. All rights reserved.',
           textAlign: TextAlign.center,
           style: Theme.of(
             context,

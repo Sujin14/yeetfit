@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../data/datasources/coach_datasource.dart';
 import '../../data/repositories/coach_repository_impl.dart';
+import '../../domain/entities/client_profile.dart';
 import '../../domain/entities/coach.dart';
 import '../../domain/repositories/coach_repository.dart';
 
@@ -38,6 +40,45 @@ final filteredCoachesProvider = Provider.autoDispose<AsyncValue<List<Coach>>>((
         (coaches) => coaches.where((coach) => coach.matches(query)).toList(),
       );
 });
+
+/// Live `clients/{uid}` document for the signed-in client.
+final clientProfileProvider = StreamProvider.autoDispose
+    .family<ClientProfile, String>(
+      (ref, clientUid) =>
+          ref.read(coachRepositoryProvider).watchClientProfile(clientUid),
+    );
+
+/// Stream of this client's current star rating for a given coach.
+/// Null if the client has not yet rated.
+final clientRatingProvider = StreamProvider.autoDispose
+    .family<int?, ({String coachUid, String clientUid})>((ref, key) {
+      return FirebaseFirestore.instance
+          .collection('coaches')
+          .doc(key.coachUid)
+          .collection('ratings')
+          .doc(key.clientUid)
+          .snapshots()
+          .map((snap) {
+            if (!snap.exists) return null;
+            final s = snap.data()?['stars'];
+            return s is num ? s.toInt() : null;
+          });
+    });
+
+/// Writes or updates this client's star rating for a coach.
+Future<void> submitCoachRating({
+  required String coachUid,
+  required String clientUid,
+  required int stars,
+}) {
+  assert(stars >= 1 && stars <= 5);
+  return FirebaseFirestore.instance
+      .collection('coaches')
+      .doc(coachUid)
+      .collection('ratings')
+      .doc(clientUid)
+      .set({'stars': stars, 'updatedAt': FieldValue.serverTimestamp()});
+}
 
 /// `null` when the client has no coach yet.
 final currentCoachIdProvider = StreamProvider.autoDispose

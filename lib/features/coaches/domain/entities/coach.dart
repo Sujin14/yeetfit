@@ -8,6 +8,8 @@ class Coach {
   final List<String> specializations;
   final List<String> certifications;
   final bool isVerified;
+  final double averageRating;
+  final int ratingCount;
 
   const Coach({
     required this.uid,
@@ -17,6 +19,8 @@ class Coach {
     required this.specializations,
     required this.certifications,
     required this.isVerified,
+    this.averageRating = 0,
+    this.ratingCount = 0,
   });
 
   /// Case-insensitive match on name, bio or any specialization.

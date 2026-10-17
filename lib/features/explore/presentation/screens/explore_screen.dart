@@ -8,6 +8,7 @@ import 'package:yeetfit/core/walkthrough/walkthrough_controller.dart';
 import 'package:yeetfit/core/walkthrough/walkthrough_steps.dart';
 import 'package:yeetfit/core/walkthrough/walkthrough_trigger.dart';
 import 'package:yeetfit/core/walkthrough/yana_showcase.dart';
+import 'package:yeetfit/features/coaches/presentation/providers/coach_provider.dart';
 import 'package:yeetfit/features/plans/presentation/providers/plan_detail_controller.dart';
 import 'package:yeetfit/features/plans/presentation/providers/plan_provider.dart';
 import 'package:yeetfit/features/plans/presentation/utils/plan_display.dart';
@@ -92,12 +93,27 @@ class ExploreScreen extends ConsumerWidget {
     final plans = ref.watch(explorePlansProvider);
     final selectedCategory = ref.watch(selectedPlanCategoryProvider);
     final favoritesOnly = ref.watch(showFavoritesOnlyProvider);
-    final sessions = ref.watch(visibleSessionsProvider);
     final now = ref.watch(sessionClockProvider).value ?? DateTime.now();
     final remindedSessionIds =
         ref.watch(sessionReminderControllerProvider).value ?? const {};
     final isAdmin = ref.watch(isAdminProvider).value ?? false;
     final userId = ref.watch(authUserIdProvider);
+    // Admins see their own sessions; members see their assigned coach's.
+    // A member with no coach gets null, and the section hides when empty.
+    final currentCoachId = ref
+        .watch(currentCoachIdProvider(userId ?? ''))
+        .asData
+        ?.value;
+    final coachId = isAdmin ? userId : (userId == null ? null : currentCoachId);
+    // Coaches see every session they posted. Clients only see global
+    // sessions and ones that list their uid.
+    final currentUserId = isAdmin ? null : userId;
+    final sessions = ref.watch(
+      visibleSessionsProvider((
+        coachId: coachId,
+        currentUserId: currentUserId,
+      )),
+    );
     // Keeps the controller alive while a delete is in flight.
     ref.watch(createSessionControllerProvider);
 
@@ -159,7 +175,13 @@ class ExploreScreen extends ConsumerWidget {
         onRetry: () => ref
           ..invalidate(allWorkoutPlansProvider)
           ..invalidate(allDietPlansProvider)
-          ..invalidate(favoritePlansProvider),
+          ..invalidate(favoritePlansProvider)
+          ..invalidate(
+            upcomingSessionsProvider((
+              coachId: coachId,
+              currentUserId: currentUserId,
+            )),
+          ),
       ),
     );
   }

@@ -92,6 +92,14 @@
           { "fieldPath": "coachId", "order": "ASCENDING" },
           { "fieldPath": "createdAt", "order": "DESCENDING" }
         ]
+      },
+      {
+        "collectionGroup": "sessions",
+        "queryScope": "COLLECTION",
+        "fields": [
+          { "fieldPath": "trainerId", "order": "ASCENDING" },
+          { "fieldPath": "endsAt", "order": "ASCENDING" }
+        ]
       }
     ],
     "fieldOverrides": []

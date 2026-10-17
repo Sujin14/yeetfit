@@ -13,37 +13,37 @@ dependencies:
   # MaterialApp, Theme) are incompatible with `package:flutter/material.dart`.
   # Keep them on the last major that targets flutter/material until the app
   # itself migrates to material_ui.
-  google_fonts: ^8.2.1
+  google_fonts: ^9.0.0
   lottie: ^3.6.1
   fl_chart: ^1.2.0
   youtube_player_iframe: ^6.0.2
   rxdart: ^0.28.0
-  image_picker: ^1.2.3
-  image_cropper: ^9.0.0
+  image_picker: ^1.2.4
+  image_cropper: ^13.0.0
   hooks_riverpod: ^3.4.3
-  firebase_core: ^4.15.0
-  firebase_auth: ^6.7.0
-  cloud_firestore: ^6.10.0
-  cloud_functions: ^6.5.0
+  firebase_core: ^5.0.0
+  firebase_auth: ^7.0.0
+  cloud_firestore: ^7.0.0
+  cloud_functions: ^7.0.0
   google_sign_in: ^7.2.0
-  go_router: ^17.5.0
+  go_router: ^18.1.0
   intl: ^0.20.3
-  cached_network_image: ^3.4.1
+  cached_network_image: ^4.0.4
   url_launcher: ^6.3.3
   permission_handler: ^13.0.2
-  shared_preferences: ^2.5.5
+  shared_preferences: ^2.5.6
   workmanager: ^0.10.10
-  firebase_storage: ^13.6.0
-  shimmer: ^3.0.0
-  connectivity_plus: ^6.1.1
-  package_info_plus: ^8.1.2
-  firebase_messaging: ^16.7.0
-  flutter_local_notifications: ^18.0.1
-  health: ^13.3.1
-  showcaseview: ^3.0.0
+  firebase_storage: ^14.0.0
+  shimmer: ^4.0.0
+  connectivity_plus: ^7.3.2
+  package_info_plus: ^10.2.2
+  firebase_messaging: ^17.0.0
+  flutter_local_notifications: ^22.3.2
+  health: ^13.3.2
+  showcaseview: ^5.1.0
   metered_realtime: ^0.2.0
   flutter_webrtc: ^1.6.2+hotfix.4
-  timezone: ^0.10.1
+  timezone: ^0.11.2
   flutter_timezone: ^5.1.1
   flutter_markdown_plus: ^1.0.12
 
@@ -52,7 +52,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
-  build_runner: ^2.16.1
+  build_runner: ^2.17.1
   rename: ^3.1.0
 
 flutter_launcher_icons:

@@ -15,20 +15,42 @@ class SessionDataSource {
   CollectionReference<Map<String, dynamic>> get _sessions =>
       _firestore.collection('sessions');
 
-  /// Range filter and order on the same field, so no composite index is
-  /// needed. Sessions that end while the stream is open are dropped by
-  /// callers comparing against the clock.
-  Stream<List<TrainingSession>> watchUpcomingSessions() {
-    return _sessions
-        .where('endsAt', isGreaterThan: Timestamp.now())
+  /// Live and upcoming sessions. [coachId] limits the stream to one trainer.
+  /// Sessions that end while the stream is open are dropped by callers
+  /// comparing against the clock.
+  Stream<List<TrainingSession>> watchUpcomingSessions({
+    String? coachId,
+    String? currentUserId,
+  }) {
+    var query = _sessions.where('endsAt', isGreaterThan: Timestamp.now());
+
+    if (coachId != null) {
+      query = query.where('trainerId', isEqualTo: coachId);
+    }
+
+    return query
         .orderBy('endsAt')
         .limit(_maxSessions)
         .snapshots()
-        .map(
-          (snapshot) =>
-              snapshot.docs.map(TrainingSessionModel.fromSnapshot).toList()
-                ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt)),
-        );
+        .map((snapshot) {
+          final all = snapshot.docs
+              .map(TrainingSessionModel.fromSnapshot)
+              .toList();
+
+          // Global sessions, or ones this client was explicitly assigned to.
+          final filtered = currentUserId == null
+              ? all
+              : all
+                    .where(
+                      (session) =>
+                          session.isGlobal == true ||
+                          session.assignedClientUids.contains(currentUserId),
+                    )
+                    .toList();
+
+          return filtered
+            ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
+        });
   }
 
   Future<String> createSession({

@@ -10,6 +10,8 @@ class TrainingSession {
   final String meetLink;
   final DateTime scheduledAt;
   final int durationMinutes;
+  final bool isGlobal;
+  final List<String> assignedClientUids;
 
   const TrainingSession({
     required this.id,
@@ -21,6 +23,8 @@ class TrainingSession {
     required this.meetLink,
     required this.scheduledAt,
     required this.durationMinutes,
+    this.isGlobal = false,
+    this.assignedClientUids = const [],
   });
 
   DateTime get endsAt => scheduledAt.add(Duration(minutes: durationMinutes));

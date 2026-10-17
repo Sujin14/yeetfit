@@ -12,16 +12,10 @@ class YanaShowcase extends StatelessWidget {
 
   const YanaShowcase({super.key, required this.step, required this.child});
 
-  /// Used by showcaseview to decide whether the tooltip fits above or below
-  /// the target; sized for the tallest message.
-  static const double _tooltipHeight = 230;
-
   @override
   Widget build(BuildContext context) {
     return Showcase.withWidget(
       key: step.key,
-      width: YanaTooltip.maxWidth,
-      height: _tooltipHeight,
       overlayColor: Colors.black,
       overlayOpacity: 0.75,
       targetPadding: const EdgeInsets.all(AppSpacing.sm),

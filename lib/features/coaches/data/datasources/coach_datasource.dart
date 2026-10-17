@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:yeetfit/core/constants/function_regions.dart';
+import '../../domain/entities/client_profile.dart';
 import '../../domain/repositories/coach_repository.dart';
 import '../models/coach_model.dart';
 
@@ -62,13 +63,19 @@ class CoachDataSource {
     return name is String && name.trim().isNotEmpty && data?['uid'] == doc.id;
   }
 
-  Stream<String?> watchCurrentCoachId(String clientUid) {
+  /// Live `clients/{uid}` profile, including the coach-assigned training days.
+  Stream<ClientProfile> watchClientProfile(String clientUid) {
     return _firestore.collection('clients').doc(clientUid).snapshots().map((
       doc,
     ) {
-      final coachId = doc.data()?['currentCoachId'];
-      return coachId is String && coachId.isNotEmpty ? coachId : null;
+      return ClientProfile.fromMap(doc.data() ?? const {});
     });
+  }
+
+  Stream<String?> watchCurrentCoachId(String clientUid) {
+    return watchClientProfile(
+      clientUid,
+    ).map((profile) => profile.currentCoachId);
   }
 
   /// Local writes show up in the snapshot straight away, so the button flips

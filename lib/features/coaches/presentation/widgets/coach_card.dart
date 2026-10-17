@@ -66,6 +66,26 @@ class CoachCard extends StatelessWidget {
                               const SizedBox(width: 6),
                               const CoachVerifiedBadge(),
                             ],
+                            const Spacer(),
+                            if (coach.averageRating > 0)
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.star_rounded,
+                                    size: 14,
+                                    color: colors.warning,
+                                  ),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    coach.averageRating.toStringAsFixed(1),
+                                    style: textTheme.labelMedium!.copyWith(
+                                      color: colors.onSurface,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
                           ],
                         ),
                       ),

@@ -13,10 +13,21 @@ final sessionRepositoryProvider = Provider<SessionRepository>(
   (ref) => SessionRepositoryImpl(SessionDataSource()),
 );
 
+typedef SessionWatchKey = ({String? coachId, String? currentUserId});
+
 final upcomingSessionsProvider =
-    StreamProvider.autoDispose<List<TrainingSession>>(
-      (ref) => ref.read(sessionRepositoryProvider).watchUpcomingSessions(),
-    );
+    StreamProvider.autoDispose.family<List<TrainingSession>, SessionWatchKey>((
+      ref,
+      key,
+    ) {
+      if (key.coachId == null) return Stream.value(const []);
+      return ref
+          .read(sessionRepositoryProvider)
+          .watchUpcomingSessions(
+            coachId: key.coachId,
+            currentUserId: key.currentUserId,
+          );
+    });
 
 /// Ticks every minute so "Live" chips and "in 2h" countdowns stay current.
 final sessionClockProvider = StreamProvider.autoDispose<DateTime>((ref) async* {
@@ -25,11 +36,11 @@ final sessionClockProvider = StreamProvider.autoDispose<DateTime>((ref) async* {
 });
 
 /// Sessions that haven't ended yet at the current clock tick.
-final visibleSessionsProvider =
-    Provider.autoDispose<AsyncValue<List<TrainingSession>>>((ref) {
+final visibleSessionsProvider = Provider.autoDispose
+    .family<AsyncValue<List<TrainingSession>>, SessionWatchKey>((ref, key) {
       final now = ref.watch(sessionClockProvider).value ?? DateTime.now();
       return ref
-          .watch(upcomingSessionsProvider)
+          .watch(upcomingSessionsProvider(key))
           .whenData(
             (sessions) => sessions
                 .where((session) => session.endsAt.isAfter(now))

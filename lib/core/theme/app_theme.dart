@@ -33,9 +33,9 @@ class AppTheme {
       extensions: [colors],
       colorScheme: colorScheme,
       scaffoldBackgroundColor: colors.background,
-      textTheme: GoogleFonts.interTextTheme(
-        baseTextTheme,
-      ).merge(_buildTextTheme(colors.onBackground, colors.textSecondary)),
+      textTheme: baseTextTheme
+          .apply(fontFamily: GoogleFonts.inter().fontFamily ?? 'Inter')
+          .merge(_buildTextTheme(colors.onBackground, colors.textSecondary)),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: colors.primary,

@@ -12,6 +12,8 @@ class CoachModel extends Coach {
     required super.specializations,
     required super.certifications,
     required super.isVerified,
+    super.averageRating = 0,
+    super.ratingCount = 0,
   });
 
   factory CoachModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -25,6 +27,8 @@ class CoachModel extends Coach {
       specializations: _stringList(data['specializations']),
       certifications: _stringList(data['certifications']),
       isVerified: data['isVerified'] as bool? ?? false,
+      averageRating: ((data['averageRating'] as num?) ?? 0).toDouble(),
+      ratingCount: ((data['ratingCount'] as num?) ?? 0).toInt(),
     );
   }
 

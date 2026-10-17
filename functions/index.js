@@ -155,17 +155,41 @@ exports.notifyNewSession = onCall({ region: DEFAULT_REGION }, async (request) =>
   if (!session.exists) {
     throw new HttpsError("not-found", "Session not found.");
   }
-  const { title, trainerName } = session.data();
+  const sessionData = session.data();
+  const { title, trainerName } = sessionData;
+  const message = {
+    notification: {
+      title: "New live session ",
+      body: `${trainerName ?? "Your coach"} scheduled "${title}". Open Explore to see when.`,
+    },
+    data: { type: "new_session", sessionId },
+    android: { notification: { channelId: ANDROID_NOTIFICATION_CHANNEL } },
+  };
   try {
-    await getMessaging().send({
-      topic: SESSIONS_TOPIC,
-      notification: {
-        title: "New live session ",
-        body: `${trainerName ?? "Your coach"} scheduled "${title}". Open Explore to see when.`,
-      },
-      data: { type: "new_session", sessionId },
-      android: { notification: { channelId: ANDROID_NOTIFICATION_CHANNEL } },
-    });
+    if (sessionData.isGlobal === true) {
+      await getMessaging().send({
+        topic: SESSIONS_TOPIC,
+        ...message,
+      });
+    } else if (sessionData.isGlobal === false) {
+      const assignedClientUids = sessionData.assignedClientUids;
+      if (!Array.isArray(assignedClientUids) || assignedClientUids.length === 0) {
+        logger.warn("notifyNewSession skipped: assignedClientUids is missing or empty", {
+          sessionId,
+        });
+        return { success: true };
+      }
+      const tokens = [];
+      for (const uid of assignedClientUids) {
+        if (typeof uid !== "string" || uid.length === 0) continue;
+        const userDoc = await getFirestore().collection("users").doc(uid).get();
+        const fcmToken = userDoc.data()?.fcmToken;
+        if (typeof fcmToken === "string" && fcmToken.length > 0) tokens.push(fcmToken);
+      }
+      await Promise.all(
+        tokens.map((token) => getMessaging().send({ token, ...message })),
+      );
+    }
   } catch (error) {
     logger.error("Session notification failed", { sessionId, message: error.message });
     throw new HttpsError("internal", "Could not send the session notification.");
@@ -598,5 +622,36 @@ exports.onCoachCreated = onDocumentCreated(
     } catch (error) {
       logger.error("onCoachCreated failed", { uid, message: error.message });
     }
+  }
+);
+
+// Recomputes a coach's average whenever a client creates, edits, or deletes
+// their rating. Admin SDK bypasses the rule that hides ratings from the coach.
+exports.onRatingWritten = onDocumentWritten(
+  {
+    document: "coaches/{coachUid}/ratings/{clientUid}",
+    region: FIRESTORE_REGION,
+  },
+  async (event) => {
+    const coachUid = event.params.coachUid;
+    const ratingsSnap = await getFirestore()
+      .collection("coaches")
+      .doc(coachUid)
+      .collection("ratings")
+      .get();
+
+    const stars = ratingsSnap.docs
+      .map((d) => d.data().stars)
+      .filter((s) => typeof s === "number" && s >= 1 && s <= 5);
+
+    const ratingCount = stars.length;
+    const averageRating = ratingCount > 0
+      ? Math.round((stars.reduce((a, b) => a + b, 0) / ratingCount) * 10) / 10
+      : 0;
+
+    await getFirestore().collection("coaches").doc(coachUid).update({
+      averageRating,
+      ratingCount,
+    });
   }
 );

@@ -161,7 +161,7 @@ class NotificationService {
         ),
       );
       await _localNotifications.initialize(
-        settings,
+        settings: settings,
         onDidReceiveNotificationResponse: _onLocalNotificationTapped,
       );
       await _localNotifications
@@ -275,10 +275,10 @@ class NotificationService {
   }) async {
     await _initLocalNotifications();
     await _localNotifications.show(
-      id,
-      title,
-      body,
-      const NotificationDetails(
+      id: id,
+      title: title,
+      body: body,
+      notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           NotificationConstants.channelId,
           NotificationConstants.channelName,
@@ -446,7 +446,7 @@ class NotificationService {
     try {
       await _initLocalNotifications();
       await _localNotifications.cancel(
-        0,
+        id: 0,
         tag: NotificationConstants.incomingCallTag(callId),
       );
     } catch (e) {
@@ -624,11 +624,11 @@ class NotificationService {
     await _initLocalNotifications();
     await _initTimezone();
     await _localNotifications.zonedSchedule(
-      _sessionReminderId(sessionId),
-      'Starting in 15 minutes 🔴',
-      '$title — open Explore to join.',
-      tz.TZDateTime.from(remindAt, tz.local),
-      const NotificationDetails(
+      id: _sessionReminderId(sessionId),
+      title: 'Starting in 15 minutes 🔴',
+      body: '$title — open Explore to join.',
+      scheduledDate: tz.TZDateTime.from(remindAt, tz.local),
+      notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           NotificationConstants.channelId,
           NotificationConstants.channelName,
@@ -640,8 +640,6 @@ class NotificationService {
       // Inexact avoids the SCHEDULE_EXACT_ALARM permission; Android may
       // deliver it a few minutes late in Doze.
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
       payload: '$_sessionReminderPayloadPrefix$sessionId',
     );
     return true;

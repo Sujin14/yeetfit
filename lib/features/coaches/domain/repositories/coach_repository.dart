@@ -1,3 +1,4 @@
+import '../entities/client_profile.dart';
 import '../entities/coach.dart';
 
 abstract class CoachRepository {
@@ -7,6 +8,10 @@ abstract class CoachRepository {
 
   /// The coach's profile, or `null` when it no longer exists.
   Future<Coach?> getCoach(String coachId);
+
+  /// The signed-in client's `clients/{uid}` document. Missing docs yield an
+  /// empty profile.
+  Stream<ClientProfile> watchClientProfile(String clientUid);
 
   /// The client's assigned coach from `clients/{uid}`, or `null` when none
   /// is assigned or the client doc doesn't exist yet.

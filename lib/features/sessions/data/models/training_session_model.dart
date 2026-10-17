@@ -21,6 +21,10 @@ class TrainingSessionModel {
       scheduledAt:
           (data['scheduledAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       durationMinutes: (data['durationMinutes'] as num?)?.toInt() ?? 60,
+      isGlobal: data['isGlobal'] as bool? ?? false,
+      assignedClientUids: List<String>.from(
+        data['assignedClientUids'] ?? const [],
+      ),
     );
   }
 

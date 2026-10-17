@@ -9,8 +9,13 @@ class SessionRepositoryImpl implements SessionRepository {
   const SessionRepositoryImpl(this._dataSource);
 
   @override
-  Stream<List<TrainingSession>> watchUpcomingSessions() =>
-      _dataSource.watchUpcomingSessions();
+  Stream<List<TrainingSession>> watchUpcomingSessions({
+    String? coachId,
+    String? currentUserId,
+  }) => _dataSource.watchUpcomingSessions(
+    coachId: coachId,
+    currentUserId: currentUserId,
+  );
 
   @override
   Future<String> createSession({

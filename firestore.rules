@@ -227,7 +227,7 @@ service cloud.firestore {
       allow update: if isSignedIn() &&
         request.auth.uid == coachUid &&
         !request.resource.data.diff(resource.data).affectedKeys().hasAny(
-          ['isVerified', 'averageRating', 'totalClients']
+          ['isVerified', 'averageRating', 'totalClients', 'ratingCount']
         );
 
       // Deletion only via deleteAccount Cloud Function.
@@ -237,6 +237,18 @@ service cloud.firestore {
       match /client_notes/{clientUid} {
         allow read, write: if isSignedIn() && request.auth.uid == coachUid;
       }
+
+      // Coach notifications — written only by Cloud Functions (Admin SDK),
+      // readable and deletable only by the coach who owns them.
+      match /notifications/{notifId} {
+        allow read, delete: if isSignedIn() && request.auth.uid == coachUid;
+        allow create, update: if false;
+      }
+    }
+
+    match /coaches/{coachId}/ratings/{clientId} {
+      // Client can read and write only their own rating (anonymous to coach)
+      allow read, write: if request.auth != null && request.auth.uid == clientId;
     }
 
     // CLIENT PROFILES
@@ -252,16 +264,21 @@ service cloud.firestore {
       allow create: if isSignedIn() && request.auth.uid == clientUid;
 
       // Client updates their own doc (not currentCoachId);
-      // admins (coaches) may update currentCoachId only.
+      // the client's assigned coach may update currentCoachId or trainingDays.
       allow update: if isSignedIn() && (
         // Client updates anything except currentCoachId.
         (request.auth.uid == clientUid &&
          !request.resource.data.diff(resource.data).affectedKeys()
            .hasAny(['currentCoachId'])) ||
-        // Coach (admin) updates only currentCoachId.
+        // Coach sets or clears currentCoachId when a relationship starts or ends.
         (isAdmin() &&
          request.resource.data.diff(resource.data).affectedKeys()
-           .hasOnly(['currentCoachId', 'updatedAt']))
+           .hasOnly(['currentCoachId', 'updatedAt'])) ||
+        // The client's current coach sets the weekly training days.
+        (isAdmin() &&
+         resource.data.currentCoachId == request.auth.uid &&
+         request.resource.data.diff(resource.data).affectedKeys()
+           .hasOnly(['trainingDays', 'updatedAt']))
       );
 
       allow delete: if isSignedIn() && request.auth.uid == clientUid;

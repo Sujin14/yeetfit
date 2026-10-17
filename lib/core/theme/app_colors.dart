@@ -21,6 +21,8 @@ class AppColors extends ThemeExtension<AppColors> {
     required this.onPrimary,
     required this.textSecondary,
     required this.textMuted,
+    required this.subtle,
+    required this.divider,
     required this.error,
     required this.success,
     required this.warning,
@@ -58,6 +60,8 @@ class AppColors extends ThemeExtension<AppColors> {
   final Color onPrimary;
   final Color textSecondary;
   final Color textMuted;
+  final Color subtle;
+  final Color divider;
   final Color error;
   final Color success;
   final Color warning;
@@ -111,6 +115,8 @@ class AppColors extends ThemeExtension<AppColors> {
     Color? onPrimary,
     Color? textSecondary,
     Color? textMuted,
+    Color? subtle,
+    Color? divider,
     Color? error,
     Color? success,
     Color? warning,
@@ -148,6 +154,8 @@ class AppColors extends ThemeExtension<AppColors> {
       onPrimary: onPrimary ?? this.onPrimary,
       textSecondary: textSecondary ?? this.textSecondary,
       textMuted: textMuted ?? this.textMuted,
+      subtle: subtle ?? this.subtle,
+      divider: divider ?? this.divider,
       error: error ?? this.error,
       success: success ?? this.success,
       warning: warning ?? this.warning,
@@ -194,6 +202,8 @@ class AppColors extends ThemeExtension<AppColors> {
       onPrimary: Color.lerp(onPrimary, other.onPrimary, t)!,
       textSecondary: Color.lerp(textSecondary, other.textSecondary, t)!,
       textMuted: Color.lerp(textMuted, other.textMuted, t)!,
+      subtle: Color.lerp(subtle, other.subtle, t)!,
+      divider: Color.lerp(divider, other.divider, t)!,
       error: Color.lerp(error, other.error, t)!,
       success: Color.lerp(success, other.success, t)!,
       warning: Color.lerp(warning, other.warning, t)!,
@@ -234,6 +244,8 @@ class AppColors extends ThemeExtension<AppColors> {
     onPrimary: Color(0xFFFFFFFF),
     textSecondary: Color(0xFFAAABC8),
     textMuted: Color(0xFF6B6C8A),
+    subtle: Color(0xFF9A9BB4),
+    divider: Color(0xFF3A3B55),
     error: Color(0xFFFF5C7A),
     success: Color(0xFF4DFFA0),
     warning: Color(0xFFFFD166),
@@ -273,6 +285,8 @@ class AppColors extends ThemeExtension<AppColors> {
     onPrimary: Color(0xFFFFFFFF),
     textSecondary: Color(0xFF555577),
     textMuted: Color(0xFF8888AA),
+    subtle: Color(0xFF6B7280),
+    divider: Color(0xFFE5E7EB),
     error: Color(0xFFD63060),
     success: Color(0xFF00A86B),
     warning: Color(0xFFE6A817),

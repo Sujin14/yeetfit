@@ -1,3 +1,4 @@
+import '../../domain/entities/client_profile.dart';
 import '../../domain/entities/coach.dart';
 import '../../domain/repositories/coach_repository.dart';
 import '../datasources/coach_datasource.dart';
@@ -13,6 +14,10 @@ class CoachRepositoryImpl implements CoachRepository {
 
   @override
   Future<Coach?> getCoach(String coachId) => _dataSource.getCoach(coachId);
+
+  @override
+  Stream<ClientProfile> watchClientProfile(String clientUid) =>
+      _dataSource.watchClientProfile(clientUid);
 
   @override
   Stream<String?> watchCurrentCoachId(String clientUid) =>

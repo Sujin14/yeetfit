@@ -3,7 +3,11 @@ import '../entities/training_session.dart';
 
 abstract class SessionRepository {
   /// Live and upcoming sessions, soonest first.
-  Stream<List<TrainingSession>> watchUpcomingSessions();
+  /// [coachId] limits the stream to that trainer.
+  Stream<List<TrainingSession>> watchUpcomingSessions({
+    String? coachId,
+    String? currentUserId,
+  });
 
   /// Returns the new session's id.
   Future<String> createSession({
