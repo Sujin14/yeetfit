@@ -5,6 +5,12 @@
 # --- Flutter core ---
 -keep class io.flutter.** { *; }
 
+# Incoming-call Telecom components are started from the manifest.
+-keep class com.sujin.yeetfit.IncomingCallReceiver { *; }
+-keep class com.sujin.yeetfit.IncomingCallService { *; }
+-keep class com.sujin.yeetfit.YeetConnectionService { *; }
+-keep class com.sujin.yeetfit.MainActivity { *; }
+
 # --- SharedPreferences plugin ---
 -keep class io.flutter.plugins.sharedpreferences.** { *; }
 

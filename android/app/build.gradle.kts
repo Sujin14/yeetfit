@@ -50,6 +50,7 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.15.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-messaging")
 
     // Only core-common (avoid duplicate with play-core)
     implementation("com.google.android.play:core-common:2.0.3")
