@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:yeetfit/core/routes/call_route_constants.dart';
 import 'package:yeetfit/core/routes/settings_route_constants.dart';
 import 'package:yeetfit/shared/widgets/settings_tile.dart';
+import 'settings_legal_section.dart';
 import 'settings_section_label.dart';
 import 'package:yeetfit/core/theme/app_spacing.dart';
 
@@ -39,6 +41,11 @@ class SettingsBody extends StatelessWidget {
           onTap: () => open(SettingsRouteConstants.notifications),
         ),
         SettingsTile(
+          icon: Icons.call_outlined,
+          label: 'Call settings',
+          onTap: () => open(CallRouteConstants.callSetup),
+        ),
+        SettingsTile(
           icon: Icons.privacy_tip_outlined,
           label: 'Privacy Policy',
           onTap: () => open(SettingsRouteConstants.privacyPolicy),
@@ -72,6 +79,8 @@ class SettingsBody extends StatelessWidget {
           label: 'Account',
           onTap: () => open(SettingsRouteConstants.account),
         ),
+        const SizedBox(height: AppSpacing.sm),
+        const SettingsLegalSection(),
       ],
     );
   }

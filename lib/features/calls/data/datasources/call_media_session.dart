@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:metered_realtime/metered_realtime.dart';
+import 'package:yeetfit/core/services/call_native_service.dart';
 import 'call_exception.dart';
 
 /// WebRTC media for one call: captures the local microphone (and camera),
@@ -127,7 +128,7 @@ class CallMediaSession {
     if (track != null) await Helper.switchCamera(track);
   }
 
-  Future<void> close() async {
+  Future<void> close({String? callId}) async {
     if (_closed) return;
     _closed = true;
     for (final subscription in [
@@ -146,6 +147,11 @@ class CallMediaSession {
       await _peer?.close();
     } catch (e) {
       debugPrint('Closing call peer failed: $e');
+    }
+    try {
+      await CallNativeService.clearLockScreenFlags();
+    } catch (e) {
+      debugPrint('Clearing lock-screen flags failed: $e');
     }
     await _remoteStreams.close();
     await _reconnecting.close();

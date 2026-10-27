@@ -3,7 +3,10 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yeetfit/core/providers/call_launch_providers.dart';
 import 'package:yeetfit/core/routes/auth_redirect_guard.dart';
+import 'package:yeetfit/core/routes/call_route_constants.dart';
 import 'package:yeetfit/core/routes/onboarding_route_constants.dart';
 import 'package:yeetfit/core/routes/shell_route_constants.dart';
 
@@ -11,7 +14,7 @@ import '../widgets/splash_background_image.dart';
 import '../widgets/splash_body.dart';
 import '../widgets/splash_logo.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   /// Signed-in user lookup. Widget tests pass a stub so the splash can render
   /// without Firebase; production leaves this unset.
   final User? Function()? readCurrentUser;
@@ -19,10 +22,10 @@ class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key, this.readCurrentUser});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
+class _SplashScreenState extends ConsumerState<SplashScreen>
     with TickerProviderStateMixin {
   static const Duration _maxPrecacheWait = Duration(milliseconds: 800);
 
@@ -71,6 +74,15 @@ class _SplashScreenState extends State<SplashScreen>
   /// Decodes both images before the first frame of animation so neither pops
   /// in mid-fade; capped so a slow decode never stalls the splash.
   Future<void> _precacheThenAnimate() async {
+    // Cold-start accept: skip the long splash and open the joining hold screen.
+    if (widget.readCurrentUser == null) {
+      final pendingCallId = ref.read(pendingAcceptedCallIdProvider);
+      if (pendingCallId != null && pendingCallId.isNotEmpty) {
+        if (mounted) _navigate();
+        return;
+      }
+    }
+    if (!mounted) return;
     final precache = Future.wait([
       precacheImage(SplashBackgroundImage.image, context),
       precacheImage(SplashLogo.image, context),
@@ -94,6 +106,12 @@ class _SplashScreenState extends State<SplashScreen>
   // AuthRedirectGuard diverts signed-in users with unfinished setup or an
   // unseen Yana intro on the way to the dashboard.
   void _navigate() {
+    final pendingCallId = ref.read(pendingAcceptedCallIdProvider);
+    if (pendingCallId != null && pendingCallId.isNotEmpty) {
+      context.go(CallRouteConstants.joiningCallPath(pendingCallId));
+      return;
+    }
+
     final user = _signedInUser();
     context.go(
       user != null

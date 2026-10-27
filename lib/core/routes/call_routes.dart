@@ -1,12 +1,13 @@
 import 'package:go_router/go_router.dart';
 import 'package:yeetfit/features/calls/domain/entities/call_session.dart';
 import 'package:yeetfit/features/calls/presentation/screens/active_call_screen.dart';
-import 'package:yeetfit/features/calls/presentation/screens/incoming_call_screen.dart';
+import 'package:yeetfit/features/calls/presentation/screens/call_setup_screen.dart';
+import 'package:yeetfit/features/calls/presentation/screens/joining_call_screen.dart';
 import 'call_route_constants.dart';
 import 'shell_route_constants.dart';
 
-// 1-to-1 coach call routes, pushed above the shell. Both need the call
-// passed as `extra`; deep links without it fall back to the dashboard.
+// Active call needs the session as `extra`. Joining-call only needs the path
+// id (cold-start accept). Native IncomingCallActivity owns the ringing UI.
 List<GoRoute> get callRoutes => [
   GoRoute(
     path: CallRouteConstants.activeCall,
@@ -16,10 +17,12 @@ List<GoRoute> get callRoutes => [
         ActiveCallScreen(call: state.extra as CallSession),
   ),
   GoRoute(
-    path: CallRouteConstants.incomingCall,
-    redirect: (context, state) =>
-        state.extra is CallSession ? null : ShellRouteConstants.dashboard,
+    path: CallRouteConstants.joiningCall,
     builder: (context, state) =>
-        IncomingCallScreen(call: state.extra as CallSession),
+        JoiningCallScreen(callId: state.pathParameters['callId']!),
+  ),
+  GoRoute(
+    path: CallRouteConstants.callSetup,
+    builder: (context, state) => const CallSetupScreen(),
   ),
 ];

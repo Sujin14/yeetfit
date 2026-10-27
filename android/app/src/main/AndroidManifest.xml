@@ -5,10 +5,6 @@
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
-    <uses-permission android:name="android.permission.MANAGE_OWN_CALLS" />
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <!-- Health Connect: today's steps as a floor value at startup -->
     <uses-permission android:name="android.permission.health.READ_STEPS" />
@@ -16,7 +12,6 @@
     <!-- AI meal scanner. Android 13+ gallery picks use the system photo
          picker, so storage access is only needed on older versions. -->
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
 
@@ -31,6 +26,7 @@
     <!-- Workmanager + reminders rescheduled after reboot -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <queries>
         <!-- Health Connect availability check and permission screen -->
@@ -57,10 +53,19 @@
             <data android:mimeType="text/plain"/>
         </intent>
 
-        <!-- ColorOS overlay / background pop-up settings for the call screen -->
+        <!-- OEM call-setup settings screens (CallReadiness.open("oem")) -->
+        <package android:name="com.miui.securitycenter" />
         <package android:name="com.oplus.safecenter" />
         <package android:name="com.coloros.safecenter" />
         <package android:name="com.oppo.safe" />
+        <package android:name="com.oneplus.security" />
+        <package android:name="com.vivo.permissionmanager" />
+        <package android:name="com.iqoo.secure" />
+        <package android:name="com.huawei.systemmanager" />
+        <package android:name="com.hihonor.systemmanager" />
+        <package android:name="com.transsion.phonemaster" />
+        <package android:name="com.asus.mobilemanager" />
+
     </queries>
 
     <application
@@ -68,36 +73,41 @@
         android:name="${applicationName}"
         android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
-        android:enableOnBackInvokedCallback="true">
+        android:enableOnBackInvokedCallback="true"
+        tools:targetApi="33">
 
-        <receiver
-            android:name=".IncomingCallReceiver"
-            android:exported="true"
-            android:permission="com.google.android.c2dm.permission.SEND">
-            <intent-filter>
-                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
-            </intent-filter>
-        </receiver>
         <service
-            android:name=".IncomingCallService"
-            android:exported="false"
-            android:foregroundServiceType="phoneCall" />
+            android:name="io.flutter.plugins.firebase.messaging.FlutterFirebaseMessagingService"
+            tools:node="remove" />
         <service
-            android:name=".YeetConnectionService"
-            android:exported="true"
-            android:permission="android.permission.BIND_TELECOM_CONNECTION_SERVICE">
+            android:name=".YeetFirebaseMessagingService"
+            android:exported="false">
             <intent-filter>
-                <action android:name="android.telecom.ConnectionService" />
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
+        <activity
+            android:name=".call.IncomingCallActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:taskAffinity="com.sujin.yeetfit.incomingcall"
+            android:excludeFromRecents="true"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:screenOrientation="portrait"
+            android:theme="@style/IncomingCallTheme"
+            tools:ignore="DiscouragedApi,LockedOrientationActivity"
+            tools:targetApi="27" />
+
+        <receiver
+            android:name=".call.CallActionReceiver"
+            android:exported="false" />
 
         <!-- Existing activity -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
-            android:showWhenLocked="true"
-            android:turnScreenOn="true"
             android:taskAffinity=""
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
@@ -125,7 +135,8 @@
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/Ucrop.CropTheme" />
+            android:theme="@style/Ucrop.CropTheme"
+            tools:ignore="DiscouragedApi,LockedOrientationActivity" />
 
         <!-- Health Connect permission usage link (Android 14+) -->
         <activity-alias
@@ -218,11 +229,7 @@
             android:name="androidx.work.impl.background.systemalarm.ConstraintProxy$NetworkStateProxy"
             android:enabled="true"
             android:exported="false"
-            tools:replace="android:enabled">
-            <intent-filter>
-                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
-            </intent-filter>
-        </receiver>
+            tools:replace="android:enabled" />
         <receiver
             android:name="androidx.work.impl.background.systemalarm.RescheduleReceiver"
             android:enabled="true"

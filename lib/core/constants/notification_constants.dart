@@ -2,6 +2,9 @@ class NotificationConstants {
   static const String waterReminderTask = 'water_reminder_check';
   static const String channelId = 'yeetfit_channel';
   static const String channelName = 'Yeetfit Notifications';
+  static const String callChannelId = 'yeetfit_calls';
+  static const String callChannelName = 'Incoming calls';
+  static const int incomingCallNotificationId = 2002;
   static const String topicDailyTips = 'daily_tips';
   static const String topicChallenges = 'challenges';
   static const String topicSessions = 'sessions';

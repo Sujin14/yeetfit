@@ -9,7 +9,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:workmanager/workmanager.dart';
 import 'app_startup.dart';
 import 'background_task_dispatcher.dart';
+import 'core/providers/call_launch_providers.dart';
 import 'core/routes/app_routes.dart';
+import 'core/services/call_native_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/theme/app_theme.dart';
 import 'firebase_options.dart';
@@ -39,7 +41,29 @@ void main() async {
     await Workmanager().initialize(callbackDispatcher);
   }
 
-  runApp(const ProviderScope(child: AppStartup(child: YeetFitApp())));
+  // Cold-start accept: native MainActivity already answered before Flutter painted.
+  // Splash routes to /joining-call/:id so the dashboard never mounts first.
+  String? pendingAcceptedCallId;
+  if (isMobile) {
+    debugPrint('[YeetCall] main(): checking pending accepted call');
+    try {
+      pendingAcceptedCallId =
+          await CallNativeService.consumePendingAcceptedCall();
+      debugPrint(
+        '[YeetCall] consumePendingAcceptedCall -> $pendingAcceptedCallId',
+      );
+    } catch (_) {}
+    debugPrint('[YeetCall] pendingAcceptedCallId=$pendingAcceptedCallId');
+  }
+
+  runApp(
+    ProviderScope(
+      overrides: [
+        pendingAcceptedCallIdProvider.overrideWithValue(pendingAcceptedCallId),
+      ],
+      child: const AppStartup(child: YeetFitApp()),
+    ),
+  );
 }
 
 class YeetFitApp extends StatelessWidget {

@@ -9,6 +9,7 @@ import '../validators/auth_validators.dart';
 import '../../utils/navigation_utils.dart';
 import '../../utils/auth_strings.dart';
 import 'google_button.dart';
+import 'sign_up_legal_consent.dart';
 import 'login_options_divider.dart';
 import 'package:yeetfit/core/theme/app_spacing.dart';
 
@@ -27,8 +28,19 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
   final _confirmController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
+  bool _agreedToLegal = false;
 
   Future<void> _signUp() async {
+    if (!_agreedToLegal) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Please agree to the Terms & Conditions and Privacy Policy',
+          ),
+        ),
+      );
+      return;
+    }
     if (!_formKey.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
     final result = await ref
@@ -132,10 +144,14 @@ class _SignUpFormState extends ConsumerState<SignUpForm> {
               onPhoto: true,
             ),
             const SizedBox(height: AppSpacing.lg),
+            SignUpLegalConsent(
+              onChanged: (agreed) => setState(() => _agreedToLegal = agreed),
+            ),
+            const SizedBox(height: AppSpacing.md),
             GradientButton(
               label: 'Create account',
               isLoading: isLoading,
-              onPressed: _signUp,
+              onPressed: _agreedToLegal ? _signUp : null,
             ),
             const SizedBox(height: AppSpacing.md),
             const LoginOptionsDivider(),

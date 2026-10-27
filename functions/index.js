@@ -207,21 +207,19 @@ exports.onCallCreated = onDocumentCreated(
     // Clients keep their token on users/{uid}, coaches on coaches/{uid}.
     let receiverRef = db.collection("users").doc(call.receiverId);
     let fcmToken = (await receiverRef.get()).data()?.fcmToken;
-    let channelId = ANDROID_NOTIFICATION_CHANNEL;
     if (!fcmToken) {
       receiverRef = db.collection("coaches").doc(call.receiverId);
       fcmToken = (await receiverRef.get()).data()?.fcmToken;
-      channelId = COACH_NOTIFICATION_CHANNEL;
     }
     if (!fcmToken) return;
     const callTypeLabel = call.type === "video" ? "video call" : "audio call";
+    const title = `Incoming ${callTypeLabel}`;
+    const body = `${call.callerName ?? "Someone"} is calling you`;
     try {
       await getMessaging().send({
         token: fcmToken,
-        notification: {
-          title: `Incoming ${callTypeLabel}`,
-          body: `${call.callerName ?? "Someone"} is calling you`,
-        },
+        // Data-only on Android so the background isolate can raise a
+        // full-screen incoming-call screen. iOS still gets an alert.
         data: {
           type: "incoming_call",
           callId,
@@ -229,20 +227,21 @@ exports.onCallCreated = onDocumentCreated(
           callerName: call.callerName ?? "",
           callerPhotoUrl: call.callerPhoto ?? "",
           callType: call.type ?? "audio",
+          title,
+          body,
         },
         android: {
           priority: "high",
           ttl: CALL_RING_SECONDS * 1000,
-          notification: {
-            channelId,
-            priority: "max",
-            defaultVibrateTimings: true,
-            defaultSound: true,
-            tag: `call_${callId}`,
-          },
         },
         apns: {
-          payload: { aps: { sound: "default", contentAvailable: true } },
+          payload: {
+            aps: {
+              alert: { title, body },
+              sound: "default",
+              contentAvailable: true,
+            },
+          },
           headers: {
             "apns-priority": "10",
             "apns-push-type": "alert",
@@ -259,6 +258,42 @@ exports.onCallCreated = onDocumentCreated(
     }
   }
 );
+
+async function recordCoachNotification(coachId, notification) {
+  if (typeof coachId !== "string" || coachId.length === 0) return;
+  try {
+    await getFirestore()
+      .collection("coaches")
+      .doc(coachId)
+      .collection("notifications")
+      .add({
+        type: notification.type,
+        title: notification.title,
+        body: notification.body,
+        clientUid: notification.clientUid || null,
+        clientName: notification.clientName || null,
+        isRead: false,
+        createdAt: FieldValue.serverTimestamp(),
+      });
+  } catch (error) {
+    logger.warn("Coach notification write failed", { coachId, message: error.message });
+  }
+}
+
+async function sendCoachPush(coachId, message) {
+  const coachRef = getFirestore().collection("coaches").doc(coachId);
+  const fcmToken = (await coachRef.get()).data()?.fcmToken;
+  if (typeof fcmToken !== "string" || fcmToken.length === 0) return;
+  try {
+    await getMessaging().send({ token: fcmToken, ...message });
+  } catch (error) {
+    if (error.code === "messaging/registration-token-not-registered") {
+      await coachRef.update({ fcmToken: FieldValue.delete() });
+      return;
+    }
+    logger.error("Coach push failed", { coachId, message: error.message });
+  }
+}
 
 function messagePreview(text) {
   const trimmed = typeof text === "string" ? text.trim() : "";
@@ -289,15 +324,25 @@ exports.onMessageCreated = onDocumentCreated(
       : await db.collection("users").doc(senderId).get();
     const recipientRef = db.collection(senderIsCoach ? "users" : "coaches").doc(recipientId);
     const fcmToken = (await recipientRef.get()).data()?.fcmToken;
-    if (!fcmToken) return;
 
     // YeetFit writes the body to `content`, YeetCoach to both.
     const body = messagePreview(message.text ?? message.content);
+    const senderName = senderDoc.data()?.name || (senderIsCoach ? "Your coach" : "Your client");
+    if (!senderIsCoach) {
+      await recordCoachNotification(recipientId, {
+        type: "message",
+        title: senderName,
+        body: body || "Sent you a message",
+        clientUid: senderId,
+        clientName: senderName,
+      });
+    }
+    if (!fcmToken) return;
     try {
       await getMessaging().send({
         token: fcmToken,
         notification: {
-          title: senderDoc.data()?.name || (senderIsCoach ? "Your coach" : "Your client"),
+          title: senderName,
           body: body || "Sent you a message",
         },
         data: {
@@ -499,8 +544,15 @@ exports.removeCoach = onCall({ region: FIRESTORE_REGION }, async (request) => {
       db.collection("users").doc(clientUid).get(),
     ]);
     const fcmToken = coach.data()?.fcmToken;
+    const clientName = client.data()?.name || "A client";
+    await recordCoachNotification(coachId, {
+      type: "message",
+      title: "Client left",
+      body: `${clientName} has removed you as their coach.`,
+      clientUid,
+      clientName,
+    });
     if (fcmToken) {
-      const clientName = client.data()?.name || "A client";
       await getMessaging().send({
         token: fcmToken,
         notification: {
@@ -653,5 +705,143 @@ exports.onRatingWritten = onDocumentWritten(
       averageRating,
       ratingCount,
     });
+  }
+);
+
+// A client asks this coach to train them, including when a declined request is reopened.
+exports.onTrainingRequest = onDocumentWritten(
+  { document: "training_relationships/{id}", region: FIRESTORE_REGION },
+  async (event) => {
+    const before = event.data?.before?.data();
+    const after = event.data?.after?.data();
+    if (!after || after.status !== "pending" || before?.status === "pending") return;
+    const coachId = after.coachId;
+    const clientUid = after.clientUid;
+    if (typeof coachId !== "string" || typeof clientUid !== "string") return;
+
+    const client = await getFirestore().collection("users").doc(clientUid).get();
+    const clientName = client.data()?.name || after.clientName || "A client";
+    const title = "New client request";
+    const body = `${clientName} wants you as their coach.`;
+    await recordCoachNotification(coachId, {
+      type: "request",
+      title,
+      body,
+      clientUid,
+      clientName,
+    });
+    await sendCoachPush(coachId, {
+      notification: { title, body },
+      data: { type: "new_request", clientUid },
+      android: {
+        priority: "high",
+        notification: { channelId: COACH_NOTIFICATION_CHANNEL },
+      },
+      apns: { payload: { aps: { sound: "default" } } },
+    });
+  }
+);
+
+// Writes the in-app missed-call row and a tray notification for the coach.
+exports.onCallMissed = onDocumentUpdated(
+  { document: "calls/{callId}", region: FIRESTORE_REGION },
+  async (event) => {
+    const before = event.data.before.data();
+    const after = event.data.after.data();
+    if (!after || before?.status === "missed" || after.status !== "missed") return;
+    const coachId = after.receiverId;
+    if (typeof coachId !== "string" || coachId.length === 0) return;
+    const coach = await getFirestore().collection("coaches").doc(coachId).get();
+    if (!coach.exists) return;
+
+    const callerName = after.callerName || "A client";
+    const callLabel = after.type === "video" ? "video" : "audio";
+    const title = "Missed call";
+    const body = `You missed a ${callLabel} call from ${callerName}.`;
+    await recordCoachNotification(coachId, {
+      type: "missedCall",
+      title,
+      body,
+      clientUid: after.callerId,
+      clientName: callerName,
+    });
+    await sendCoachPush(coachId, {
+      notification: { title, body },
+      data: { type: "missed_call", callId: event.params.callId, clientUid: after.callerId ?? "" },
+      android: {
+        priority: "high",
+        notification: { channelId: COACH_NOTIFICATION_CHANNEL },
+      },
+      apns: { payload: { aps: { sound: "default" } } },
+    });
+  }
+);
+
+// Tells the callee to dismiss the ringing UI and show a missed-call notice.
+exports.onCallCancelledNotifyReceiver = onDocumentUpdated(
+  { document: "calls/{callId}", region: FIRESTORE_REGION },
+  async (event) => {
+    const before = event.data.before.data();
+    const after = event.data.after.data();
+    const callId = event.params.callId;
+    if (!after || before?.status !== "ringing") return;
+    if (after.status !== "ended" && after.status !== "missed") return;
+
+    const db = getFirestore();
+    const coachDoc = await db.collection("coaches").doc(after.receiverId).get();
+    if (coachDoc.exists) {
+      logger.info("call_cancelled skipped — receiver is a coach (onCallMissed handles)", { callId });
+      return;
+    }
+
+    const fcmToken = (await db.collection("users").doc(after.receiverId).get())
+      .data()?.fcmToken;
+    if (!fcmToken) {
+      logger.info("call_cancelled push skipped — no FCM token", {
+        callId,
+        receiverId: after.receiverId,
+      });
+      return;
+    }
+
+    try {
+      await getMessaging().send({
+        token: fcmToken,
+        data: {
+          type: "call_cancelled",
+          callId,
+          callerId: after.callerId ?? "",
+          callerName: after.callerName ?? "",
+          callType: after.type ?? "audio",
+          reason: after.status,
+        },
+        android: { priority: "high", ttl: 3600 * 1000 },
+        apns: {
+          payload: {
+            aps: {
+              alert: {
+                title: "Missed call",
+                body: `Missed call from ${after.callerName ?? "your coach"}`,
+              },
+              sound: "default",
+            },
+          },
+          headers: {
+            "apns-priority": "10",
+            "apns-push-type": "alert",
+          },
+        },
+      });
+      logger.info("call_cancelled push sent", { callId, reason: after.status });
+    } catch (error) {
+      if (error.code === "messaging/registration-token-not-registered") {
+        logger.info("call_cancelled token not registered", { callId });
+        return;
+      }
+      logger.error("call_cancelled push failed", {
+        callId,
+        message: error.message,
+      });
+    }
   }
 );

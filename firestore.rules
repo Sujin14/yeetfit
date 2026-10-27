@@ -242,7 +242,12 @@ service cloud.firestore {
       // readable and deletable only by the coach who owns them.
       match /notifications/{notifId} {
         allow read, delete: if isSignedIn() && request.auth.uid == coachUid;
-        allow create, update: if false;
+        allow create: if false;
+        // The coach can only mark a notification read. Cloud Functions create them.
+        allow update: if isSignedIn() &&
+          request.auth.uid == coachUid &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead']) &&
+          request.resource.data.isRead == true;
       }
     }
 

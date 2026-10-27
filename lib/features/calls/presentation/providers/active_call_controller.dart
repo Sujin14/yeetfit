@@ -174,7 +174,7 @@ class ActiveCallController extends Notifier<ActiveCallState> {
     final local = localRenderer;
     final remote = remoteRenderer;
     unawaited(() async {
-      await media.close();
+      await media.close(callId: args.callId);
       for (final renderer in [local, remote]) {
         try {
           if (renderer.textureId != null) renderer.srcObject = null;

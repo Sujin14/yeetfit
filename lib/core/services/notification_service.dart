@@ -6,6 +6,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -15,22 +16,22 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:workmanager/workmanager.dart';
 import 'package:yeetfit/core/constants/function_regions.dart';
 import 'package:yeetfit/core/constants/notification_constants.dart';
+import 'package:yeetfit/core/services/call_native_service.dart';
 import 'package:yeetfit/firebase_options.dart';
 
 /// FCM entry point for messages received while the app is in the background
 /// or terminated. Registered in `main()` before `Firebase.initializeApp()`.
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  // Notification messages are displayed by FCM itself on Android/iOS while
-  // the app is backgrounded. An incoming call is also remembered, so opening
-  // the app from the launcher (not the notification) still shows it.
-  if (message.data['type'] == NotificationConstants.typeIncomingCall) {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-      NotificationConstants.pendingCallIdKey,
-      message.data['callId'] as String? ?? '',
-    );
+  final type = message.data['type'];
+  debugPrint('[YeetCall] Background Dart handler: type=$type');
+  if (type == NotificationConstants.typeIncomingCall ||
+      type == 'call_cancelled') {
+    // Native YeetFirebaseMessagingService owns ringing UI + dismiss.
+    debugPrint('[YeetCall] $type handled natively — skipping Dart path');
+    return;
   }
 }
 
@@ -164,18 +165,18 @@ class NotificationService {
         settings: settings,
         onDidReceiveNotificationResponse: _onLocalNotificationTapped,
       );
-      await _localNotifications
+      final android = _localNotifications
           .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin
-          >()
-          ?.createNotificationChannel(
-            const AndroidNotificationChannel(
-              NotificationConstants.channelId,
-              NotificationConstants.channelName,
-              importance: Importance.high,
-              enableVibration: true,
-            ),
-          );
+          >();
+      await android?.createNotificationChannel(
+        const AndroidNotificationChannel(
+          NotificationConstants.channelId,
+          NotificationConstants.channelName,
+          importance: Importance.high,
+          enableVibration: true,
+        ),
+      );
     }();
   }
 
@@ -185,6 +186,14 @@ class NotificationService {
       badge: true,
       sound: true,
     );
+    if (!kIsWeb && Platform.isAndroid) {
+      await _localNotifications
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()
+          ?.requestFullScreenIntentPermission();
+      await CallNativeService.requestFullScreenIntentPermission();
+    }
   }
 
   Future<void> _saveFcmToken(String userId) async {
@@ -215,8 +224,14 @@ class NotificationService {
     _foregroundSubscription ??= FirebaseMessaging.onMessage.listen((
       RemoteMessage message,
     ) {
-      // In the foreground the in-app incoming call screen is already ringing.
-      if (message.data['type'] == NotificationConstants.typeIncomingCall) {
+      debugPrint(
+        '[YeetCall] Foreground FCM: type=${message.data["type"]} callId=${message.data["callId"]}',
+      );
+      final type = message.data['type'];
+      if (type == NotificationConstants.typeIncomingCall ||
+          type == 'call_cancelled') {
+        // Native owns ringing UI + dismiss; AppStartup starts hangup watcher.
+        debugPrint('[YeetCall] Foreground $type — skipping Dart local notification');
         return;
       }
       if (_isMutedByPreferences(message)) return;
@@ -409,57 +424,6 @@ class NotificationService {
       title: '🔥 $streak-day streak!',
       body: "Keep it going — you're on a roll.",
     );
-  }
-
-  // Incoming calls
-
-  /// Call ids from incoming call notifications tapped while the app was in
-  /// the background.
-  Stream<String> get openedIncomingCalls => FirebaseMessaging.onMessageOpenedApp
-      .map(_incomingCallId)
-      .where((callId) => callId != null)
-      .cast<String>();
-
-  /// The call that launched the app from a notification tap, or else one
-  /// the background handler remembered. Either is consumed by this call.
-  Future<String?> takePendingIncomingCallId() async {
-    if (!_isSupportedPlatform) return null;
-    final callId = _incomingCallId(
-      await _takeLaunchMessage(NotificationConstants.typeIncomingCall),
-    );
-
-    final prefs = await SharedPreferences.getInstance();
-    // The background handler writes from another isolate.
-    await prefs.reload();
-    final stored = prefs.getString(NotificationConstants.pendingCallIdKey);
-    if (stored != null) {
-      await prefs.remove(NotificationConstants.pendingCallIdKey);
-    }
-    if (callId != null) return callId;
-    return stored == null || stored.isEmpty ? null : stored;
-  }
-
-  /// Removes the ringing push from the Android tray once the call screen
-  /// handles it. FCM posts it with notification id 0 and the call's tag.
-  Future<void> dismissIncomingCallNotification(String callId) async {
-    if (!_isSupportedPlatform || !Platform.isAndroid) return;
-    try {
-      await _initLocalNotifications();
-      await _localNotifications.cancel(
-        id: 0,
-        tag: NotificationConstants.incomingCallTag(callId),
-      );
-    } catch (e) {
-      debugPrint('Dismissing call notification failed: $e');
-    }
-  }
-
-  static String? _incomingCallId(RemoteMessage? message) {
-    if (message?.data['type'] != NotificationConstants.typeIncomingCall) {
-      return null;
-    }
-    final callId = message!.data['callId'] as String?;
-    return callId == null || callId.isEmpty ? null : callId;
   }
 
   // Coach chat messages

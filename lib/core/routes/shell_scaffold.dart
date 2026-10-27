@@ -1,18 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:yeetfit/core/routes/call_route_constants.dart';
 import 'package:yeetfit/core/routes/challenge_route_constants.dart';
-import 'package:yeetfit/core/routes/chat_route_constants.dart';
 import 'package:yeetfit/core/services/notification_service.dart';
+import 'package:yeetfit/core/routes/chat_route_constants.dart';
 import 'package:showcaseview/showcaseview.dart';
 import 'package:yeetfit/core/walkthrough/walkthrough_controller.dart';
 import 'package:yeetfit/core/walkthrough/walkthrough_steps.dart';
 import 'package:yeetfit/core/walkthrough/yana_showcase.dart';
-import 'package:yeetfit/features/calls/domain/entities/call_session.dart';
-import 'package:yeetfit/features/calls/domain/entities/call_status.dart';
-import 'package:yeetfit/features/calls/presentation/providers/call_provider.dart';
-import 'package:yeetfit/features/calls/presentation/providers/pending_call_provider.dart';
 import 'package:yeetfit/features/challenges/domain/entities/challenge.dart';
 import 'package:yeetfit/features/challenges/presentation/providers/challenge_provider.dart';
 import 'package:yeetfit/features/challenges/presentation/providers/pending_challenge_provider.dart';
@@ -39,18 +34,9 @@ class ShellScaffold extends ConsumerStatefulWidget {
 class _ShellScaffoldState extends ConsumerState<ShellScaffold> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  /// The listener re-emits the same ringing call on unrelated document
-  /// changes; each call is presented once.
-  String? _presentedCallId;
-
   @override
   void initState() {
     super.initState();
-    // A call tapped in a notification before the shell existed is already
-    // pending, hence fireImmediately.
-    ref.listenManual<String?>(pendingCallProvider, (_, callId) {
-      if (callId != null) _openPendingCall(callId);
-    }, fireImmediately: true);
     // Deferred: this can fire during initState, before routing is usable.
     ref.listenManual<ChatNotificationTap?>(pendingChatProvider, (_, tap) {
       if (tap == null) return;
@@ -87,16 +73,6 @@ class _ShellScaffoldState extends ConsumerState<ShellScaffold> {
     );
     final currentTab = NavigationTab.values[currentIndex];
     final isDashboard = currentTab == NavigationTab.dashboard;
-
-    // The shell stays mounted under pushed routes, so calls ring anywhere
-    // in the signed-in app while it is in the foreground.
-    final userId = ref.watch(authUserIdProvider);
-    if (userId != null) {
-      ref.listen(
-        incomingCallProvider(userId),
-        (_, next) => _presentIncomingCall(next.value),
-      );
-    }
 
     // Back on any other tab returns to the dashboard; only the dashboard
     // lets the system close the app.
@@ -161,35 +137,6 @@ class _ShellScaffoldState extends ConsumerState<ShellScaffold> {
     );
   }
 
-  /// Rings if the caller is still waiting; otherwise explains the missed
-  /// call the notification was about.
-  Future<void> _openPendingCall(String callId) async {
-    ref.read(pendingCallProvider.notifier).clear();
-    final userId = ref.read(authUserIdProvider);
-    if (userId == null) return;
-
-    final CallSession? call;
-    try {
-      call = await ref.read(callRepositoryProvider).getCall(callId);
-    } catch (e) {
-      debugPrint('Loading call from notification failed: $e');
-      return;
-    }
-    if (!mounted || call == null || call.receiver.id != userId) return;
-
-    if (call.isRingingAt(DateTime.now())) {
-      _presentIncomingCall(call);
-    } else if (call.status != CallStatus.active &&
-        call.id != _presentedCallId) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('You missed a call from ${call.caller.name}'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
-  }
-
   /// ChatScreen resolves the chat from the coach's uid, so the push is only
   /// followed when its chatId is this client's chat with that coach.
   void _openPendingChat(ChatNotificationTap tap) {
@@ -246,12 +193,6 @@ class _ShellScaffoldState extends ConsumerState<ShellScaffold> {
       debugPrint('Loading challenge from notification failed: $e');
       return null;
     }
-  }
-
-  void _presentIncomingCall(CallSession? call) {
-    if (call == null || call.id == _presentedCallId) return;
-    _presentedCallId = call.id;
-    context.push(CallRouteConstants.incomingCallPath(call.id), extra: call);
   }
 
   void _openCoachChat() {

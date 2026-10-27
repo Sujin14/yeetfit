@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yeetfit/core/services/call_native_service.dart';
 import 'package:yeetfit/shared/providers/auth_providers.dart';
 import 'package:yeetfit/shared/widgets/sign_in_required_view.dart';
 import '../../domain/entities/call_session.dart';
@@ -39,7 +42,12 @@ class ActiveCallScreen extends ConsumerWidget {
     ref.listen(activeCallProvider(call.id), (_, next) {
       if (!next.hasValue) return;
       final status = next.value?.status;
+      debugPrint('[YeetCall] ActiveCallScreen status: $status');
       if (status != null && !status.isFinished) return;
+      debugPrint(
+        '[YeetCall] Caller/callee ended call (status=$status) — dismissing',
+      );
+      unawaited(CallNativeService.clearLockScreenFlags());
       final otherName = call.otherParty(userId).name;
       final current = ref.read(controllerProvider);
       final message = current.phase == CallConnectionPhase.failed

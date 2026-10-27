@@ -18,13 +18,6 @@ final meteredConfigProvider = FutureProvider<String>(
   (ref) => ref.read(callRepositoryProvider).getRealtimeApiKey(),
 );
 
-/// The newest call ringing for the given user id.
-final incomingCallProvider = StreamProvider.autoDispose
-    .family<CallSession?, String>(
-      (ref, userId) =>
-          ref.read(callRepositoryProvider).watchIncomingCall(userId),
-    );
-
 /// Live copy of a call document, keyed by call id.
 final activeCallProvider = StreamProvider.autoDispose
     .family<CallSession?, String>(
