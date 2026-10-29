@@ -1,20 +1,19 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yeetfit/features/plans/data/models/plan_model.dart';
-import 'package:yeetfit/features/plans/domain/entities/plan_category.dart';
 import 'package:yeetfit/features/plans/presentation/providers/plan_detail_controller.dart';
 import 'package:yeetfit/features/plans/presentation/providers/plan_provider.dart';
-import 'package:yeetfit/features/plans/presentation/utils/plan_display.dart';
 
-final selectedPlanCategoryProvider =
-    NotifierProvider<SelectedPlanCategoryNotifier, PlanCategory>(
-      SelectedPlanCategoryNotifier.new,
-    );
+enum ExploreTab { diet, workout }
 
-class SelectedPlanCategoryNotifier extends Notifier<PlanCategory> {
+final exploreTabProvider = NotifierProvider<ExploreTabNotifier, ExploreTab>(
+  ExploreTabNotifier.new,
+);
+
+class ExploreTabNotifier extends Notifier<ExploreTab> {
   @override
-  PlanCategory build() => PlanCategory.all;
+  ExploreTab build() => ExploreTab.diet;
 
-  void select(PlanCategory category) => state = category;
+  void select(ExploreTab tab) => state = tab;
 }
 
 final showFavoritesOnlyProvider =
@@ -29,34 +28,61 @@ class ShowFavoritesOnlyNotifier extends Notifier<bool> {
   void toggle() => state = !state;
 }
 
-/// Workout and diet plans merged (newest first) and filtered client-side by
-/// [selectedPlanCategoryProvider]. With [showFavoritesOnlyProvider] on, the
-/// source is the `isFavorite == true` query instead.
+final exploreSearchActiveProvider =
+    NotifierProvider<ExploreSearchActiveNotifier, bool>(
+      ExploreSearchActiveNotifier.new,
+    );
+
+class ExploreSearchActiveNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void setActive(bool value) => state = value;
+}
+
+final exploreSearchQueryProvider =
+    NotifierProvider<ExploreSearchQueryNotifier, String>(
+      ExploreSearchQueryNotifier.new,
+    );
+
+class ExploreSearchQueryNotifier extends Notifier<String> {
+  @override
+  String build() => '';
+
+  void setQuery(String value) => state = value;
+
+  void clear() => state = '';
+}
+
+/// Plans for the active Explore tab, optionally favourites-only and searched.
 final explorePlansProvider = Provider<AsyncValue<List<PlanModel>>>((ref) {
-  final selected = ref.watch(selectedPlanCategoryProvider);
-  final sources = ref.watch(showFavoritesOnlyProvider)
-      ? [ref.watch(favoritePlansProvider)]
-      : [ref.watch(allWorkoutPlansProvider), ref.watch(allDietPlansProvider)];
+  final tab = ref.watch(exploreTabProvider);
+  final favoritesOnly = ref.watch(showFavoritesOnlyProvider);
+  final query = ref.watch(exploreSearchQueryProvider).trim().toLowerCase();
+  final source = ref.watch(
+    tab == ExploreTab.diet ? allDietPlansProvider : allWorkoutPlansProvider,
+  );
 
-  // A refresh after each favourite toggle keeps the previous value, so the
-  // list doesn't flash back to the shimmer.
-  final plans = <PlanModel>[];
-  for (final source in sources) {
-    final value = source.value;
-    if (value == null) {
-      if (source case AsyncError(:final error, :final stackTrace)) {
-        return AsyncError(error, stackTrace);
+  return source.when(
+    data: (plans) {
+      var filtered = favoritesOnly
+          ? plans.where((plan) => plan.isFavorite).toList()
+          : List<PlanModel>.from(plans);
+
+      if (query.isNotEmpty) {
+        filtered = filtered.where((plan) {
+          if (plan.title.toLowerCase().contains(query)) return true;
+          final description = plan.details['description'];
+          return description is String &&
+              description.toLowerCase().contains(query);
+        }).toList();
       }
-      return const AsyncLoading();
-    }
-    plans.addAll(value);
-  }
 
-  plans.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-  return AsyncData(
-    selected == PlanCategory.all
-        ? plans
-        : plans.where((plan) => plan.category == selected).toList(),
+      filtered.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return AsyncData(filtered);
+    },
+    loading: () => const AsyncLoading(),
+    error: AsyncError.new,
   );
 });
 

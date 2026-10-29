@@ -24,6 +24,35 @@ class SelectedProgressMetricNotifier extends Notifier<ProgressMetric> {
   void select(ProgressMetric metric) => state = metric;
 }
 
+/// Month shown on the Progress calendar (year + month only). Defaults to now.
+final selectedProgressMonthProvider =
+    NotifierProvider<SelectedProgressMonthNotifier, DateTime>(
+      SelectedProgressMonthNotifier.new,
+    );
+
+class SelectedProgressMonthNotifier extends Notifier<DateTime> {
+  @override
+  DateTime build() {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month);
+  }
+
+  void previous() {
+    state = DateTime(state.year, state.month - 1);
+  }
+
+  void next() {
+    if (!canGoNext) return;
+    state = DateTime(state.year, state.month + 1);
+  }
+
+  bool get canGoNext {
+    final now = DateTime.now();
+    final current = DateTime(now.year, now.month);
+    return DateTime(state.year, state.month + 1).compareTo(current) <= 0;
+  }
+}
+
 typedef ProgressQuery = ({DateTime month, ProgressMetric metric});
 
 /// `dailyCalorieTarget` from the user's profile, or null while it's missing

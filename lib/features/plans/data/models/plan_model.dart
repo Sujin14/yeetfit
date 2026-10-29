@@ -33,7 +33,7 @@ class PlanModel {
     final data = doc.data() as Map<String, dynamic>;
     final collectionType = doc.reference.parent.path.contains('diets')
         ? 'diet'
-        : 'workouts';
+        : 'workout';
     return PlanModel(
       id: doc.id,
       title: data['title'] ?? 'Unnamed Plan',

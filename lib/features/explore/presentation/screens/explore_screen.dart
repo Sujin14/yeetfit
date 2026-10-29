@@ -91,7 +91,7 @@ class ExploreScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final plans = ref.watch(explorePlansProvider);
-    final selectedCategory = ref.watch(selectedPlanCategoryProvider);
+    final selectedTab = ref.watch(exploreTabProvider);
     final favoritesOnly = ref.watch(showFavoritesOnlyProvider);
     final now = ref.watch(sessionClockProvider).value ?? DateTime.now();
     final remindedSessionIds =
@@ -129,59 +129,67 @@ class ExploreScreen extends ConsumerWidget {
       ref.read(exploreFavoriteControllerProvider.notifier).consume();
     });
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: ExploreBody(
-        sessionsSection: LiveSessionsSection(
-          sessions: sessions,
-          now: now,
-          remindedSessionIds: remindedSessionIds,
-          isAdmin: isAdmin,
-          onJoin: (session) => _joinSession(context, session),
-          onRemind: (session) => _remindSession(context, ref, session),
-          onDelete: (session) => _deleteSession(context, ref, session),
-          onCreate: () => context.push(SessionRouteConstants.create),
-          // The header only builds once the section is visible, so the tour
-          // waits until there is something to point at.
-          headerWrapper: userId == null
-              ? null
-              : (header) => WalkthroughTrigger(
-                  tourKey: WalkthroughController.explore,
-                  userId: userId,
-                  targets: ExploreTour.targets,
-                  child: YanaShowcase(
-                    step: ExploreTour.sessions,
-                    child: header,
+    final searchActive = ref.watch(exploreSearchActiveProvider);
+
+    return PopScope(
+      canPop: !searchActive,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop || !searchActive) return;
+        ref.read(exploreSearchQueryProvider.notifier).clear();
+        ref.read(exploreSearchActiveProvider.notifier).setActive(false);
+        FocusManager.instance.primaryFocus?.unfocus();
+      },
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: ExploreBody(
+          sessionsSection: LiveSessionsSection(
+            sessions: sessions,
+            now: now,
+            remindedSessionIds: remindedSessionIds,
+            isAdmin: isAdmin,
+            onJoin: (session) => _joinSession(context, session),
+            onRemind: (session) => _remindSession(context, ref, session),
+            onDelete: (session) => _deleteSession(context, ref, session),
+            onCreate: () => context.push(SessionRouteConstants.create),
+            // The header only builds once the section is visible, so the tour
+            // waits until there is something to point at.
+            headerWrapper: userId == null
+                ? null
+                : (header) => WalkthroughTrigger(
+                    tourKey: WalkthroughController.explore,
+                    userId: userId,
+                    targets: ExploreTour.targets,
+                    child: YanaShowcase(
+                      step: ExploreTour.sessions,
+                      child: header,
+                    ),
                   ),
-                ),
-        ),
-        plans: plans,
-        selectedCategory: selectedCategory,
-        onCategorySelected: (category) =>
-            ref.read(selectedPlanCategoryProvider.notifier).select(category),
-        favoritesOnly: favoritesOnly,
-        onFavoritesToggled: () =>
-            ref.read(showFavoritesOnlyProvider.notifier).toggle(),
-        onPlanTap: (plan) {
-          final planId = plan.id;
-          if (planId == null) return;
-          context.push(
-            PlansRouteConstants.detailPath(plan.routeCategory, planId),
-          );
-        },
-        onToggleFavorite: (plan) => ref
-            .read(exploreFavoriteControllerProvider.notifier)
-            .toggleFavorite(plan),
-        onRetry: () => ref
-          ..invalidate(allWorkoutPlansProvider)
-          ..invalidate(allDietPlansProvider)
-          ..invalidate(favoritePlansProvider)
-          ..invalidate(
-            upcomingSessionsProvider((
-              coachId: coachId,
-              currentUserId: currentUserId,
-            )),
           ),
+          plans: plans,
+          selectedTab: selectedTab,
+          onTabSelected: (tab) =>
+              ref.read(exploreTabProvider.notifier).select(tab),
+          favoritesOnly: favoritesOnly,
+          onPlanTap: (plan) {
+            final planId = plan.id;
+            if (planId == null) return;
+            context.push(
+              PlansRouteConstants.detailPath(plan.routeCategory, planId),
+            );
+          },
+          onToggleFavorite: (plan) => ref
+              .read(exploreFavoriteControllerProvider.notifier)
+              .toggleFavorite(plan),
+          onRetry: () => ref
+            ..invalidate(allWorkoutPlansProvider)
+            ..invalidate(allDietPlansProvider)
+            ..invalidate(
+              upcomingSessionsProvider((
+                coachId: coachId,
+                currentUserId: currentUserId,
+              )),
+            ),
+        ),
       ),
     );
   }

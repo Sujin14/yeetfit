@@ -11,7 +11,7 @@ import 'package:yeetfit/shared/widgets/yeet_error_state.dart';
 import '../../domain/entities/progress_metric.dart';
 import '../providers/progress_provider.dart';
 import '../widgets/calorie_goal_banner.dart';
-import '../widgets/metric_filter_row.dart';
+import '../widgets/metric_filter_button.dart';
 import '../widgets/progress_calendar_grid.dart';
 import '../widgets/progress_header.dart';
 import 'package:yeetfit/core/theme/app_spacing.dart';
@@ -21,8 +21,8 @@ class ProgressScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final now = DateTime.now();
-    final month = DateTime(now.year, now.month);
+    final month = ref.watch(selectedProgressMonthProvider);
+    final monthNotifier = ref.read(selectedProgressMonthProvider.notifier);
     final metric = ref.watch(selectedProgressMetricProvider);
     final query = (month: month, metric: metric);
     final progressAsync = ref.watch(monthlyProgressProvider(query));
@@ -32,19 +32,24 @@ class ProgressScreen extends ConsumerWidget {
       backgroundColor: Colors.transparent,
       body: CustomScrollView(
         slivers: [
-          SliverToBoxAdapter(child: ProgressHeader(month: month)),
           SliverToBoxAdapter(
-            child: YanaShowcase(
-              step: ProgressTour.filter,
-              child: MetricFilterRow(
-                selected: metric,
-                onSelected: (value) => ref
-                    .read(selectedProgressMetricProvider.notifier)
-                    .select(value),
+            child: ProgressHeader(
+              month: month,
+              onPreviousMonth: monthNotifier.previous,
+              onNextMonth: monthNotifier.next,
+              canGoNext: monthNotifier.canGoNext,
+              trailing: YanaShowcase(
+                step: ProgressTour.filter,
+                child: MetricFilterButton(
+                  selected: metric,
+                  onSelected: (value) => ref
+                      .read(selectedProgressMetricProvider.notifier)
+                      .select(value),
+                ),
               ),
             ),
           ),
-          const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.smd)),
+          const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sm)),
           if (userId != null && metric == ProgressMetric.calories)
             SliverToBoxAdapter(child: CalorieGoalBanner(userId: userId)),
           SliverToBoxAdapter(

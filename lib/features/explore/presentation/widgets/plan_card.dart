@@ -3,7 +3,6 @@ import 'package:yeetfit/core/theme/app_colors.dart';
 import 'package:yeetfit/features/plans/data/models/plan_model.dart';
 import 'package:yeetfit/features/plans/presentation/utils/plan_display.dart';
 import 'package:yeetfit/shared/widgets/glass_card.dart';
-import 'plan_category_badge.dart';
 import 'plan_thumbnail.dart';
 import 'package:yeetfit/core/theme/app_spacing.dart';
 
@@ -51,8 +50,6 @@ class PlanCard extends StatelessWidget {
                                 color: colors.onBackground,
                               ),
                             ),
-                            const SizedBox(height: AppSpacing.sm),
-                            PlanCategoryBadge(label: plan.categoryLabel),
                             const SizedBox(height: AppSpacing.sm),
                             Text(
                               plan.metaLine,

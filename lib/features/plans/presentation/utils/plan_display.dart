@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../data/models/plan_model.dart';
-import '../../domain/entities/plan_category.dart';
 import '../../domain/entities/plan_exercise.dart';
 
 /// Read-only display accessors over the free-form `details` map.
@@ -18,11 +17,7 @@ extension PlanDisplay on PlanModel {
   /// Path segment used by the plans routes (`/plans/:category/:id`).
   String get routeCategory => isDiet ? 'diet' : 'workouts';
 
-  PlanCategory? get category => isDiet
-      ? PlanCategory.nutrition
-      : PlanCategory.fromValue(_string('category'));
-
-  String get categoryLabel => category?.label ?? (isDiet ? 'Diet' : 'Workout');
+  String get categoryLabel => isDiet ? 'Diet' : 'Workout';
 
   String? get thumbnailUrl => _string('thumbnailUrl') ?? _string('imageUrl');
 
@@ -78,20 +73,7 @@ extension PlanDisplay on PlanModel {
   }
 }
 
-extension PlanCategoryStyle on PlanCategory {
-  IconData get icon => switch (this) {
-    PlanCategory.all => Icons.apps_rounded,
-    PlanCategory.strength => Icons.fitness_center_rounded,
-    PlanCategory.cardio => Icons.directions_run_rounded,
-    PlanCategory.flexibility => Icons.self_improvement_rounded,
-    PlanCategory.hiit => Icons.bolt_rounded,
-    PlanCategory.recovery => Icons.spa_rounded,
-    PlanCategory.nutrition => Icons.restaurant_rounded,
-  };
-}
-
 extension PlanIcon on PlanModel {
   IconData get categoryIcon =>
-      category?.icon ??
-      (isDiet ? Icons.restaurant_rounded : Icons.fitness_center_rounded);
+      isDiet ? Icons.restaurant_rounded : Icons.fitness_center_rounded;
 }

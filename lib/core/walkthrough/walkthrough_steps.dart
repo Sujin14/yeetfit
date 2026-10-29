@@ -88,8 +88,8 @@ class ProgressTour {
   static final filter = YanaTourStep(
     key: progressFilterKey,
     message:
-        'Use these chips to filter your monthly progress by steps, water, '
-        'sleep or calories 🎯',
+        'Tap the filter to view monthly progress by steps, water, sleep, '
+        'calories or mood 🎯',
     number: 1,
     total: 2,
   );
