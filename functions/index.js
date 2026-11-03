@@ -789,23 +789,34 @@ exports.onCallCancelledNotifyReceiver = onDocumentUpdated(
 
     const db = getFirestore();
     const coachDoc = await db.collection("coaches").doc(after.receiverId).get();
-    if (coachDoc.exists) {
-      logger.info("call_cancelled skipped — receiver is a coach (onCallMissed handles)", { callId });
-      return;
-    }
+    const isCoach = coachDoc.exists;
 
-    const fcmToken = (await db.collection("users").doc(after.receiverId).get())
-      .data()?.fcmToken;
+    // Coaches: coaches/{uid} first, then users/{uid}. Clients: users only.
+    let fcmToken = isCoach ? coachDoc.data()?.fcmToken : undefined;
+    if (!fcmToken) {
+      fcmToken = (await db.collection("users").doc(after.receiverId).get())
+        .data()?.fcmToken;
+    }
     if (!fcmToken) {
       logger.info("call_cancelled push skipped — no FCM token", {
         callId,
         receiverId: after.receiverId,
+        isCoach,
       });
       return;
     }
 
+    // onCallMissed already shows a tray notification when a coach miss is
+    // recorded; skip the duplicate missed alert for that case only.
+    const showMissed = !isCoach
+      ? "true"
+      : after.status === "missed"
+        ? "false"
+        : "true";
+    const callerFallback = isCoach ? "a client" : "your coach";
+
     try {
-      await getMessaging().send({
+      const message = {
         token: fcmToken,
         data: {
           type: "call_cancelled",
@@ -814,32 +825,54 @@ exports.onCallCancelledNotifyReceiver = onDocumentUpdated(
           callerName: after.callerName ?? "",
           callType: after.type ?? "audio",
           reason: after.status,
+          showMissed,
         },
         android: { priority: "high", ttl: 3600 * 1000 },
-        apns: {
-          payload: {
-            aps: {
-              alert: {
-                title: "Missed call",
-                body: `Missed call from ${after.callerName ?? "your coach"}`,
+        apns:
+          showMissed === "true"
+            ? {
+                payload: {
+                  aps: {
+                    alert: {
+                      title: "Missed call",
+                      body: `Missed call from ${after.callerName ?? callerFallback}`,
+                    },
+                    sound: "default",
+                  },
+                },
+                headers: {
+                  "apns-priority": "10",
+                  "apns-push-type": "alert",
+                },
+              }
+            : {
+                headers: {
+                  "apns-priority": "5",
+                  "apns-push-type": "background",
+                },
+                payload: { aps: { "content-available": 1 } },
               },
-              sound: "default",
-            },
-          },
-          headers: {
-            "apns-priority": "10",
-            "apns-push-type": "alert",
-          },
-        },
+      };
+      await getMessaging().send(message);
+      logger.info("call_cancelled push sent", {
+        callId,
+        reason: after.status,
+        isCoach,
+        showMissed,
       });
-      logger.info("call_cancelled push sent", { callId, reason: after.status });
     } catch (error) {
       if (error.code === "messaging/registration-token-not-registered") {
-        logger.info("call_cancelled token not registered", { callId });
+        logger.info("call_cancelled token not registered", {
+          callId,
+          isCoach,
+          showMissed,
+        });
         return;
       }
       logger.error("call_cancelled push failed", {
         callId,
+        isCoach,
+        showMissed,
         message: error.message,
       });
     }

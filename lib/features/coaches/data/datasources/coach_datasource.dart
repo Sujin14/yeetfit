@@ -35,14 +35,15 @@ class CoachDataSource {
           (snapshot) =>
               [
                 for (final doc in snapshot.docs)
-                  if (_isComplete(doc)) CoachModel.fromFirestore(doc),
+                  if (_isAvailable(doc)) CoachModel.fromFirestore(doc),
               ]..sort(
                 (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
               ),
         );
   }
 
-  /// `null` when the coach's profile no longer exists or is incomplete.
+  /// `null` when the coach's profile no longer exists, is incomplete, or
+  /// is inactive / soft-disabled.
   Future<CoachModel?> getCoach(String coachId) async {
     final ref = _coaches.doc(coachId);
     DocumentSnapshot<Map<String, dynamic>> doc;
@@ -52,15 +53,29 @@ class CoachDataSource {
       if (e.code != 'unavailable') rethrow;
       doc = await ref.get(const GetOptions(source: Source.cache));
     }
-    return _isComplete(doc) ? CoachModel.fromFirestore(doc) : null;
+    return _isAvailable(doc) ? CoachModel.fromFirestore(doc) : null;
   }
 
-  /// Skips leftover or half-written profiles: YeetCoach always writes a
-  /// `uid` matching the doc ID and a name.
-  static bool _isComplete(DocumentSnapshot<Map<String, dynamic>> doc) {
+  /// Live `coaches/{coachId}` profile. Emits `null` when missing, incomplete,
+  /// or not active — same rule as [getCoach].
+  Stream<CoachModel?> watchCoach(String coachId) {
+    return _coaches.doc(coachId).snapshots().map((doc) {
+      return _isAvailable(doc) ? CoachModel.fromFirestore(doc) : null;
+    });
+  }
+
+  /// Skips leftover, half-written, inactive or soft-deleted profiles.
+  /// YeetCoach always writes a `uid` matching the doc ID and a name.
+  static bool _isAvailable(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data();
-    final name = data?['name'];
-    return name is String && name.trim().isNotEmpty && data?['uid'] == doc.id;
+    if (data == null) return false;
+    final name = data['name'];
+    if (name is! String || name.trim().isEmpty || data['uid'] != doc.id) {
+      return false;
+    }
+    if (data['isActive'] != true) return false;
+    if (data['deleted'] == true || data['disabled'] == true) return false;
+    return true;
   }
 
   /// Live `clients/{uid}` profile, including the coach-assigned training days.

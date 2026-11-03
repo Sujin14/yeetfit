@@ -73,11 +73,6 @@ class PlanDetailPage extends ConsumerWidget {
                   onToggleFavorite: () => ref
                       .read(planDetailControllerProvider.notifier)
                       .toggleFavorite(updatedPlan),
-                  onStartPlan: () => _showSnackBar(
-                    context,
-                    'Workout tracking for plans is coming soon',
-                    colors.surface,
-                  ),
                 ),
           loading: () => const PlanDetailStatusView(
             title: 'Plan',

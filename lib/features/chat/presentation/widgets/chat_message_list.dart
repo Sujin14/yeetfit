@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:yeetfit/core/theme/app_colors.dart';
+import 'package:yeetfit/core/theme/app_spacing.dart';
 import 'package:yeetfit/shared/widgets/chat_date_chip.dart';
 import '../../../../core/utils/date_util.dart';
 import '../../data/model/message_model.dart';
 import '../controllers/chat_controller.dart';
 import 'message_bubble.dart';
-import 'package:yeetfit/core/theme/app_spacing.dart';
 
 /// Oldest-first messages with a date chip before each new day.
 class ChatMessageList extends StatelessWidget {
@@ -36,6 +37,18 @@ class ChatMessageList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (messages.isEmpty) {
+      final colors = Theme.of(context).extension<AppColors>()!;
+      return Center(
+        child: Text(
+          'No messages yet',
+          style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+            color: colors.textMuted,
+          ),
+        ),
+      );
+    }
+
     final items = _withDateSeparators(messages);
     return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),

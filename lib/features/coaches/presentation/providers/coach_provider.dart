@@ -87,15 +87,98 @@ final currentCoachIdProvider = StreamProvider.autoDispose
           ref.read(coachRepositoryProvider).watchCurrentCoachId(clientUid),
     );
 
+/// Live `coaches/{coachId}` profile; `null` when missing / inactive / disabled.
+final coachProfileProvider = StreamProvider.autoDispose.family<Coach?, String>(
+  (ref, coachId) => ref.watch(coachRepositoryProvider).watchCoach(coachId),
+);
+
 /// The assigned coach's profile; `null` when none is assigned or the
 /// profile no longer exists. Follows changes to `currentCoachId`.
-final currentCoachProvider = FutureProvider.autoDispose.family<Coach?, String>((
+///
+/// Prefer [myCoachProvider] for UI that must distinguish none vs unavailable
+/// without calling `.future` on auto-dispose providers.
+final currentCoachProvider = Provider.autoDispose.family<AsyncValue<Coach?>, String>((
   ref,
   clientUid,
-) async {
-  final coachId = await ref.watch(currentCoachIdProvider(clientUid).future);
-  if (coachId == null) return null;
-  return ref.read(coachRepositoryProvider).getCoach(coachId);
+) {
+  final coachIdAsync = ref.watch(currentCoachIdProvider(clientUid));
+  return coachIdAsync.when(
+    loading: () => const AsyncLoading(),
+    error: AsyncError.new,
+    data: (coachId) {
+      if (coachId == null || coachId.isEmpty) {
+        return const AsyncData(null);
+      }
+      return ref.watch(coachProfileProvider(coachId));
+    },
+  );
+});
+
+/// Coach identity shown in chat / gate UI.
+class MyCoach {
+  final String id;
+  final String name;
+  final String? photoUrl;
+
+  const MyCoach({
+    required this.id,
+    required this.name,
+    required this.photoUrl,
+  });
+}
+
+/// Result of resolving the client's assigned coach for chat.
+sealed class MyCoachState {
+  const MyCoachState();
+}
+
+class MyCoachLoading extends MyCoachState {
+  const MyCoachLoading();
+}
+
+class MyCoachNone extends MyCoachState {
+  const MyCoachNone();
+}
+
+class MyCoachUnavailable extends MyCoachState {
+  const MyCoachUnavailable();
+}
+
+class MyCoachReady extends MyCoachState {
+  final MyCoach coach;
+
+  const MyCoachReady(this.coach);
+}
+
+/// Watches [currentCoachIdProvider] then the coach profile doc. Never uses
+/// `.future` so auto-dispose cannot throw mid-load.
+final myCoachProvider = Provider.autoDispose.family<MyCoachState, String>((
+  ref,
+  clientUid,
+) {
+  final coachIdAsync = ref.watch(currentCoachIdProvider(clientUid));
+  return coachIdAsync.when(
+    loading: () => const MyCoachLoading(),
+    error: (_, _) => const MyCoachUnavailable(),
+    data: (coachId) {
+      if (coachId == null || coachId.isEmpty) return const MyCoachNone();
+      final profileAsync = ref.watch(coachProfileProvider(coachId));
+      return profileAsync.when(
+        loading: () => const MyCoachLoading(),
+        error: (_, _) => const MyCoachUnavailable(),
+        data: (coach) {
+          if (coach == null) return const MyCoachUnavailable();
+          return MyCoachReady(
+            MyCoach(
+              id: coach.uid,
+              name: coach.name,
+              photoUrl: coach.profileImageUrl,
+            ),
+          );
+        },
+      );
+    },
+  );
 });
 
 typedef CoachRequestKey = ({String clientUid, String coachId});

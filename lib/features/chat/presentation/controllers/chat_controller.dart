@@ -16,15 +16,19 @@ class ChatState {
   /// The other user's profile no longer exists: past messages stay readable
   /// but nothing new can be sent.
   final bool isAccountDeleted;
+  final bool selectionMode;
+  final Set<String> selectedIds;
   final String? error;
 
   ChatState({
     this.messages = const [],
     this.isLoadingMessages = true,
     this.participantTyping = false,
-    this.participantName = 'Admin',
+    this.participantName = 'Coach',
     this.participantImage = '',
     this.isAccountDeleted = false,
+    this.selectionMode = false,
+    this.selectedIds = const {},
     this.error,
   });
 
@@ -36,6 +40,8 @@ class ChatState {
     String? participantName,
     String? participantImage,
     bool? isAccountDeleted,
+    bool? selectionMode,
+    Set<String>? selectedIds,
     String? error,
   }) {
     return ChatState(
@@ -45,6 +51,8 @@ class ChatState {
       participantName: participantName ?? this.participantName,
       participantImage: participantImage ?? this.participantImage,
       isAccountDeleted: isAccountDeleted ?? this.isAccountDeleted,
+      selectionMode: selectionMode ?? this.selectionMode,
+      selectedIds: selectedIds ?? this.selectedIds,
       error: error,
     );
   }
@@ -76,6 +84,13 @@ class ChatController extends Notifier<ChatState> {
     return ChatState();
   }
 
+  /// Seeds the display name before the coaches/ stream lands.
+  /// Photo comes from [myCoachProvider] / coach doc in the header — not args.
+  void seedParticipant({required String name}) {
+    if (name.isEmpty) return;
+    state = state.copyWith(participantName: name);
+  }
+
   Future<void> setupChat() async {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
@@ -86,10 +101,10 @@ class ChatController extends Notifier<ChatState> {
     _participantId = participantId;
 
     try {
-      final accountDeleted = !await _chatService.userExists(adminId);
+      final accountDeleted = !await _chatService.coachExists(adminId);
       if (!ref.mounted) return;
       if (accountDeleted) state = state.copyWith(isAccountDeleted: true);
-      // The rules reject creating a chat with a deleted user.
+      // The rules reject creating a chat with a deleted coach.
       final chatId = accountDeleted
           ? FirestoreChatService.chatIdFor(adminId, participantId)
           : await _chatService.createOrGetChat(
@@ -132,7 +147,7 @@ class ChatController extends Notifier<ChatState> {
           );
 
       _profileSubscription = _chatService
-          .getUserProfile(adminId)
+          .getCoachProfile(adminId)
           .listen(
             (profile) {
               if (profile == null) {
@@ -146,7 +161,7 @@ class ChatController extends Notifier<ChatState> {
               );
             },
             onError: (e) {
-              state = state.copyWith(error: 'Failed to load user profile: $e');
+              state = state.copyWith(error: 'Failed to load coach profile: $e');
             },
           );
     } catch (e) {
@@ -208,36 +223,68 @@ class ChatController extends Notifier<ChatState> {
     }
   }
 
-  /// Returns whether the chat was deleted; on failure [ChatState.error] is set.
-  Future<bool> deleteChats() async {
+  void enterSelection(String messageId) {
+    state = state.copyWith(
+      selectionMode: true,
+      selectedIds: {messageId},
+    );
+  }
+
+  void toggleSelection(String messageId) {
+    final next = Set<String>.from(state.selectedIds);
+    if (!next.add(messageId)) next.remove(messageId);
+    if (next.isEmpty) {
+      clearSelection();
+      return;
+    }
+    state = state.copyWith(selectionMode: true, selectedIds: next);
+  }
+
+  void clearSelection() {
+    state = state.copyWith(selectionMode: false, selectedIds: const {});
+  }
+
+  /// Soft-deletes selected messages for the signed-in user only.
+  Future<bool> deleteSelectedForMe() async {
     final chatId = _chatId;
-    if (chatId == null) {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (chatId == null || uid == null) {
+      state = state.copyWith(error: 'Chat not initialized');
+      return false;
+    }
+    final ids = state.selectedIds.toList();
+    if (ids.isEmpty) return false;
+    try {
+      await _chatService.deleteMessagesForMe(chatId, ids, uid);
+      if (!ref.mounted) return true;
+      clearSelection();
+      return true;
+    } catch (e) {
+      if (ref.mounted) {
+        state = state.copyWith(error: 'Failed to delete messages: $e');
+      }
+      return false;
+    }
+  }
+
+  /// Clears the chat for the signed-in user only; the other party keeps it.
+  Future<bool> clearChatForMe() async {
+    final chatId = _chatId;
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (chatId == null || uid == null) {
       state = state.copyWith(error: 'Chat not initialized');
       return false;
     }
     try {
-      await _chatService.deleteChat(chatId);
+      await _chatService.clearChatForMe(chatId, uid);
+      if (!ref.mounted) return true;
+      clearSelection();
       return true;
     } catch (e) {
       if (ref.mounted) {
         state = state.copyWith(error: 'Failed to delete chat: $e');
       }
       return false;
-    }
-  }
-
-  Future<void> deleteMessages(String messageId) async {
-    final chatId = _chatId;
-    if (chatId == null) {
-      state = state.copyWith(error: 'Chat not initialized');
-      return;
-    }
-    try {
-      await _chatService.deleteMessage(chatId, messageId);
-    } catch (e) {
-      if (ref.mounted) {
-        state = state.copyWith(error: 'Failed to delete message: $e');
-      }
     }
   }
 }

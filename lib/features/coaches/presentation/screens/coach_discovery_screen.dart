@@ -30,7 +30,10 @@ class CoachDiscoveryScreen extends ConsumerWidget {
               onOpen: (coach) =>
                   context.push(CoachRouteConstants.detail, extra: coach),
               onRetry: () => ref.invalidate(activeCoachesProvider),
-              onRefresh: () => ref.refresh(currentCoachProvider(userId).future),
+              onRefresh: () async {
+                ref.invalidate(currentCoachIdProvider(userId));
+                ref.invalidate(activeCoachesProvider);
+              },
               onCoachRemoved: () => context.go(ShellRouteConstants.coaches),
             ),
     );

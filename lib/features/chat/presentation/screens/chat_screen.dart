@@ -15,8 +15,13 @@ import '../widgets/chat_body.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String adminId;
+  final String? initialName;
 
-  const ChatScreen({super.key, required this.adminId});
+  const ChatScreen({
+    super.key,
+    required this.adminId,
+    this.initialName,
+  });
 
   @override
   ConsumerState<ChatScreen> createState() => _ChatScreenState();
@@ -27,7 +32,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   void initState() {
     super.initState();
     Future.microtask(() {
-      ref.read(chatControllerProvider(widget.adminId).notifier).setupChat();
+      final controller =
+          ref.read(chatControllerProvider(widget.adminId).notifier);
+      final name = widget.initialName;
+      if (name != null && name.isNotEmpty) {
+        controller.seedParticipant(name: name);
+      }
+      controller.setupChat();
     });
   }
 
@@ -65,6 +76,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final controller = ref.read(chatProvider.notifier);
     final isStartingCall = ref.watch(callLauncherProvider).isLoading;
     final isAdmin = ref.watch(isAdminProvider).value ?? false;
+    final selectionMode = chatState.selectionMode;
 
     ref.listen(chatProvider.select((state) => state.error), (_, error) {
       if (error != null) _showError(error);
@@ -74,22 +86,29 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       if (error != null && !next.isLoading) _showError(callErrorMessage(error));
     });
 
-    return ShellGradientBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        resizeToAvoidBottomInset: false,
-        body: ChatBody(
-          messages: chatState.messages,
-          isLoadingMessages: chatState.isLoadingMessages,
-          participantTyping: chatState.participantTyping,
-          isAccountDeleted: chatState.isAccountDeleted,
-          controller: controller,
-          isStartingCall: isStartingCall,
-          onAudioCall: () => _startCall(CallType.audio),
-          onVideoCall: () => _startCall(CallType.video),
-          onScheduleSession: isAdmin
-              ? () => context.push(SessionRouteConstants.create)
-              : null,
+    return PopScope(
+      canPop: !selectionMode,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop || !selectionMode) return;
+        controller.clearSelection();
+      },
+      child: ShellGradientBackground(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          resizeToAvoidBottomInset: false,
+          body: ChatBody(
+            messages: chatState.messages,
+            isLoadingMessages: chatState.isLoadingMessages,
+            participantTyping: chatState.participantTyping,
+            isAccountDeleted: chatState.isAccountDeleted,
+            controller: controller,
+            isStartingCall: isStartingCall,
+            onAudioCall: () => _startCall(CallType.audio),
+            onVideoCall: () => _startCall(CallType.video),
+            onScheduleSession: isAdmin
+                ? () => context.push(SessionRouteConstants.create)
+                : null,
+          ),
         ),
       ),
     );

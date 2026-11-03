@@ -6,8 +6,12 @@ abstract class CoachRepository {
   /// Emits again whenever a coach is added, removed or (de)activated.
   Stream<List<Coach>> watchActiveCoaches();
 
-  /// The coach's profile, or `null` when it no longer exists.
+  /// The coach's profile, or `null` when it no longer exists, is incomplete,
+  /// or is inactive / disabled.
   Future<Coach?> getCoach(String coachId);
+
+  /// Live coach profile; emits `null` under the same rules as [getCoach].
+  Stream<Coach?> watchCoach(String coachId);
 
   /// The signed-in client's `clients/{uid}` document. Missing docs yield an
   /// empty profile.

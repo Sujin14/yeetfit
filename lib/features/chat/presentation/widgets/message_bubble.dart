@@ -7,7 +7,7 @@ import 'package:yeetfit/shared/providers/auth_providers.dart';
 import 'package:yeetfit/shared/widgets/chat_bubble.dart';
 import '../../data/model/message_model.dart';
 import '../controllers/chat_controller.dart';
-import 'message_options_dialog.dart';
+import '../providers/chat_provider.dart';
 import 'package:yeetfit/core/theme/app_spacing.dart';
 
 class MessageBubble extends ConsumerWidget {
@@ -19,31 +19,6 @@ class MessageBubble extends ConsumerWidget {
     required this.message,
     required this.controller,
   });
-
-  void _showMessageOptions(BuildContext context) {
-    final colors = Theme.of(context).extension<AppColors>()!;
-    final messenger = ScaffoldMessenger.of(context);
-    showDialog(
-      context: context,
-      builder: (dialogContext) => MessageOptionsDialog(
-        onCopy: () {
-          Clipboard.setData(ClipboardData(text: message.content));
-          messenger.showSnackBar(
-            SnackBar(
-              content: const Text('Message copied to clipboard'),
-              backgroundColor: colors.primary,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-          Navigator.of(dialogContext).pop();
-        },
-        onDelete: () {
-          controller.deleteMessages(message.id);
-          Navigator.of(dialogContext).pop();
-        },
-      ),
-    );
-  }
 
   static Widget _statusIcon(AppColors colors, String status) {
     return switch (status) {
@@ -62,25 +37,75 @@ class MessageBubble extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).extension<AppColors>()!;
     final isMe = ref.watch(authUserIdProvider) == message.senderId;
+    final chatState = ref.watch(chatControllerProvider(controller.adminId));
+    final selectionMode = chatState.selectionMode;
+    final isSelected = chatState.selectedIds.contains(message.id);
 
-    return ChatBubble(
-      text: message.content,
-      isMine: isMe,
-      onLongPress: () => _showMessageOptions(context),
-      footer: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            DateFormat('hh:mm a').format(message.timestamp),
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall!.copyWith(color: colors.textMuted),
+    return Material(
+      color: isSelected
+          ? colors.primary.withValues(alpha: 0.12)
+          : Colors.transparent,
+      child: InkWell(
+        onTap: selectionMode
+            ? () => controller.toggleSelection(message.id)
+            : null,
+        onLongPress: selectionMode
+            ? null
+            : () {
+                HapticFeedback.lightImpact();
+                controller.enterSelection(message.id);
+              },
+        child: Padding(
+          padding: EdgeInsets.only(
+            left: selectionMode ? AppSpacing.sm : 0,
+            right: selectionMode ? AppSpacing.sm : 0,
           ),
-          if (isMe) ...[
-            const SizedBox(width: AppSpacing.xs),
-            _statusIcon(colors, message.status),
-          ],
-        ],
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              if (selectionMode) ...[
+                Padding(
+                  padding: const EdgeInsets.only(left: AppSpacing.sm),
+                  child: Icon(
+                    isSelected
+                        ? Icons.check_circle_rounded
+                        : Icons.circle_outlined,
+                    size: 22,
+                    color: isSelected ? colors.primary : colors.textMuted,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+              ],
+              Expanded(
+                child: ChatBubble(
+                  text: message.content,
+                  isMine: isMe,
+                  onLongPress: selectionMode
+                      ? null
+                      : () {
+                          HapticFeedback.lightImpact();
+                          controller.enterSelection(message.id);
+                        },
+                  footer: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        DateFormat('hh:mm a').format(message.timestamp),
+                        style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                          color: colors.textMuted,
+                        ),
+                      ),
+                      if (isMe) ...[
+                        const SizedBox(width: AppSpacing.xs),
+                        _statusIcon(colors, message.status),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

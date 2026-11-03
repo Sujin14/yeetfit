@@ -16,6 +16,9 @@ class CoachRepositoryImpl implements CoachRepository {
   Future<Coach?> getCoach(String coachId) => _dataSource.getCoach(coachId);
 
   @override
+  Stream<Coach?> watchCoach(String coachId) => _dataSource.watchCoach(coachId);
+
+  @override
   Stream<ClientProfile> watchClientProfile(String clientUid) =>
       _dataSource.watchClientProfile(clientUid);
 

@@ -12,8 +12,10 @@ import 'package:yeetfit/features/challenges/domain/entities/challenge.dart';
 import 'package:yeetfit/features/challenges/presentation/providers/challenge_provider.dart';
 import 'package:yeetfit/features/challenges/presentation/providers/pending_challenge_provider.dart';
 import 'package:yeetfit/features/chat/presentation/providers/pending_chat_provider.dart';
+import 'package:yeetfit/features/coaches/presentation/providers/coach_provider.dart';
 import 'package:yeetfit/features/dashboard/presentation/widgets/calendar_dialog.dart';
 import 'package:yeetfit/shared/providers/auth_providers.dart';
+import 'package:yeetfit/core/routes/shell_route_constants.dart';
 import 'package:yeetfit/shared/widgets/custom_appbar.dart';
 import 'package:yeetfit/shared/widgets/glass_app_drawer.dart';
 import 'package:yeetfit/shared/widgets/glass_bottom_nav_bar.dart';
@@ -137,8 +139,8 @@ class _ShellScaffoldState extends ConsumerState<ShellScaffold> {
     );
   }
 
-  /// ChatScreen resolves the chat from the coach's uid, so the push is only
-  /// followed when its chatId is this client's chat with that coach.
+  /// Opens coach chat only when the sender is the client's current coach.
+  /// Otherwise lands on the dashboard.
   void _openPendingChat(ChatNotificationTap tap) {
     ref.read(pendingChatProvider.notifier).clear();
     final userId = ref.read(authUserIdProvider);
@@ -150,9 +152,20 @@ class _ShellScaffoldState extends ConsumerState<ShellScaffold> {
       return;
     }
 
+    final coachState = ref.read(myCoachProvider(userId));
+    final isCurrentCoach =
+        coachState is MyCoachReady && coachState.coach.id == tap.senderId;
+    if (!isCurrentCoach) {
+      context.go(ShellRouteConstants.dashboard);
+      return;
+    }
+
     final current = GoRouter.of(context).routerDelegate.currentConfiguration;
     if (current.uri.path == ChatRouteConstants.chat &&
         current.extra == tap.senderId) {
+      return;
+    }
+    if (current.uri.path == ChatRouteConstants.coachChat) {
       return;
     }
     context.push(ChatRouteConstants.chat, extra: tap.senderId);
@@ -197,7 +210,7 @@ class _ShellScaffoldState extends ConsumerState<ShellScaffold> {
 
   void _openCoachChat() {
     if (ref.read(authUserIdProvider) == null) return;
-    context.push(ChatRouteConstants.adminList);
+    context.push(ChatRouteConstants.coachChat);
   }
 
   void _showCalendarDialog() {

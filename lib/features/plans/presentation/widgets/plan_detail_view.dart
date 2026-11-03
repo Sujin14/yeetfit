@@ -1,24 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:yeetfit/core/theme/app_colors.dart';
-import 'package:yeetfit/shared/widgets/gradient_button.dart';
+import 'package:yeetfit/core/theme/app_spacing.dart';
 import '../../data/models/plan_model.dart';
 import '../utils/plan_display.dart';
 import 'diet_meal_card.dart';
 import 'exercise_card.dart';
 import 'plan_detail_app_bar.dart';
 import 'plan_info_section.dart';
-import 'package:yeetfit/core/theme/app_spacing.dart';
 
 class PlanDetailView extends StatelessWidget {
   final PlanModel plan;
   final VoidCallback onToggleFavorite;
-  final VoidCallback onStartPlan;
 
   const PlanDetailView({
     super.key,
     required this.plan,
     required this.onToggleFavorite,
-    required this.onStartPlan,
   });
 
   @override
@@ -28,6 +25,8 @@ class PlanDetailView extends StatelessWidget {
     final mealNames = plan.orderedMealNames;
     final meals = plan.meals;
     final isEmpty = plan.isDiet ? mealNames.isEmpty : exercises.isEmpty;
+    final bottomPad =
+        MediaQuery.paddingOf(context).bottom + AppSpacing.lg;
 
     return CustomScrollView(
       slivers: [
@@ -85,13 +84,7 @@ class PlanDetailView extends StatelessWidget {
             itemBuilder: (context, index) =>
                 ExerciseCard(index: index, exercise: exercises[index]),
           ),
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-            child: GradientButton(label: 'Start Plan', onPressed: onStartPlan),
-          ),
-        ),
-        const SliverToBoxAdapter(child: SizedBox(height: 100)),
+        SliverToBoxAdapter(child: SizedBox(height: bottomPad)),
       ],
     );
   }

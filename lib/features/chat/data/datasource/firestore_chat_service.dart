@@ -11,6 +11,7 @@ class FirestoreChatService {
     if (currentUser == null) {
       return Stream.error(Exception('User not authenticated'));
     }
+    final uid = currentUser.uid;
     return _firestore
         .collection('chats')
         .doc(chatId)
@@ -20,31 +21,52 @@ class FirestoreChatService {
         )
         .asyncMap((chatDoc) async {
           if (!chatDoc.exists) return <MessageModel>[];
-          final snapshot = await _firestore
+          final chatData = chatDoc.data() ?? const <String, dynamic>{};
+          final clearedAtRaw = chatData['clearedAt'];
+          Timestamp? clearedAt;
+          if (clearedAtRaw is Map) {
+            final value = clearedAtRaw[uid];
+            if (value is Timestamp) clearedAt = value;
+          }
+
+          Query<Map<String, dynamic>> query = _firestore
               .collection('chats')
               .doc(chatId)
               .collection('messages')
-              .where('participants', arrayContains: currentUser.uid)
+              .where('participants', arrayContains: uid);
+
+          if (clearedAt != null) {
+            query = query.where('timestamp', isGreaterThan: clearedAt);
+          }
+
+          final snapshot = await query
               .orderBy('timestamp', descending: true)
               .limit(50)
               .get();
+
           return snapshot.docs
               .map((doc) => MessageModel.fromMap(doc.data(), doc.id))
+              .where((message) => !message.deletedFor.contains(uid))
               .toList();
         });
   }
 
-  /// `null` once the user's profile no longer exists (account deleted).
-  Stream<Map<String, dynamic>?> getUserProfile(String userId) {
-    return _firestore
-        .collection('users')
-        .doc(userId)
-        .snapshots()
-        .map((doc) => doc.data());
+  /// Coach chat participant profile from `coaches/{coachId}`.
+  /// `null` once the coach doc no longer exists (account deleted / removed).
+  /// Maps `profileImageUrl` to `profileImage` for the chat UI.
+  Stream<Map<String, dynamic>?> getCoachProfile(String coachId) {
+    return _firestore.collection('coaches').doc(coachId).snapshots().map((doc) {
+      final data = doc.data();
+      if (data == null) return null;
+      return {
+        'name': data['name'],
+        'profileImage': data['profileImageUrl'] ?? data['profileImage'] ?? '',
+      };
+    });
   }
 
-  Future<bool> userExists(String userId) async =>
-      (await _firestore.collection('users').doc(userId).get()).exists;
+  Future<bool> coachExists(String coachId) async =>
+      (await _firestore.collection('coaches').doc(coachId).get()).exists;
 
   static String chatIdFor(String userA, String userB) {
     final ids = [userA, userB]..sort();
@@ -98,24 +120,43 @@ class FirestoreChatService {
         .update({'status': status});
   }
 
-  Future<void> deleteChat(String chatId) async {
-    await _ensureCanModifyChat(chatId, 'Not authorized to delete this chat');
-    final chatRef = _firestore.collection('chats').doc(chatId);
-    final messages = await chatRef.collection('messages').get();
-    for (final doc in messages.docs) {
-      await doc.reference.delete();
+  /// Soft-deletes [messageIds] for [uid] only (`deletedFor` arrayUnion).
+  Future<void> deleteMessagesForMe(
+    String chatId,
+    List<String> messageIds,
+    String uid,
+  ) async {
+    if (messageIds.isEmpty) return;
+    await _ensureCanModifyChat(chatId, 'Not authorized to delete this message');
+    const chunkSize = 450;
+    for (var i = 0; i < messageIds.length; i += chunkSize) {
+      final end = (i + chunkSize < messageIds.length)
+          ? i + chunkSize
+          : messageIds.length;
+      final chunk = messageIds.sublist(i, end);
+      final batch = _firestore.batch();
+      for (final messageId in chunk) {
+        batch.update(
+          _firestore
+              .collection('chats')
+              .doc(chatId)
+              .collection('messages')
+              .doc(messageId),
+          {
+            'deletedFor': FieldValue.arrayUnion([uid]),
+          },
+        );
+      }
+      await batch.commit();
     }
-    await chatRef.delete();
   }
 
-  Future<void> deleteMessage(String chatId, String messageId) async {
-    await _ensureCanModifyChat(chatId, 'Not authorized to delete this message');
-    await _firestore
-        .collection('chats')
-        .doc(chatId)
-        .collection('messages')
-        .doc(messageId)
-        .delete();
+  /// Hides the chat history for [uid] without removing messages for others.
+  Future<void> clearChatForMe(String chatId, String uid) async {
+    await _ensureCanModifyChat(chatId, 'Not authorized to delete this chat');
+    await _firestore.collection('chats').doc(chatId).set({
+      'clearedAt': {uid: FieldValue.serverTimestamp()},
+    }, SetOptions(merge: true));
   }
 
   /// Throws unless the chat exists and the signed-in user is an admin or one

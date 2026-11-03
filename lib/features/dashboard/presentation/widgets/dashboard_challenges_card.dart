@@ -20,7 +20,9 @@ class DashboardChallengesCard extends ConsumerWidget {
         .watch(activeChallengesProvider)
         .when(
           data: (challenges) {
-            if (challenges.isEmpty) return 'New challenges coming soon';
+            if (challenges.isEmpty) {
+              return 'No active challenges right now. Check back soon.';
+            }
             final participants = challenges.fold<int>(
               0,
               (total, challenge) => total + challenge.participantCount,

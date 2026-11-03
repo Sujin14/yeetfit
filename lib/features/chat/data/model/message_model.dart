@@ -9,6 +9,9 @@ class MessageModel {
   final String participantName;
   final String status;
 
+  /// Uids that have deleted this message for themselves only.
+  final List<String> deletedFor;
+
   MessageModel({
     required this.id,
     required this.senderId,
@@ -17,6 +20,7 @@ class MessageModel {
     required this.participants,
     required this.participantName,
     this.status = 'sent',
+    this.deletedFor = const [],
   });
 
   factory MessageModel.fromMap(Map<String, dynamic> map, String id) {
@@ -28,6 +32,7 @@ class MessageModel {
       participants: List<String>.from(map['participants'] ?? []),
       participantName: map['participantName'] ?? 'Admin',
       status: map['status'] ?? 'sent',
+      deletedFor: List<String>.from(map['deletedFor'] ?? const []),
     );
   }
 
